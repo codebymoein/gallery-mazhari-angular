@@ -13,6 +13,7 @@ import {
 } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import { environment } from '@env/environment';
 
 @Injectable()
 export class ErrorInterceptor implements HttpInterceptor {
@@ -29,13 +30,15 @@ export class ErrorInterceptor implements HttpInterceptor {
   }
 
   private handleError(error: HttpErrorResponse): void {
+    if (!environment.debug.errors) {
+      return;
+    }
+
     // Handle specific error scenarios
     if (error.status === 0) {
       console.error('Network error - check your connection');
-      // Could show toast notification here
     } else if (error.status === 401) {
       console.error('Unauthorized - redirecting to login');
-      // Could dispatch logout action and redirect to login
     } else if (error.status === 403) {
       console.error('Forbidden - access denied');
     } else if (error.status === 404) {
@@ -43,8 +46,5 @@ export class ErrorInterceptor implements HttpInterceptor {
     } else if (error.status >= 500) {
       console.error('Server error - please try again later');
     }
-
-    // Log to error tracking service (Sentry, etc.)
-    // this.errorTrackingService.captureException(error);
   }
 }

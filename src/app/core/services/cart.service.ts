@@ -5,7 +5,7 @@
 
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { Observable } from 'rxjs';
+import { map, Observable, take } from 'rxjs';
 import { CartItem } from '@shared/models';
 import * as CartActions from '../store/cart/cart.actions';
 import * as CartSelectors from '../store/cart/cart.selectors';
@@ -84,7 +84,10 @@ export class CartService {
    * Increment item quantity
    */
   incrementQuantity(productId: number): void {
+    // take(1): a live subscription here would re-trigger on its own dispatch
+    // and loop forever.
     this.store.select(CartSelectors.selectCartItemByProductId(productId))
+      .pipe(take(1))
       .subscribe(item => {
         if (item) {
           this.updateQuantity(productId, item.quantity + 1);
@@ -97,6 +100,7 @@ export class CartService {
    */
   decrementQuantity(productId: number): void {
     this.store.select(CartSelectors.selectCartItemByProductId(productId))
+      .pipe(take(1))
       .subscribe(item => {
         if (item) {
           this.updateQuantity(productId, item.quantity - 1);
@@ -164,23 +168,18 @@ export class CartService {
    * Check if product is in cart
    */
   isProductInCart(productId: number): Observable<boolean> {
-    return new Observable(observer => {
-      this.cartItems$.subscribe(items => {
-        observer.next(items.some(i => i.product_id === productId));
-      });
-    });
+    return this.cartItems$.pipe(
+      map(items => items.some(i => i.product_id === productId))
+    );
   }
 
   /**
    * Get product quantity in cart
    */
   getProductQuantity(productId: number): Observable<number> {
-    return new Observable(observer => {
-      this.store.select(CartSelectors.selectCartItemByProductId(productId))
-        .subscribe(item => {
-          observer.next(item?.quantity || 0);
-        });
-    });
+    return this.store
+      .select(CartSelectors.selectCartItemByProductId(productId))
+      .pipe(map(item => item?.quantity || 0));
   }
 
   /**
@@ -215,20 +214,17 @@ export class CartService {
    * Export cart data for checkout
    */
   exportCartData(): Observable<any> {
-    return new Observable(observer => {
-      this.store.select(CartSelectors.selectCartSummary)
-        .subscribe(summary => {
-          observer.next({
-            items: summary.items,
-            itemCount: summary.itemCount,
-            subtotal: summary.subtotal,
-            tax: summary.tax,
-            shipping: summary.shipping,
-            discount: summary.couponDiscount || 0,
-            total: summary.total,
-            exportDate: new Date().toISOString()
-          });
-        });
-    });
+    return this.cartSummary$.pipe(
+      map(summary => ({
+        items: summary.items,
+        itemCount: summary.itemCount,
+        subtotal: summary.subtotal,
+        tax: summary.tax,
+        shipping: summary.shipping,
+        discount: summary.couponDiscount || 0,
+        total: summary.total,
+        exportDate: new Date().toISOString()
+      }))
+    );
   }
 }

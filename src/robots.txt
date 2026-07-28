@@ -2,6 +2,9 @@ User-agent: *
 Allow: /
 Disallow: /account
 Disallow: /cart
+Disallow: /checkout
+Disallow: /orders
 Disallow: /dream-canvas
+Disallow: /admin
 
 Sitemap: https://gallery-mazhari.ir/sitemap.xml

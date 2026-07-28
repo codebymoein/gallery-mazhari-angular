@@ -6,58 +6,39 @@
 import { Injectable, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { of } from 'rxjs';
-import { catchError, map, switchMap, tap, withLatestFrom } from 'rxjs/operators';
+import { map, switchMap, tap, withLatestFrom } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
 import { AdminMarketingService } from '@core/services/admin-marketing.service';
+import { environment } from '@env/environment';
 
 import * as CartActions from './cart.actions';
 import * as CartSelectors from './cart.selectors';
 
+const CART_STORAGE_KEY = environment.storageKeys.cart;
+
 @Injectable()
 export class CartEffects {
   private readonly marketing = inject(AdminMarketingService);
+
   addToCart$ = createEffect(() =>
     this.actions$.pipe(
       ofType(CartActions.addToCart),
-      map(({ item }) => {
-        // Save to localStorage
-        this.saveCartToLocalStorage();
-        return CartActions.addToCartSuccess({ item });
-      }),
-      catchError((error) =>
-        of(CartActions.addToCartError({
-          error: error.message || 'Failed to add item to cart'
-        }))
-      )
+      map(({ item }) => CartActions.addToCartSuccess({ item }))
     )
   );
 
   removeFromCart$ = createEffect(() =>
     this.actions$.pipe(
       ofType(CartActions.removeFromCart),
-      map(({ productId }) => {
-        this.saveCartToLocalStorage();
-        return CartActions.removeFromCartSuccess({ productId });
-      }),
-      catchError((error) =>
-        of(CartActions.removeFromCartError({
-          error: error.message || 'Failed to remove item from cart'
-        }))
-      )
+      map(({ productId }) => CartActions.removeFromCartSuccess({ productId }))
     )
   );
 
   updateCartItemQuantity$ = createEffect(() =>
     this.actions$.pipe(
       ofType(CartActions.updateCartItemQuantity),
-      map(({ productId, quantity }) => {
-        this.saveCartToLocalStorage();
-        return CartActions.updateCartItemQuantitySuccess({ productId, quantity });
-      }),
-      catchError((error) =>
-        of(CartActions.updateCartItemQuantityError({
-          error: error.message || 'Failed to update cart item'
-        }))
+      map(({ productId, quantity }) =>
+        CartActions.updateCartItemQuantitySuccess({ productId, quantity })
       )
     )
   );
@@ -66,14 +47,13 @@ export class CartEffects {
     this.actions$.pipe(
       ofType(CartActions.clearCart),
       map(() => {
-        localStorage.removeItem('cart');
+        try {
+          localStorage.removeItem(CART_STORAGE_KEY);
+        } catch {
+          // Storage unavailable (private mode / quota) — state still clears.
+        }
         return CartActions.clearCartSuccess();
-      }),
-      catchError((error) =>
-        of(CartActions.clearCartError({
-          error: error.message || 'Failed to clear cart'
-        }))
-      )
+      })
     )
   );
 
@@ -81,16 +61,18 @@ export class CartEffects {
     this.actions$.pipe(
       ofType(CartActions.loadCart),
       switchMap(() => {
-        const savedCart = localStorage.getItem('cart');
-        if (savedCart) {
-          try {
+        try {
+          const savedCart = localStorage.getItem(CART_STORAGE_KEY);
+          if (savedCart) {
             const items = JSON.parse(savedCart);
-            return of(CartActions.loadCartSuccess({ items }));
-          } catch (error) {
-            return of(CartActions.loadCartError({
-              error: 'Failed to parse cart from storage'
-            }));
+            if (Array.isArray(items)) {
+              return of(CartActions.loadCartSuccess({ items }));
+            }
           }
+        } catch {
+          return of(
+            CartActions.loadCartError({ error: 'Failed to parse cart from storage' })
+          );
         }
         return of(CartActions.loadCartSuccess({ items: [] }));
       })
@@ -112,7 +94,6 @@ export class CartEffects {
         const resolved = this.marketing.resolveDiscount(coupon, itemsSubtotal);
 
         if (resolved && resolved.amount > 0) {
-          this.saveCartToLocalStorage();
           return of(
             CartActions.applyCouponSuccess({
               coupon: resolved.code,
@@ -134,33 +115,29 @@ export class CartEffects {
   removeCoupon$ = createEffect(() =>
     this.actions$.pipe(
       ofType(CartActions.removeCoupon),
-      map(() => {
-        this.saveCartToLocalStorage();
-        return CartActions.removeCouponSuccess();
-      }),
-      catchError((error) =>
-        of(CartActions.removeCouponError({
-          error: error.message || 'Failed to remove coupon'
-        }))
-      )
+      map(() => CartActions.removeCouponSuccess())
     )
   );
 
+  /**
+   * Shipping is chosen at checkout and there is no VAT line — the cart's
+   * payable amount is simply the items subtotal.
+   */
   calculateTotals$ = createEffect(() =>
     this.actions$.pipe(
       ofType(CartActions.calculateTotals),
       withLatestFrom(this.store.select(CartSelectors.selectCartItems)),
       map(([_, items]) => {
-        const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-        const tax = subtotal * 0.1; // 10% tax
-        const shipping = 5; // Fixed shipping
-        const total = subtotal + tax + shipping;
+        const subtotal = items.reduce(
+          (sum, item) => sum + item.price * item.quantity,
+          0
+        );
 
         return CartActions.calculateTotalsSuccess({
           subtotal,
-          tax,
-          shipping,
-          total
+          tax: 0,
+          shipping: 0,
+          total: subtotal
         });
       })
     )
@@ -173,7 +150,9 @@ export class CartEffects {
           CartActions.addToCartSuccess,
           CartActions.removeFromCartSuccess,
           CartActions.updateCartItemQuantitySuccess,
-          CartActions.applyCouponSuccess
+          CartActions.applyCouponSuccess,
+          CartActions.removeCouponSuccess,
+          CartActions.loadCartSuccess
         ),
         tap(() => {
           this.store.dispatch(CartActions.calculateTotals());
@@ -182,22 +161,33 @@ export class CartEffects {
     { dispatch: false }
   );
 
-  // Auto-load cart on init
-  initCart$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType('[App] Init'),
-      map(() => CartActions.loadCart())
-    )
+  /**
+   * Persist the cart AFTER the reducer has applied the mutation.
+   * A single long-lived effect — never subscribe per action (the previous
+   * implementation leaked one store subscription per cart operation).
+   */
+  persistCart$ = createEffect(
+    () =>
+      this.actions$.pipe(
+        ofType(
+          CartActions.addToCartSuccess,
+          CartActions.removeFromCartSuccess,
+          CartActions.updateCartItemQuantitySuccess
+        ),
+        withLatestFrom(this.store.select(CartSelectors.selectCartItems)),
+        tap(([, items]) => {
+          try {
+            localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
+          } catch {
+            // Storage unavailable — cart stays in memory for the session.
+          }
+        })
+      ),
+    { dispatch: false }
   );
 
   constructor(
     private actions$: Actions,
     private store: Store
   ) {}
-
-  private saveCartToLocalStorage(): void {
-    this.store.select(CartSelectors.selectCartItems).subscribe(items => {
-      localStorage.setItem('cart', JSON.stringify(items));
-    });
-  }
 }

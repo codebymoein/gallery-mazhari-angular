@@ -13,7 +13,7 @@ import {
   HttpResponse
 } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
-import { catchError, tap, retry } from 'rxjs/operators';
+import { catchError, tap } from 'rxjs/operators';
 import { environment } from '@env/environment';
 
 @Injectable()
@@ -29,25 +29,9 @@ export class ApiInterceptor implements HttpInterceptor {
     const clonedReq = this.addHeaders(req);
 
     return next.handle(clonedReq).pipe(
-      // Retry failed requests (except for certain status codes)
-      retry({
-        count: 1,
-        delay: (error: HttpErrorResponse) => {
-          // Only retry on specific conditions
-          if (
-            error.status === 0 || // Network error
-            error.status === 408 || // Request timeout
-            error.status === 429 // Too many requests
-          ) {
-            return throwError(() => error);
-          }
-          return throwError(() => error);
-        }
-      }),
-
-      // Handle responses
+      // Log responses in development only
       tap((event: HttpEvent<any>) => {
-        if (event instanceof HttpResponse) {
+        if (environment.debug.api && event instanceof HttpResponse) {
           console.debug('[ApiInterceptor] Response:', {
             url: event.url,
             status: event.status,
@@ -58,13 +42,15 @@ export class ApiInterceptor implements HttpInterceptor {
 
       // Handle errors
       catchError((error: HttpErrorResponse) => {
-        console.error('[ApiInterceptor] Error:', {
-          url: error.url,
-          status: error.status,
-          statusText: error.statusText,
-          message: error.message,
-          timestamp: new Date().toISOString()
-        });
+        if (environment.debug.api) {
+          console.error('[ApiInterceptor] Error:', {
+            url: error.url,
+            status: error.status,
+            statusText: error.statusText,
+            message: error.message,
+            timestamp: new Date().toISOString()
+          });
+        }
 
         return throwError(() => this.handleError(error));
       })
@@ -86,13 +72,6 @@ export class ApiInterceptor implements HttpInterceptor {
     if (!headers.has('Accept')) {
       headers = headers.set('Accept', 'application/json');
     }
-
-    // Add CORS headers if needed
-    headers = headers.set('Access-Control-Allow-Credentials', 'true');
-
-    // Add custom app headers
-    headers = headers.set('X-App-Version', environment.version);
-    headers = headers.set('X-Requested-With', 'XMLHttpRequest');
 
     // Add language header (for Persian support)
     headers = headers.set('Accept-Language', 'fa-IR,fa;q=0.9,en;q=0.8');
@@ -176,14 +155,6 @@ export class ApiInterceptor implements HttpInterceptor {
           errorCode = 'SERVER_ERROR';
       }
     }
-
-    // Log error for debugging
-    console.error('[ApiInterceptor] Processed error:', {
-      code: errorCode,
-      message: errorMessage,
-      status: error.status,
-      url: error.url
-    });
 
     // Return structured error object
     return {

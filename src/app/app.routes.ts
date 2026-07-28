@@ -4,8 +4,6 @@ import {
   adminGuestGuard,
   managerRoleGuard
 } from './core/guards/admin-auth.guard';
-import { CatalogComponent } from './features/catalog/catalog.component';
-import { CollectionPageComponent } from './features/collection-page/collection-page.component';
 
 export const routes: Routes = [
   {
@@ -28,7 +26,7 @@ export const routes: Routes = [
         description: 'خرید و مشاهده مجموعه لباس عروس، تاج، تور، زیورآلات، کفش، کیف و اکسسوری عروس از گالری مظهری.'
       }
     },
-    component: CatalogComponent
+    loadComponent: () => import('./features/catalog/catalog.component').then(m => m.CatalogComponent)
   },
   {
     path: 'collections/:slug',
@@ -38,7 +36,10 @@ export const routes: Routes = [
         description: 'مشاهده کالکشن‌های اختصاصی لباس عروس شامل عربی، اروپایی، ماهی و نامزدی در گالری مظهری.'
       }
     },
-    component: CollectionPageComponent
+    loadComponent: () =>
+      import('./features/collection-page/collection-page.component').then(
+        m => m.CollectionPageComponent
+      )
   },
   {
     path: 'shop/:slug/:subSlug',
