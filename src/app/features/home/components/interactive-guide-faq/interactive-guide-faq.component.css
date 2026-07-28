@@ -1,0 +1,306 @@
+/* ================================================================
+   Interactive Guide + Smart FAQ
+   Body-shape chips · details/summary accordion · mobile-first
+   ================================================================ */
+
+.guide-faq {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  padding-block: 2rem 2.35rem;
+  color: #f8f5f2;
+  background: #111;
+  background-image:
+    radial-gradient(ellipse 60% 45% at 15% 0%, rgba(212, 175, 55, 0.1), transparent 55%),
+    radial-gradient(ellipse 45% 35% at 95% 100%, rgba(212, 175, 55, 0.06), transparent 50%);
+  border-block-start: 1px solid rgba(212, 175, 55, 0.25);
+  font-family: var(--font-persian);
+}
+
+.guide-faq__inner {
+  width: min(100% - 1.5rem, var(--container-max, 72rem));
+  margin-inline: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+.guide-faq__header {
+  text-align: center;
+}
+
+.guide-faq__eyebrow {
+  margin: 0 0 0.35rem;
+  color: #d4af37;
+  font-family: var(--font-english);
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+}
+
+.guide-faq__title {
+  margin: 0;
+  color: #f8f5f2;
+  font-family: var(--font-display);
+  font-size: clamp(1.15rem, 4vw, 1.75rem);
+  font-weight: 500;
+  line-height: 1.35;
+  text-wrap: balance;
+}
+
+.guide-faq__section-title {
+  margin: 0 0 0.45rem;
+  color: #d4af37;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.guide-faq__lead {
+  margin: 0 0 1rem;
+  color: rgba(248, 245, 242, 0.65);
+  font-size: 0.875rem;
+  line-height: 1.7;
+}
+
+/* ── Body shape chips ── */
+.guide-faq__guide {
+  padding: 1.15rem 1rem 1.25rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(212, 175, 55, 0.25);
+  border-radius: 0.85rem;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.guide-faq__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.guide-faq__chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-inline-size: 48px;
+  min-block-size: 48px;
+  padding: 0.65rem 1rem;
+  color: #f8f5f2;
+  background: rgba(10, 10, 10, 0.55);
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1.3;
+  cursor: pointer;
+  transition:
+    background 0.25s ease,
+    border-color 0.25s ease,
+    color 0.25s ease,
+    transform 0.2s ease;
+}
+
+.guide-faq__chip:hover {
+  border-color: rgba(212, 175, 55, 0.55);
+  transform: translateY(-1px);
+}
+
+.guide-faq__chip:focus {
+  outline: none;
+}
+
+.guide-faq__chip:focus-visible {
+  outline: 2px solid #d4af37;
+  outline-offset: 3px;
+}
+
+.guide-faq__chip--active {
+  color: #0a0a0a;
+  background: #d4af37;
+  border-color: #d4af37;
+  font-weight: 700;
+}
+
+.guide-faq__tip {
+  margin: 0.9rem 0 0;
+  padding: 0.85rem 1rem;
+  color: #f8f5f2;
+  background: rgba(212, 175, 55, 0.1);
+  border: 1px solid rgba(212, 175, 55, 0.28);
+  border-radius: 0.65rem;
+  font-size: 0.875rem;
+  line-height: 1.7;
+  animation: guide-faq-tip-in 0.35s ease;
+}
+
+@keyframes guide-faq-tip-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── FAQ accordion (details/summary) ── */
+.guide-faq__faq {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.guide-faq__accordion {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.guide-faq__item {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(212, 175, 55, 0.28);
+  border-radius: 0.75rem;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  overflow: clip;
+  transition: border-color 0.25s ease;
+}
+
+.guide-faq__item[open] {
+  border-color: rgba(212, 175, 55, 0.5);
+}
+
+.guide-faq__summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-block-size: 48px;
+  padding: 0.85rem 1rem;
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+}
+
+.guide-faq__summary::-webkit-details-marker,
+.guide-faq__summary::marker {
+  display: none;
+  content: '';
+}
+
+.guide-faq__summary:focus {
+  outline: none;
+}
+
+.guide-faq__summary:focus-visible {
+  outline: 2px solid #d4af37;
+  outline-offset: -2px;
+}
+
+.guide-faq__question {
+  flex: 1;
+  color: #f8f5f2;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+/* Gold + that rotates to − when open */
+.guide-faq__toggle {
+  position: relative;
+  flex: 0 0 auto;
+  inline-size: 1.25rem;
+  block-size: 1.25rem;
+}
+
+.guide-faq__toggle::before,
+.guide-faq__toggle::after {
+  content: '';
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 50%;
+  background: #d4af37;
+  border-radius: 1px;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.guide-faq__toggle::before {
+  inline-size: 0.75rem;
+  block-size: 2px;
+  transform: translate(-50%, -50%);
+}
+
+.guide-faq__toggle::after {
+  inline-size: 2px;
+  block-size: 0.75rem;
+  transform: translate(-50%, -50%);
+}
+
+.guide-faq__item[open] .guide-faq__toggle::after {
+  transform: translate(-50%, -50%) rotate(90deg);
+  opacity: 0;
+}
+
+.guide-faq__answer {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.35s ease;
+}
+
+.guide-faq__item[open] .guide-faq__answer {
+  grid-template-rows: 1fr;
+}
+
+.guide-faq__answer > p {
+  margin: 0;
+  padding: 0 1rem 1rem;
+  overflow: hidden;
+  color: rgba(248, 245, 242, 0.7);
+  font-size: 0.875rem;
+  line-height: 1.75;
+}
+
+/* Mobile readability: 14px */
+@media (max-width: 768px) {
+  .guide-faq__lead,
+  .guide-faq__question,
+  .guide-faq__answer > p,
+  .guide-faq__tip,
+  .guide-faq__chip {
+    font-size: 0.875rem;
+  }
+}
+
+@media (min-width: 769px) {
+  .guide-faq {
+    padding-block: 2.75rem 3.25rem;
+  }
+
+  .guide-faq__inner {
+    gap: 2.25rem;
+  }
+
+  .guide-faq__guide {
+    padding: 1.5rem 1.5rem 1.6rem;
+  }
+
+  .guide-faq__section-title {
+    font-size: 1.125rem;
+  }
+
+  .guide-faq__lead {
+    font-size: 0.9375rem;
+  }
+
+  .guide-faq__question {
+    font-size: 0.9375rem;
+  }
+
+  .guide-faq__answer > p {
+    font-size: 0.9rem;
+    max-width: 42rem;
+  }
+}

@@ -1,0 +1,93 @@
+<section class="guide-faq" dir="rtl" aria-labelledby="guide-faq-title">
+
+  <div class="guide-faq__inner">
+    <header class="guide-faq__header">
+      <p class="guide-faq__eyebrow" lang="en" dir="ltr">GUIDE &amp; FAQ</p>
+      <h2 class="guide-faq__title" id="guide-faq-title">
+        راهنمای انتخاب و پاسخ به سوالات شما
+      </h2>
+    </header>
+
+    <!-- Body Shape Guide -->
+    <div class="guide-faq__guide" aria-labelledby="body-shape-title">
+      <h3 class="guide-faq__section-title" id="body-shape-title">
+        راهنمای فرم بدن و انتخاب لباس
+      </h3>
+      <p class="guide-faq__lead">
+        فرم بدن خود را انتخاب کنید تا پیشنهاد مدل مناسب را ببینید.
+      </p>
+
+      <div class="guide-faq__chips" role="group" aria-label="انتخاب فرم بدن">
+        <button
+          *ngFor="let shape of bodyShapes"
+          type="button"
+          class="guide-faq__chip"
+          [class.guide-faq__chip--active]="isSelected(shape.id)"
+          [attr.aria-pressed]="isSelected(shape.id)"
+          (click)="selectShape(shape.id)">
+          {{ shape.label }}
+        </button>
+      </div>
+
+      <p
+        *ngIf="selectedTip as tip"
+        class="guide-faq__tip"
+        role="status"
+        aria-live="polite">
+        {{ tip }}
+      </p>
+    </div>
+
+    <!-- Crown & Face Shape Guide -->
+    <div class="guide-faq__guide" aria-labelledby="face-shape-title">
+      <h3 class="guide-faq__section-title" id="face-shape-title">
+        راهنمای انتخاب تاج با فریم صورت
+      </h3>
+      <p class="guide-faq__lead">
+        فرم صورت خود را انتخاب کنید تا تاج و تور مناسب پیشنهاد شود.
+      </p>
+
+      <div class="guide-faq__chips" role="group" aria-label="انتخاب فرم صورت">
+        <button
+          *ngFor="let face of faceShapes"
+          type="button"
+          class="guide-faq__chip"
+          [class.guide-faq__chip--active]="isFaceSelected(face.id)"
+          [attr.aria-pressed]="isFaceSelected(face.id)"
+          (click)="selectFace(face.id)">
+          {{ face.label }}
+        </button>
+      </div>
+
+      <p
+        *ngIf="selectedFaceTip as tip"
+        class="guide-faq__tip"
+        role="status"
+        aria-live="polite">
+        {{ tip }}
+      </p>
+    </div>
+
+    <!-- FAQ Accordion -->
+    <div class="guide-faq__faq" aria-labelledby="faq-title">
+      <h3 class="guide-faq__section-title" id="faq-title">
+        سوالات متداول عروس
+      </h3>
+
+      <div class="guide-faq__accordion">
+        <details
+          *ngFor="let item of faqs"
+          class="guide-faq__item"
+          [attr.name]="'guide-faq'">
+          <summary class="guide-faq__summary">
+            <span class="guide-faq__question">{{ item.question }}</span>
+            <span class="guide-faq__toggle" aria-hidden="true"></span>
+          </summary>
+          <div class="guide-faq__answer">
+            <p>{{ item.answer }}</p>
+          </div>
+        </details>
+      </div>
+    </div>
+  </div>
+</section>

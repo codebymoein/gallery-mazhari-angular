@@ -1,0 +1,161 @@
+<section class="account" dir="rtl" aria-labelledby="account-title">
+
+  <!-- Profile header -->
+  <header class="account__hero">
+    <div class="account__hero-inner">
+      <p class="account__eyebrow" lang="en" dir="ltr">MY ACCOUNT</p>
+      <h1 id="account-title" class="account__greeting">
+        {{ greeting() }}، عروس گالری مظهری
+      </h1>
+      <p class="account__lead">
+        فضای شخصی شما برای پیگیری سفارش‌ها، بوم رویایی و ترجیحات استایل.
+      </p>
+      <div class="account__hero-stats">
+        <div class="account__stat" *ngIf="orders$ | async as orders">
+          <span class="account__stat-value">{{ orders.length | number:'1.0-0':'fa' }}</span>
+          <span class="account__stat-label">سفارش</span>
+        </div>
+        <div class="account__stat" *ngIf="likedItems$ | async as liked">
+          <span class="account__stat-value">{{ liked.length | number:'1.0-0':'fa' }}</span>
+          <span class="account__stat-label">علاقه‌مندی</span>
+        </div>
+        <div class="account__stat" *ngIf="cartCount$ | async as count">
+          <span class="account__stat-value">{{ count | number:'1.0-0':'fa' }}</span>
+          <span class="account__stat-label">سبد خرید</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="account__body">
+
+    <!-- Quick links -->
+    <nav class="account__quick" aria-label="دسترسی سریع">
+      <a
+        *ngFor="let link of quickLinks"
+        class="account__quick-link"
+        [routerLink]="link.route"
+      >
+        <span class="account__quick-icon" [attr.data-icon]="link.icon" aria-hidden="true"></span>
+        <span class="account__quick-label">{{ link.label }}</span>
+      </a>
+    </nav>
+
+    <div class="account__grid">
+
+      <!-- Liked items -->
+      <section class="account__card account__card--wide" aria-labelledby="liked-title">
+        <h2 id="liked-title" class="account__card-title">علاقه‌مندی‌های بوم رویایی</h2>
+
+        <div class="account__liked-empty" *ngIf="(likedItems$ | async)?.length === 0">
+          <p>هنوز موردی به بوم رویایی اضافه نکرده‌اید.</p>
+          <a [routerLink]="shopLink()" class="account__link">مشاهده فروشگاه</a>
+        </div>
+
+        <ul class="account__liked-list" *ngIf="likedItems$ | async as liked">
+          <li class="account__liked-item" *ngFor="let item of liked.slice(0, 6); trackBy: trackByProductId">
+            <div class="account__liked-image-wrap">
+              <img
+                *ngIf="item.image"
+                class="account__liked-image"
+                [src]="item.image"
+                [alt]="item.name"
+                loading="lazy"
+                (error)="onImageError($event)"
+              />
+            </div>
+            <div class="account__liked-body">
+              <span class="account__liked-name">{{ item.name }}</span>
+              <span class="account__liked-date">{{ formatDate(item.addedAt) }}</span>
+            </div>
+          </li>
+        </ul>
+
+        <a routerLink="/dream-canvas" class="account__card-more" *ngIf="(likedItems$ | async)?.length">
+          مشاهده همه علاقه‌مندی‌ها ←
+        </a>
+      </section>
+
+      <!-- Recent activity -->
+      <section class="account__card" aria-labelledby="activity-title">
+        <h2 id="activity-title" class="account__card-title">فعالیت‌های اخیر</h2>
+
+        <div class="account__activity-empty" *ngIf="(activities$ | async)?.length === 0">
+          <p>فعالیتی ثبت نشده است.</p>
+        </div>
+
+        <ul class="account__activity-list" *ngIf="activities$ | async as activities">
+          <li
+            class="account__activity-item"
+            *ngFor="let act of activities; trackBy: trackByActivity"
+          >
+            <span
+              class="account__activity-dot"
+              [class.account__activity-dot--order]="act.type === 'order'"
+              [class.account__activity-dot--canvas]="act.type === 'canvas'"
+              aria-hidden="true"
+            ></span>
+            <div class="account__activity-body">
+              <span class="account__activity-title">{{ act.title }}</span>
+              <span class="account__activity-sub">{{ act.subtitle }}</span>
+              <time class="account__activity-date">{{ formatDate(act.date) }}</time>
+            </div>
+            <a *ngIf="act.link" [routerLink]="act.link" class="account__activity-link" aria-label="مشاهده جزئیات"></a>
+          </li>
+        </ul>
+      </section>
+
+      <!-- Saved preferences -->
+      <section class="account__card" aria-labelledby="prefs-title">
+        <h2 id="prefs-title" class="account__card-title">ترجیحات ذخیره‌شده</h2>
+
+        <dl class="account__prefs">
+          <div class="account__pref-row">
+            <dt>فرم بدن</dt>
+            <dd>{{ bodyShapeLabel() }}</dd>
+          </div>
+          <div class="account__pref-row">
+            <dt>فرم صورت</dt>
+            <dd>{{ faceShapeLabel() }}</dd>
+          </div>
+          <div class="account__pref-row" *ngIf="timelineState$ | async as tl">
+            <dt>تاریخ مراسم</dt>
+            <dd>{{ formatWeddingDate(tl.date) }}</dd>
+          </div>
+          <div class="account__pref-row" *ngIf="timelineState$ | async as tl">
+            <dt>وضعیت برنامه‌ریزی</dt>
+            <dd>{{ tl.personalized ? tl.title : 'ثبت نشده' }}</dd>
+          </div>
+        </dl>
+
+        <p class="account__prefs-note">
+          ترجیحات از راهنمای تعاملی و ویجت برنامه‌ریزی مراسم ذخیره می‌شوند.
+        </p>
+      </section>
+
+    </div>
+
+    <!-- Referral -->
+    <section class="account__referral" id="referral" aria-labelledby="referral-title">
+      <div class="account__referral-badge" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7L12 16.8 5.7 21l2.3-7-6-4.6h7.6L12 2z"/>
+        </svg>
+      </div>
+      <p class="account__referral-label" lang="en" dir="ltr">VIP REFERRAL</p>
+      <h2 id="referral-title" class="account__referral-title">
+        دعوت از دوستان و دریافت هدایای انحصاری
+      </h2>
+      <p class="account__referral-text">
+        کد دعوت اختصاصی خود را با عروس‌های آینده به اشتراک بگذارید و از مزایای برنامه VIP بهره‌مند شوید.
+      </p>
+      <div class="account__referral-code-wrap">
+        <code class="account__referral-code" lang="en" dir="ltr">{{ referralCode }}</code>
+        <button type="button" class="account__referral-copy" (click)="copyReferral()">
+          {{ copied ? 'کپی شد ✓' : 'کپی کد' }}
+        </button>
+      </div>
+    </section>
+
+  </div>
+</section>

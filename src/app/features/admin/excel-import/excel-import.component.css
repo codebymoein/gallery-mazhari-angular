@@ -1,0 +1,93 @@
+.import-drop {
+  display: grid;
+  place-items: center;
+  gap: 0.45rem;
+  min-height: 15rem;
+  padding: 1.75rem 1.25rem;
+  border-radius: var(--adm-radius, 0.75rem);
+  border: 2px dashed #d6d3d1;
+  background: linear-gradient(180deg, #fff 0%, #fafaf9 100%);
+  text-align: center;
+  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.import-drop--active {
+  border-color: var(--adm-gold, #b8973e);
+  background: #fffdf7;
+  box-shadow: 0 0 0 4px rgba(184, 151, 62, 0.12);
+}
+
+.import-drop--busy {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.import-drop__icon {
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  margin-block-end: 0.25rem;
+  border-radius: 999px;
+  background: #faf6eb;
+  color: var(--adm-gold-deep, #8f742e);
+}
+
+.import-drop__icon svg {
+  width: 1.35rem;
+  height: 1.35rem;
+}
+
+.import-drop__title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.import-drop__hint {
+  margin: 0 0 0.55rem;
+  max-width: 36rem;
+  color: var(--adm-muted, #78716c);
+  font-size: 0.8rem;
+  line-height: 1.55;
+}
+
+.import-apply-note {
+  margin: 0.85rem 0 0;
+  padding: 0.65rem 0.85rem;
+  border-radius: 0.5rem;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #166534;
+  font-size: 0.82rem;
+}
+
+.import-accepted,
+.import-filtered {
+  margin-block-start: 1.15rem;
+}
+
+.import-accepted h3,
+.import-filtered h3 {
+  margin: 0 0 0.55rem;
+  font-size: 0.88rem;
+}
+
+.import-tag-pill {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  background: #ecfdf3;
+  color: #15803d;
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.import-tag-pill--ok {
+  background: #faf6eb;
+  color: #6a5420;
+}
+
+:host ::ng-deep .stg-row--new {
+  background: #fffdf7 !important;
+}

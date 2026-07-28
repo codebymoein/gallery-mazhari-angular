@@ -1,0 +1,73 @@
+<!-- ══════════════════════════════════
+     Split Hero
+     ══════════════════════════════════ -->
+<section class="split-hero" dir="rtl" aria-label="صفحه اصلی گالری مظهری">
+
+  <!-- Panel 1: اکسسوری -->
+  <article class="split-hero__panel split-hero__panel--accessories">
+    <img class="split-hero__media" [src]="accessoryImage"
+         alt="" width="1000" height="1250"
+         loading="lazy" decoding="async" aria-hidden="true"/>
+    <div class="split-hero__content">
+      <p class="split-hero__eyebrow" lang="en" dir="ltr">THE FINISHING TOUCH</p>
+      <h2 class="split-hero__title">دنیای اکسسوری عروس</h2>
+      <p class="split-hero__subtitle">
+        اکسسوری‌های منتخب را آنلاین، سریع و با اطمینان خرید کنید
+      </p>
+      <a class="split-hero__button split-hero__button--ghost"
+         routerLink="/catalog" aria-label="رفتن به فروشگاه اکسسوری">
+        فروشگاه اکسسوری
+      </a>
+    </div>
+  </article>
+
+  <!-- Panel 2: لباس عروس -->
+  <article class="split-hero__panel split-hero__panel--bridal">
+    <img class="split-hero__media" [src]="bridalImage"
+         alt="" width="1003" height="1568"
+         loading="eager" fetchpriority="high" decoding="async" aria-hidden="true"/>
+    <div class="split-hero__content">
+      <p class="split-hero__eyebrow" lang="en" dir="ltr">THE BRIDAL COLLECTION</p>
+      <h1 class="split-hero__title">کالکشن<br>لباس عروس</h1>
+      <p class="split-hero__subtitle">
+        تجربه‌ای اختصاصی برای انتخاب و پرو لباس عروس با مشاوره VIP
+      </p>
+      <a class="split-hero__button split-hero__button--ghost"
+         routerLink="/collections/bridal-clothing"
+         aria-label="مشاهده کالکشن لباس عروس">
+        مشاهده کالکشن و مشاوره
+      </a>
+    </div>
+  </article>
+
+</section>
+
+<!-- ══════════════════════════════════
+     Category Showcase
+     ══════════════════════════════════ -->
+<app-category-showcase></app-category-showcase>
+
+<!-- ══════════════════════════════════
+     Lookbook & Smart Matchmaker
+     ══════════════════════════════════ -->
+<app-lookbook-matchmaker></app-lookbook-matchmaker>
+
+<!-- ══════════════════════════════════
+     Real Brides & Testimonials
+     ══════════════════════════════════ -->
+<app-real-brides></app-real-brides>
+
+<!-- ══════════════════════════════════
+     Consultation Request Form
+     ══════════════════════════════════ -->
+<app-home-appointment></app-home-appointment>
+
+<!-- ══════════════════════════════════
+     Interactive Guide & Smart FAQ
+     ══════════════════════════════════ -->
+<app-interactive-guide-faq></app-interactive-guide-faq>
+
+<!-- ══════════════════════════════════
+     Trust & Guarantees (above footer)
+     ══════════════════════════════════ -->
+<app-trust-guarantees></app-trust-guarantees>

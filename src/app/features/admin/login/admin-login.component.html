@@ -1,0 +1,76 @@
+<div class="adm login" dir="rtl">
+  <section class="login__brand" aria-hidden="true">
+    <div class="login__brand-inner">
+      <p class="login__eyebrow" lang="en" dir="ltr">OPERATIONS CONSOLE</p>
+      <h1 class="login__brand-title">گالری مظهری</h1>
+      <p class="login__brand-lead">
+        کنسول انبار، عکاسی و انتشار محصولات — طراحی‌شده برای کارکنان و مدیر گالری.
+      </p>
+      <ul class="login__points">
+        <li>بارگذاری اکسل انبار و فیلتر خودکار</li>
+        <li>صف انتشار و تخصیص عکس</li>
+        <li>تایید نهایی و نظارت مدیر</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="login__panel" aria-labelledby="login-title">
+    <div class="login__card">
+      <p class="login__eyebrow" lang="en" dir="ltr">SECURE ACCESS</p>
+      <h2 class="login__title" id="login-title">ورود به پنل مدیریت</h2>
+      <p class="login__lead">نام کاربری و رمز عبور سازمانی خود را وارد کنید.</p>
+
+      <form class="login__form" (ngSubmit)="submit()" novalidate>
+        <div class="adm-field">
+          <label class="adm-label" for="admin-username">نام کاربری</label>
+          <input
+            id="admin-username"
+            class="adm-input"
+            name="username"
+            type="text"
+            autocomplete="username"
+            [(ngModel)]="username"
+            required
+            placeholder="staff یا manager"
+          />
+        </div>
+
+        <div class="adm-field">
+          <label class="adm-label" for="admin-password">رمز عبور</label>
+          <div class="login__pass-wrap">
+            <input
+              id="admin-password"
+              class="adm-input"
+              name="password"
+              [type]="showPassword ? 'text' : 'password'"
+              autocomplete="current-password"
+              [(ngModel)]="password"
+              required
+              placeholder="رمز عبور"
+            />
+            <button
+              type="button"
+              class="login__eye"
+              (click)="showPassword = !showPassword"
+              [attr.aria-label]="showPassword ? 'مخفی کردن رمز' : 'نمایش رمز'"
+            >
+              {{ showPassword ? 'مخفی' : 'نمایش' }}
+            </button>
+          </div>
+        </div>
+
+        <p class="adm-alert" *ngIf="error" role="alert">{{ error }}</p>
+
+        <button
+          class="adm-btn adm-btn--gold adm-btn--block"
+          type="submit"
+          [disabled]="submitting || !username || !password"
+        >
+          {{ submitting ? 'در حال ورود…' : 'ورود به پنل' }}
+        </button>
+      </form>
+
+      <a class="login__back" routerLink="/">بازگشت به فروشگاه</a>
+    </div>
+  </section>
+</div>

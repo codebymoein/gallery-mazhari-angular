@@ -1,0 +1,168 @@
+/* ================================================================
+   Shared Patterns — Gallery Mazhari
+   Reusable BEM-friendly layout / section primitives.
+   ================================================================ */
+
+/* Content width shell */
+.ds-container {
+  width: min(calc(100% - (var(--container-padding) * 2)), var(--container-max));
+  margin-inline: auto;
+}
+
+.ds-container--tight {
+  width: min(calc(100% - 1.5rem), var(--container-max));
+  margin-inline: auto;
+}
+
+/* Luxury dark section shell */
+.ds-section--luxury {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  color: var(--color-text-on-dark);
+  background: var(--bg-luxury-dark);
+  border-block: 1px solid var(--color-primary-a28);
+  font-family: var(--font-persian);
+}
+
+/* English editorial eyebrow */
+.ds-eyebrow {
+  margin: 0;
+  color: var(--color-champagne-gold);
+  font-family: var(--font-english);
+  font-size: 0.55rem;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.16em;
+}
+
+/* Section title on dark */
+.ds-title--on-dark {
+  margin: 0;
+  color: var(--color-white);
+  font-family: var(--font-display);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.25;
+  text-wrap: balance;
+}
+
+/* Horizontal snap track (stories / carousels) */
+.ds-snap-track {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  overscroll-behavior-inline: contain;
+}
+
+.ds-snap-track::-webkit-scrollbar {
+  display: none;
+}
+
+/* Champagne pill chip on dark */
+.ds-chip {
+  padding: 0.2rem 0.5rem;
+  color: rgba(238, 229, 209, 0.88);
+  background: var(--color-primary-a10);
+  border: 1px solid var(--color-primary-a28);
+  border-radius: var(--mds-radius-round);
+  font-size: 0.62rem;
+  font-weight: var(--font-weight-medium);
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+/* Primary gold CTA on dark sections */
+.ds-btn-gold {
+  min-height: var(--touch-target);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  color: var(--color-matte-black);
+  background: var(--color-champagne-gold);
+  border: 1px solid var(--color-champagne-gold);
+  border-radius: var(--mds-radius-round);
+  font-weight: var(--font-weight-semibold);
+  text-decoration: none;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition:
+    background var(--mds-transition-base),
+    color var(--mds-transition-base),
+    transform var(--mds-transition-base),
+    box-shadow var(--mds-transition-base);
+}
+
+.ds-btn-gold:hover {
+  background: transparent;
+  color: var(--color-champagne-gold);
+  transform: translateY(-1px);
+}
+
+.ds-btn-gold:active {
+  transform: scale(0.98);
+}
+
+.ds-btn-gold:focus-visible {
+  outline: 2px solid var(--color-champagne-gold);
+  outline-offset: 3px;
+}
+
+/* Ghost gold button */
+.ds-btn-ghost {
+  min-height: var(--touch-target);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  color: var(--color-champagne-gold);
+  background: var(--color-white-a04);
+  border: 1px solid var(--color-gold-a38);
+  border-radius: var(--mds-radius-round);
+  font-weight: var(--font-weight-semibold);
+  text-decoration: none;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition:
+    background var(--mds-transition-base),
+    color var(--mds-transition-base),
+    border-color var(--mds-transition-base),
+    transform var(--mds-transition-base);
+}
+
+.ds-btn-ghost:hover {
+  background: var(--color-gold-a12);
+  color: var(--color-white);
+  border-color: var(--color-gold-a55);
+  transform: translateY(-1px);
+}
+
+.ds-btn-ghost:focus-visible {
+  outline: 2px solid var(--color-champagne-gold);
+  outline-offset: 3px;
+}
+
+/* Icon circle control (nav / close) */
+.ds-icon-btn {
+  width: 2.35rem;
+  height: 2.35rem;
+  display: grid;
+  place-items: center;
+  color: var(--color-champagne-gold);
+  background: var(--color-white-a04);
+  border: 1px solid var(--color-gold-a32);
+  border-radius: 50%;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: background var(--mds-transition-fast), transform var(--mds-transition-fast);
+}
+
+.ds-icon-btn:hover {
+  background: var(--color-gold-a14);
+}
+
+.ds-icon-btn:focus-visible {
+  outline: 2px solid var(--color-champagne-gold);
+  outline-offset: 2px;
+}

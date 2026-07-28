@@ -1,0 +1,158 @@
+/* ================================================================
+   Trust & Guarantees — above-footer trust banner
+   Glassmorphic dark cards · champagne gold · mobile-first
+   ================================================================ */
+
+.trust-guarantees {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  padding-block: 2rem 2.25rem;
+  background: #0a0a0a;
+  background-image:
+    radial-gradient(ellipse 70% 50% at 80% 0%, rgba(212, 175, 55, 0.12), transparent 55%),
+    radial-gradient(ellipse 50% 40% at 10% 100%, rgba(212, 175, 55, 0.06), transparent 50%);
+  border-block-start: 1px solid rgba(212, 175, 55, 0.28);
+  font-family: var(--font-persian);
+}
+
+.trust-guarantees__inner {
+  width: min(100% - 1.5rem, var(--container-max, 72rem));
+  margin-inline: auto;
+}
+
+.trust-guarantees__header {
+  margin-bottom: 1.25rem;
+  text-align: center;
+}
+
+.trust-guarantees__eyebrow {
+  margin: 0 0 0.35rem;
+  color: #d4af37;
+  font-family: var(--font-english);
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+}
+
+.trust-guarantees__title {
+  margin: 0;
+  color: #f8f5f2;
+  font-family: var(--font-display);
+  font-size: clamp(1.15rem, 4vw, 1.75rem);
+  font-weight: 500;
+  line-height: 1.35;
+  text-wrap: balance;
+}
+
+/* Mobile: horizontal snap scroll */
+.trust-guarantees__grid {
+  display: flex;
+  flex-direction: row;
+  gap: 0.85rem;
+  margin: 0;
+  padding: 0.25rem 0.15rem 0.75rem;
+  list-style: none;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(212, 175, 55, 0.4) transparent;
+}
+
+.trust-guarantees__grid::-webkit-scrollbar {
+  block-size: 4px;
+}
+
+.trust-guarantees__grid::-webkit-scrollbar-thumb {
+  background: rgba(212, 175, 55, 0.4);
+  border-radius: 999px;
+}
+
+.trust-guarantees__card {
+  flex: 0 0 min(85%, 18rem);
+  scroll-snap-align: start;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding: 1.15rem 1.1rem 1.25rem;
+  color: #f8f5f2;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  border-radius: 0.85rem;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.25);
+  transition: border-color 0.25s ease, transform 0.25s ease;
+}
+
+.trust-guarantees__card:hover {
+  border-color: rgba(212, 175, 55, 0.55);
+  transform: translateY(-2px);
+}
+
+.trust-guarantees__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 48px;
+  block-size: 48px;
+  min-inline-size: 48px;
+  min-block-size: 48px;
+  color: #d4af37;
+  background: rgba(212, 175, 55, 0.1);
+  border: 1px solid rgba(212, 175, 55, 0.28);
+  border-radius: 50%;
+}
+
+.trust-guarantees__icon > svg {
+  inline-size: 1.35rem;
+  block-size: 1.35rem;
+}
+
+.trust-guarantees__card-title {
+  margin: 0;
+  color: #d4af37;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.trust-guarantees__card-subtitle {
+  margin: 0;
+  color: rgba(248, 245, 242, 0.7);
+  font-size: 0.875rem;
+  line-height: 1.7;
+}
+
+/* Desktop: 3-column grid */
+@media (min-width: 769px) {
+  .trust-guarantees {
+    padding-block: 2.75rem 3rem;
+  }
+
+  .trust-guarantees__header {
+    margin-bottom: 1.75rem;
+  }
+
+  .trust-guarantees__grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.15rem;
+    overflow: visible;
+    padding: 0;
+    scroll-snap-type: none;
+  }
+
+  .trust-guarantees__card {
+    flex: none;
+  }
+
+  .trust-guarantees__card-title {
+    font-size: 1.0625rem;
+  }
+
+  .trust-guarantees__card-subtitle {
+    font-size: 0.9rem;
+  }
+}

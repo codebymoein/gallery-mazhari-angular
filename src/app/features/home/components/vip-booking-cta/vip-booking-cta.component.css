@@ -1,0 +1,298 @@
+/* ================================================================
+   VIP Booking & Referral CTA — Gallery Mazhari
+   Conversion banner · matte black + champagne gold glow
+   ================================================================ */
+
+.vip-cta {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  padding-block: 1.5rem 1.65rem;
+  background: var(--bg-luxury-dark-alt);
+  border-block-start: 1px solid var(--color-primary-a32);
+  font-family: var(--font-persian);
+}
+
+/* Outer gold glow frame */
+.vip-cta__glow {
+  position: absolute;
+  inset: 0.65rem 0.75rem;
+  z-index: 0;
+  border: 1px solid var(--color-gold-a22);
+  border-radius: 1rem;
+  box-shadow:
+    inset 0 0 40px var(--color-gold-a04),
+    0 0 32px var(--color-gold-a08);
+  pointer-events: none;
+}
+
+.vip-cta__inner {
+  position: relative;
+  z-index: 1;
+  width: min(100% - 1.5rem, var(--container-max));
+  margin-inline: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+/* ── Main booking panel ── */
+.vip-cta__main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding: 1.1rem 1rem 1.15rem;
+}
+
+.vip-cta__eyebrow {
+  margin: 0;
+  color: var(--color-champagne-gold);
+  font-family: var(--font-english);
+  font-size: 0.55rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+}
+
+.vip-cta__title {
+  margin: 0;
+  max-width: 20rem;
+  color: var(--color-white);
+  font-family: var(--font-display);
+  font-size: clamp(1.15rem, 4.2vw, 2rem);
+  font-weight: 500;
+  line-height: 1.3;
+  text-wrap: balance;
+}
+
+.vip-cta__lead {
+  margin: 0;
+  max-width: 22rem;
+  color: var(--color-text-on-dark-soft);
+  font-size: clamp(0.74rem, 2.1vw, 0.9rem);
+  line-height: 1.7;
+}
+
+.vip-cta__perks {
+  margin: 0.25rem 0 0.35rem;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.55rem;
+  list-style: none;
+}
+.vip-cta__perks li {
+  padding: 0.22rem 0.55rem;
+  color: color-mix(in srgb, var(--color-gold-subtle) 88%, transparent);
+  background: var(--color-primary-a10);
+  border: 1px solid var(--color-primary-a28);
+  border-radius: var(--mds-radius-round);
+  font-size: 0.64rem;
+  font-weight: 500;
+  line-height: 1.35;
+  white-space: nowrap;
+}
+
+/* ── Buttons ── */
+.vip-cta__btn {
+  min-height: 2.75rem;
+  padding: 0.65rem 1.15rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  width: 100%;
+  border-radius: var(--mds-radius-round);
+  font-size: clamp(0.78rem, 2.4vw, 0.9rem);
+  font-weight: 600;
+  text-decoration: none;
+  text-align: center;
+  line-height: 1.35;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition:
+    background 0.25s ease,
+    color 0.25s ease,
+    border-color 0.25s ease,
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.vip-cta__btn svg {
+  width: 0.9rem;
+  height: 0.9rem;
+  flex-shrink: 0;
+}
+.vip-cta__btn:focus-visible {
+  outline: 2px solid var(--color-gold-light);
+  outline-offset: 3px;
+}
+.vip-cta__btn:active { transform: scale(0.98); }
+
+.vip-cta__btn--primary {
+  color: var(--color-matte-black);
+  background: var(--gradient-gold-cta);
+  border: 1px solid var(--color-champagne-gold);
+  box-shadow:
+    0 4px 18px var(--color-gold-a28),
+    0 0 24px var(--color-gold-a12);
+}
+.vip-cta__btn--primary:hover {
+  background: var(--color-gold-bright);
+  border-color: var(--color-gold-bright);
+  color: var(--color-matte-black);
+  transform: translateY(-1px);
+  box-shadow:
+    0 8px 24px var(--color-gold-a35),
+    0 0 32px var(--color-gold-a18);
+}
+
+.vip-cta__btn--ghost {
+  color: var(--color-champagne-gold);
+  background: var(--color-white-a04);
+  border: 1px solid var(--color-gold-a38);
+}
+.vip-cta__btn--ghost:hover {
+  background: var(--color-gold-a12);
+  color: var(--color-white);
+  border-color: var(--color-gold-a55);
+  transform: translateY(-1px);
+}
+
+/* ── Referral sub-card ── */
+.vip-cta__referral {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 1rem 1rem 1.1rem;
+  background: var(--color-white-a035);
+  border: 1px solid var(--color-gold-a24);
+  border-radius: 0.85rem;
+  box-shadow: inset 0 1px 0 var(--color-white-a04);
+}
+
+.vip-cta__referral-badge {
+  width: 2rem;
+  height: 2rem;
+  display: grid;
+  place-items: center;
+  color: var(--color-champagne-gold);
+  background: var(--color-gold-a10);
+  border: 1px solid var(--color-gold-a28);
+  border-radius: 50%;
+  margin-bottom: 0.1rem;
+}
+.vip-cta__referral-badge svg {
+  width: 0.95rem;
+  height: 0.95rem;
+}
+
+.vip-cta__referral-label {
+  margin: 0;
+  color: var(--color-gold-a75);
+  font-family: var(--font-english);
+  font-size: 0.52rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+}
+
+.vip-cta__referral-title {
+  margin: 0;
+  color: var(--color-white);
+  font-family: var(--font-display);
+  font-size: clamp(0.92rem, 3.2vw, 1.15rem);
+  font-weight: 500;
+  line-height: 1.35;
+  text-wrap: balance;
+}
+
+.vip-cta__referral-text {
+  margin: 0 0 0.35rem;
+  color: var(--color-text-on-dark-soft);
+  font-size: 0.72rem;
+  line-height: 1.65;
+}
+
+/* ════════════════════════════════════
+   BREAKPOINTS
+   ════════════════════════════════════ */
+
+@media (max-width: 359px) {
+  .vip-cta { padding-block: 1.25rem 1.4rem; }
+  .vip-cta__glow { inset: 0.5rem 0.6rem; }
+  .vip-cta__inner { width: calc(100% - 1.1rem); }
+  .vip-cta__main,
+  .vip-cta__referral { padding-inline: 0.85rem; }
+  .vip-cta__btn {
+    min-height: 2.65rem;
+    font-size: 0.74rem;
+    padding-inline: 0.9rem;
+  }
+  .vip-cta__perks li { font-size: 0.6rem; }
+}
+
+@media (min-width: 480px) {
+  .vip-cta { padding-block: 1.75rem 1.9rem; }
+  .vip-cta__glow { inset: 0.85rem 1rem; border-radius: 1.1rem; }
+  .vip-cta__main { padding: 1.25rem 1.15rem 1.3rem; }
+  .vip-cta__referral { padding: 1.1rem 1.15rem 1.2rem; }
+  .vip-cta__btn { min-height: 2.85rem; }
+}
+
+@media (min-width: 768px) {
+  .vip-cta {
+    padding-block: clamp(2.5rem, 5vw, 4rem);
+  }
+  .vip-cta__glow {
+    inset: 1.25rem 1.5rem;
+    border-radius: 1.25rem;
+    box-shadow:
+      inset 0 0 60px var(--color-gold-a04),
+      0 0 48px var(--color-gold-a10);
+  }
+  .vip-cta__inner {
+    width: min(calc(100% - 3rem), var(--container-max));
+    flex-direction: row;
+    align-items: stretch;
+    gap: 1.1rem;
+  }
+  .vip-cta__main {
+    flex: 1.35;
+    justify-content: center;
+    padding: 1.75rem 1.75rem 1.85rem;
+    gap: 0.65rem;
+  }
+  .vip-cta__eyebrow { font-size: 0.65rem; letter-spacing: 0.2em; }
+  .vip-cta__title { max-width: 26rem; font-size: clamp(1.5rem, 2.8vw, 2.1rem); }
+  .vip-cta__lead { max-width: 30rem; font-size: 0.92rem; line-height: 1.8; }
+  .vip-cta__perks { gap: 0.45rem 0.65rem; margin-block: 0.35rem 0.55rem; }
+  .vip-cta__perks li { font-size: 0.72rem; }
+  .vip-cta__btn {
+    width: auto;
+    align-self: flex-start;
+    min-height: 3rem;
+    padding-inline: 1.75rem;
+    font-size: 0.92rem;
+  }
+
+  .vip-cta__referral {
+    flex: 0.85;
+    justify-content: center;
+    padding: 1.5rem 1.4rem 1.6rem;
+    border-radius: 1rem;
+  }
+  .vip-cta__referral-title { font-size: 1.05rem; }
+  .vip-cta__referral-text { font-size: 0.8rem; margin-bottom: 0.55rem; }
+  .vip-cta__btn--ghost { width: 100%; align-self: stretch; }
+}
+
+@media (min-width: 1024px) {
+  .vip-cta__inner { gap: 1.35rem; }
+  .vip-cta__main { padding: 2rem 2.25rem; }
+  .vip-cta__referral { padding: 1.75rem 1.6rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vip-cta__btn {
+    transition-duration: 0.01ms !important;
+  }
+}

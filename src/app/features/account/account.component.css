@@ -1,0 +1,505 @@
+/* ================================================================
+   Account Dashboard — Gallery Mazhari
+   Luxury · RTL Persian · mobile-first
+   ================================================================ */
+
+.account {
+  background: var(--color-bg-cream);
+  font-family: var(--font-persian);
+  padding-block-end: var(--space-lg);
+}
+
+/* ── Hero ── */
+.account__hero {
+  background: var(--bg-luxury-dark);
+  padding-block: clamp(2rem, 7vw, 3.5rem);
+  position: relative;
+  overflow: hidden;
+}
+
+.account__hero::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  block-size: 1px;
+  background: linear-gradient(
+    to left,
+    transparent,
+    var(--color-gold-a35) 30%,
+    var(--color-gold-a35) 70%,
+    transparent
+  );
+}
+
+.account__hero-inner {
+  width: min(100% - 1.5rem, var(--container-max));
+  margin-inline: auto;
+}
+
+.account__eyebrow {
+  margin: 0;
+  color: var(--color-champagne-gold);
+  font-family: var(--font-english);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+}
+
+.account__greeting {
+  margin: 0.4rem 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 6vw, 2.25rem);
+  font-weight: 500;
+  color: var(--color-white);
+  line-height: 1.25;
+}
+
+.account__lead {
+  margin: 0.65rem 0 0;
+  max-width: 32rem;
+  color: var(--color-text-on-dark);
+  font-size: clamp(0.82rem, 2.4vw, 0.95rem);
+  line-height: 1.75;
+}
+
+.account__hero-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-block-start: 1.25rem;
+}
+
+.account__stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-inline-size: 4.5rem;
+  padding: 0.65rem 1rem;
+  background: var(--color-white-a05);
+  border: 1px solid color-mix(in srgb, var(--color-gold-primary) 22%, transparent);
+  border-radius: var(--mds-radius-sm);
+}
+
+.account__stat-value {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--color-champagne-gold);
+  line-height: 1;
+}
+
+.account__stat-label {
+  margin-block-start: 0.2rem;
+  font-size: 0.72rem;
+  color: var(--color-text-on-dark-soft);
+}
+
+/* ── Body ── */
+.account__body {
+  width: min(100% - 1.5rem, var(--container-max));
+  margin-inline: auto;
+  margin-block-start: clamp(1.25rem, 4vw, 2rem);
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* ── Quick links ── */
+.account__quick {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.65rem;
+}
+
+.account__quick-link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.85rem 0.5rem;
+  background: var(--color-surface);
+  border: 1px solid color-mix(in srgb, var(--color-gold-primary) 12%, transparent);
+  border-radius: var(--mds-radius-md);
+  text-decoration: none;
+  color: var(--mds-color-heading);
+  box-shadow: var(--shadow-luxury);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.account__quick-link:hover {
+  border-color: color-mix(in srgb, var(--color-gold-primary) 32%, transparent);
+  box-shadow: var(--shadow-gold);
+}
+
+.account__quick-icon {
+  inline-size: 2rem;
+  block-size: 2rem;
+  border-radius: var(--mds-radius-round);
+  background: var(--color-gold-a10);
+  position: relative;
+}
+
+.account__quick-icon::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  inline-size: 1rem;
+  block-size: 1rem;
+  background: var(--color-gold-primary);
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+}
+
+.account__quick-icon[data-icon='orders']::after {
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor'%3E%3Cpath d='M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14H8v-2h4v2zm4-4H8v-2h8v2zm0-4H8V7h8v2z'/%3E%3C/svg%3E");
+}
+
+.account__quick-icon[data-icon='cart']::after {
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor'%3E%3Cpath d='M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0 0 20 4H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z'/%3E%3C/svg%3E");
+}
+
+.account__quick-icon[data-icon='canvas']::after {
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z'/%3E%3C/svg%3E");
+}
+
+.account__quick-icon[data-icon='consult']::after {
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor'%3E%3Cpath d='M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z'/%3E%3C/svg%3E");
+}
+
+.account__quick-icon[data-icon='checkout']::after {
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor'%3E%3Cpath d='M12 1 3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z'/%3E%3C/svg%3E");
+}
+
+.account__quick-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-align: center;
+  line-height: 1.35;
+}
+
+/* ── Grid ── */
+.account__grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.account__card {
+  background: var(--color-surface);
+  border: 1px solid color-mix(in srgb, var(--color-gold-primary) 12%, transparent);
+  border-radius: var(--mds-radius-md);
+  padding: 1.15rem 1.1rem 1.2rem;
+  box-shadow: var(--shadow-luxury);
+}
+
+.account__card-title {
+  margin: 0 0 0.85rem;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--mds-color-heading);
+  padding-block-end: 0.55rem;
+  border-block-end: 1px solid color-mix(in srgb, var(--color-gold-primary) 14%, transparent);
+}
+
+/* ── Liked items ── */
+.account__liked-empty,
+.account__activity-empty {
+  text-align: center;
+  padding: 1rem 0.5rem;
+  color: var(--mds-color-text-muted);
+  font-size: 0.88rem;
+}
+
+.account__link {
+  display: inline-block;
+  margin-block-start: 0.5rem;
+  color: var(--color-gold-primary);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.account__liked-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.account__liked-item {
+  display: grid;
+  grid-template-columns: 3rem 1fr;
+  gap: 0.65rem;
+  align-items: center;
+}
+
+.account__liked-image-wrap {
+  inline-size: 3rem;
+  block-size: 3rem;
+  border-radius: var(--mds-radius-sm);
+  overflow: hidden;
+  background: var(--color-cream-warm);
+}
+
+.account__liked-image {
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+}
+
+.account__liked-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-inline-size: 0;
+}
+
+.account__liked-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--mds-color-heading);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account__liked-date {
+  font-size: 0.75rem;
+  color: var(--mds-color-text-muted);
+}
+
+.account__card-more {
+  display: inline-block;
+  margin-block-start: 0.75rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-gold-primary);
+  text-decoration: none;
+}
+
+/* ── Activity ── */
+.account__activity-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.account__activity-item {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.65rem;
+  position: relative;
+  padding-block-end: 0.65rem;
+  border-block-end: 1px solid color-mix(in srgb, var(--color-gold-primary) 8%, transparent);
+}
+
+.account__activity-item:last-child {
+  border-block-end: none;
+  padding-block-end: 0;
+}
+
+.account__activity-dot {
+  inline-size: 0.55rem;
+  block-size: 0.55rem;
+  margin-block-start: 0.35rem;
+  border-radius: var(--mds-radius-round);
+  background: var(--color-gold-primary);
+}
+
+.account__activity-dot--canvas {
+  background: var(--color-champagne-gold);
+}
+
+.account__activity-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.account__activity-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--mds-color-heading);
+}
+
+.account__activity-sub {
+  font-size: 0.78rem;
+  color: var(--mds-color-text-muted);
+}
+
+.account__activity-date {
+  font-size: 0.72rem;
+  color: var(--mds-color-text-muted);
+  opacity: 0.85;
+}
+
+.account__activity-link {
+  position: absolute;
+  inset: 0;
+}
+
+/* ── Preferences ── */
+.account__prefs {
+  margin: 0;
+  padding: 0;
+}
+
+.account__pref-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-block: 0.45rem;
+  font-size: 0.88rem;
+  border-block-end: 1px solid color-mix(in srgb, var(--color-gold-primary) 8%, transparent);
+}
+
+.account__pref-row:last-of-type {
+  border-block-end: none;
+}
+
+.account__pref-row dt {
+  color: var(--mds-color-text-muted);
+  font-weight: 500;
+}
+
+.account__pref-row dd {
+  margin: 0;
+  font-weight: 600;
+  color: var(--mds-color-heading);
+  text-align: end;
+}
+
+.account__prefs-note {
+  margin: 0.75rem 0 0;
+  font-size: 0.75rem;
+  color: var(--mds-color-text-muted);
+  line-height: 1.55;
+}
+
+/* ── Referral ── */
+.account__referral {
+  padding: clamp(1.25rem, 4vw, 1.75rem);
+  background: var(--bg-luxury-dark-alt);
+  border: 1px solid color-mix(in srgb, var(--color-gold-primary) 28%, transparent);
+  border-radius: var(--mds-radius-md);
+  text-align: center;
+  scroll-margin-top: 5rem;
+}
+
+.account__referral-badge {
+  inline-size: 2.5rem;
+  block-size: 2.5rem;
+  margin-inline: auto;
+  display: grid;
+  place-items: center;
+  color: var(--color-champagne-gold);
+}
+
+.account__referral-badge svg {
+  inline-size: 1.75rem;
+  block-size: 1.75rem;
+}
+
+.account__referral-label {
+  margin: 0.35rem 0 0;
+  color: var(--color-champagne-gold);
+  font-family: var(--font-english);
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+}
+
+.account__referral-title {
+  margin: 0.5rem 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(1rem, 3.5vw, 1.25rem);
+  font-weight: 600;
+  color: var(--color-white);
+  line-height: 1.4;
+}
+
+.account__referral-text {
+  margin: 0.55rem auto 0;
+  max-width: 26rem;
+  color: var(--color-text-on-dark);
+  font-size: 0.85rem;
+  line-height: 1.65;
+}
+
+.account__referral-code-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  align-items: center;
+  margin-block-start: 1rem;
+}
+
+.account__referral-code {
+  display: inline-block;
+  padding: 0.55rem 1.25rem;
+  background: var(--color-white-a05);
+  border: 1px dashed color-mix(in srgb, var(--color-gold-primary) 45%, transparent);
+  border-radius: var(--mds-radius-sm);
+  font-family: var(--font-english);
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--color-champagne-gold);
+}
+
+.account__referral-copy {
+  min-block-size: var(--touch-target);
+  padding-inline: 1.25rem;
+  border: 1px solid color-mix(in srgb, var(--color-gold-primary) 40%, transparent);
+  border-radius: var(--mds-radius-sm);
+  background: transparent;
+  color: var(--color-champagne-gold);
+  font-family: var(--font-persian);
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.account__referral-copy:hover {
+  background: var(--color-gold-primary);
+  color: var(--color-matte-black);
+}
+
+/* ── Tablet+ ── */
+@media (min-width: 640px) {
+  .account__quick {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+@media (min-width: 768px) {
+  .account__grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .account__card--wide {
+    grid-column: 1 / -1;
+  }
+
+  .account__liked-list {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .account__referral-code-wrap {
+    flex-direction: row;
+    justify-content: center;
+  }
+}
+
+@media (min-width: 960px) {
+  .account__liked-list {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}

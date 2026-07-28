@@ -1,0 +1,190 @@
+<section class="adm adm-page" dir="rtl">
+  <header class="adm-page__head">
+    <div>
+      <p class="adm-page__eyebrow" lang="en" dir="ltr">STAGING QUEUE</p>
+      <h1 class="adm-page__title">محصولات منتظر انتشار</h1>
+      <p class="adm-page__lead">
+        دسته‌بندی مطابق فروشگاه اصلی. برای هر کالا تا
+        {{ maxPhotos | number:'1.0-0':'fa-IR' }} عکس بارگذاری کنید
+        (مثلاً <span dir="ltr">GM-2401-1.jpg</span> …).
+      </p>
+    </div>
+  </header>
+
+  <div class="adm-kpis">
+    <article class="adm-kpi">
+      <span class="adm-kpi__label">کل صف</span>
+      <strong class="adm-kpi__value">{{ pendingCount() | number:'1.0-0':'fa-IR' }}</strong>
+    </article>
+    <article class="adm-kpi adm-kpi--warning">
+      <span class="adm-kpi__label">در انتظار عکاسی</span>
+      <strong class="adm-kpi__value">{{ waitingCount() | number:'1.0-0':'fa-IR' }}</strong>
+    </article>
+    <article class="adm-kpi adm-kpi--info">
+      <span class="adm-kpi__label">آماده تایید</span>
+      <strong class="adm-kpi__value">{{ readyCount() | number:'1.0-0':'fa-IR' }}</strong>
+    </article>
+    <article class="adm-kpi adm-kpi--success">
+      <span class="adm-kpi__label">{{ newLabel }}</span>
+      <strong class="adm-kpi__value">{{ newCount() | number:'1.0-0':'fa-IR' }}</strong>
+    </article>
+  </div>
+
+  <div class="adm-card">
+    <div class="adm-toolbar stg-toolbar">
+      <div class="adm-chips" role="tablist" aria-label="فیلتر وضعیت">
+        <button type="button" class="adm-chip" [class.adm-chip--active]="statusFilter() === 'all'" (click)="setStatusFilter('all')">همه وضعیت‌ها</button>
+        <button type="button" class="adm-chip" [class.adm-chip--active]="statusFilter() === 'waiting_photo'" (click)="setStatusFilter('waiting_photo')">در انتظار عکاسی</button>
+        <button type="button" class="adm-chip" [class.adm-chip--active]="statusFilter() === 'ready_for_approval'" (click)="setStatusFilter('ready_for_approval')">آماده‌ی تایید</button>
+      </div>
+      <div class="adm-search" style="min-width: min(100%, 15rem)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <circle cx="11" cy="11" r="7" />
+          <path d="m20 20-3.5-3.5" stroke-linecap="round" />
+        </svg>
+        <input
+          class="adm-input"
+          type="search"
+          placeholder="جستجوی کد، نام یا دسته…"
+          [ngModel]="query()"
+          (ngModelChange)="onSearch($event)"
+        />
+      </div>
+    </div>
+
+    <div class="stg-cats" aria-label="دسته‌بندی اصلی سایت">
+      <button
+        type="button"
+        class="stg-cat"
+        [class.stg-cat--active]="categorySlug() === 'all'"
+        (click)="setCategory('all')"
+      >
+        همه دسته‌ها
+        <span>{{ pendingCount() | number:'1.0-0':'fa-IR' }}</span>
+      </button>
+      <button
+        type="button"
+        class="stg-cat"
+        *ngFor="let g of categoryGroups()"
+        [class.stg-cat--new]="g.slug === 'new-arrivals'"
+        [class.stg-cat--active]="categorySlug() === g.slug"
+        (click)="setCategory(g.slug)"
+      >
+        {{ g.label }}
+        <span>{{ g.count | number:'1.0-0':'fa-IR' }}</span>
+      </button>
+    </div>
+
+    <div class="adm-table-wrap" *ngIf="pageItems().length; else empty">
+      <table class="adm-table">
+        <thead>
+          <tr>
+            <th scope="col">کد</th>
+            <th scope="col">نام</th>
+            <th scope="col">دسته اصلی</th>
+            <th scope="col">زیردسته</th>
+            <th scope="col">موجودی</th>
+            <th scope="col">وضعیت</th>
+            <th scope="col">عکس‌ها</th>
+            <th scope="col">عملیات</th>
+          </tr>
+        </thead>
+        <tbody>
+          <ng-container *ngFor="let item of pageItems()">
+            <tr [class.stg-row--new]="item.isNewImport">
+              <td class="adm-table__code" dir="ltr">{{ item.code }}</td>
+              <td>
+                {{ item.name }}
+                <span class="stg-new-pill" *ngIf="item.isNewImport">جدید</span>
+              </td>
+              <td>{{ item.parentCategory }}</td>
+              <td>{{ item.category }}</td>
+              <td>{{ item.stock | number:'1.0-0':'fa-IR' }}</td>
+              <td>
+                <span class="adm-status" [ngClass]="'adm-status--' + item.status">
+                  {{ statusLabels[item.status] }}
+                </span>
+              </td>
+              <td>
+                <div class="stg-thumbs" *ngIf="photoCount(item); else noPhoto">
+                  <img
+                    *ngFor="let ph of (item.photos || []).slice(0, 3)"
+                    class="adm-thumb"
+                    [src]="ph.url"
+                    [alt]="ph.fileName"
+                    width="36"
+                    height="36"
+                  />
+                  <small>{{ photoCount(item) | number:'1.0-0':'fa-IR' }}/{{ maxPhotos | number:'1.0-0':'fa-IR' }}</small>
+                </div>
+                <ng-template #noPhoto>
+                  <span class="stg-muted">بدون عکس</span>
+                </ng-template>
+              </td>
+              <td>
+                <div class="stg-actions">
+                  <input
+                    #photoInput
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    hidden
+                    (change)="onPhotosSelected(item, $event)"
+                  />
+                  <button
+                    type="button"
+                    class="adm-btn adm-btn--sm"
+                    [disabled]="uploadingId() === item.id || !canAddMore(item)"
+                    (click)="openFilePicker(photoInput)"
+                  >
+                    {{
+                      uploadingId() === item.id
+                        ? 'در حال ثبت…'
+                        : canAddMore(item)
+                          ? 'افزودن عکس'
+                          : 'ظرفیت پر'
+                    }}
+                  </button>
+                  <button type="button" class="adm-btn adm-btn--sm adm-btn--ghost" (click)="toggleExpand(item.id)">
+                    {{ expandedId() === item.id ? 'بستن' : 'جزئیات' }}
+                  </button>
+                </div>
+              </td>
+            </tr>
+            <tr class="stg-expand" *ngIf="expandedId() === item.id">
+              <td colspan="8">
+                <div class="stg-gallery">
+                  <article class="stg-gallery__item" *ngFor="let ph of item.photos; let i = index">
+                    <img [src]="ph.url" [alt]="ph.fileName" width="96" height="96" />
+                    <small dir="ltr">{{ ph.fileName }}</small>
+                    <button type="button" class="adm-btn adm-btn--sm adm-btn--ghost" (click)="removePhoto(item, i)">
+                      حذف
+                    </button>
+                  </article>
+                  <p class="stg-muted" *ngIf="!photoCount(item)">هنوز عکسی ثبت نشده است.</p>
+                </div>
+              </td>
+            </tr>
+          </ng-container>
+        </tbody>
+      </table>
+    </div>
+
+    <ng-template #empty>
+      <div class="adm-empty">
+        <strong>موردی در این فیلتر نیست</strong>
+        <p>دسته یا وضعیت را تغییر دهید، یا فایل اکسل جدید بارگذاری کنید.</p>
+      </div>
+    </ng-template>
+
+    <div class="adm-pager" *ngIf="filtered().length > pageSize">
+      <button type="button" class="adm-btn adm-btn--ghost adm-btn--sm" [disabled]="page() <= 1" (click)="prevPage()">قبلی</button>
+      <span>
+        صفحه {{ page() | number:'1.0-0':'fa-IR' }} از {{ totalPages() | number:'1.0-0':'fa-IR' }}
+      </span>
+      <button type="button" class="adm-btn adm-btn--ghost adm-btn--sm" [disabled]="page() >= totalPages()" (click)="nextPage()">بعدی</button>
+    </div>
+  </div>
+
+  <div class="adm-toast" *ngIf="toast()" role="status">{{ toast() }}</div>
+</section>

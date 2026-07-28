@@ -1,0 +1,51 @@
+<section class="collection-page" dir="rtl">
+  <header class="collection-page__intro">
+    <p class="collection-page__eyebrow" lang="en" dir="ltr">COLLECTION</p>
+    <h1 class="collection-page__title">{{ activeCollection.title }}</h1>
+    <p class="collection-page__subtitle" lang="en" dir="ltr">{{ activeCollection.subtitle }}</p>
+  </header>
+
+  <nav class="collection-page__tabs" aria-label="کالکشن‌ها">
+    <a
+      *ngFor="let collection of collections"
+      class="collection-page__tab"
+      [class.collection-page__tab--active]="isActive(collection.slug)"
+      [routerLink]="['/collections', collection.slug]"
+      [attr.aria-current]="isActive(collection.slug) ? 'page' : null">
+      {{ collection.title }}
+    </a>
+  </nav>
+
+  <section
+    class="collection-page__rail-wrap"
+    [class.collection-page__rail-wrap--grid]="isAllDresses"
+    aria-label="محصولات کالکشن"
+  >
+    <div
+      class="collection-page__rail"
+      [class.collection-page__rail--grid]="isAllDresses"
+    >
+      <article class="collection-page__card" *ngFor="let product of products">
+        <a class="collection-page__link" [routerLink]="['/product', product.id]">
+          <div class="collection-page__media">
+            <img
+              class="collection-page__img"
+              [src]="product.image"
+              [alt]="product.name"
+              loading="lazy"
+              decoding="async"
+              width="320"
+              height="430"
+              (error)="hideBrokenImage($event)"
+            />
+            <span class="collection-page__tag">{{ product.tag }}</span>
+          </div>
+          <div class="collection-page__body">
+            <h3 class="collection-page__name">{{ product.name }}</h3>
+            <span class="collection-page__cta">مشاهده جزئیات</span>
+          </div>
+        </a>
+      </article>
+    </div>
+  </section>
+</section>

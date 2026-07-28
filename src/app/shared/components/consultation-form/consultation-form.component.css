@@ -1,0 +1,454 @@
+/* ================================================================
+   Consultation Form — multi-step VIP request
+   Mirrors WordPress vip-consultation-form styling with design tokens
+   ================================================================ */
+
+.consult-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  font-family: var(--font-persian);
+}
+
+.consult-form__honeypot {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.consult-form__progress {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.consult-form__progress-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.55rem 0.35rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.65rem;
+  background: var(--color-surface);
+  text-align: center;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.consult-form__progress-item > span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 1.35rem;
+  block-size: 1.35rem;
+  border-radius: 50%;
+  background: var(--color-cream-warm);
+  color: var(--color-text-muted);
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.consult-form__progress-item > strong {
+  color: var(--color-text-main);
+  font-size: 0.68rem;
+  font-weight: 600;
+}
+
+.consult-form__progress-item[aria-current='step'] {
+  border-color: var(--color-gold-primary);
+  background: var(--color-gold-a04);
+}
+
+.consult-form__progress-item[aria-current='step'] > span,
+.consult-form__progress-item--complete > span {
+  background: var(--color-gold-primary);
+  color: var(--color-white);
+}
+
+.consult-form__progress-item--complete {
+  border-color: var(--color-gold-a22);
+}
+
+.consult-form__status {
+  min-block-size: 1.25rem;
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 0.72rem;
+}
+
+.consult-form__notice {
+  padding: 0.75rem 0.85rem;
+  border-radius: 0.55rem;
+  font-size: 0.82rem;
+  line-height: 1.65;
+}
+
+.consult-form__notice--success {
+  color: var(--color-success);
+  background: color-mix(in srgb, var(--color-success) 8%, var(--color-surface));
+  border: 1px solid color-mix(in srgb, var(--color-success) 25%, transparent);
+}
+
+.consult-form__notice--error {
+  color: var(--color-error);
+  background: color-mix(in srgb, var(--color-error) 6%, var(--color-surface));
+  border: 1px solid color-mix(in srgb, var(--color-error) 20%, transparent);
+}
+
+.consult-form__step {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-inline-size: 0;
+}
+
+.consult-form__step > legend {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  margin-block-end: 0.85rem;
+  padding: 0;
+}
+
+.consult-form__step > legend > span {
+  color: var(--color-gold-primary);
+  font-family: var(--font-english);
+  font-size: 0.58rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+}
+
+.consult-form__step > legend > strong {
+  color: var(--color-dark-charcoal);
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 500;
+}
+
+.consult-form__step > legend:focus {
+  outline: none;
+}
+
+.consult-form__product {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  margin: 0 0 0.85rem;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid var(--color-gold-a18);
+  border-radius: 0.55rem;
+  background: var(--color-gold-a04);
+}
+
+.consult-form__product--top {
+  margin-block-end: 0.35rem;
+}
+
+.consult-form__product > span {
+  color: var(--color-text-muted);
+  font-size: 0.68rem;
+}
+
+.consult-form__product > strong {
+  color: var(--color-dark-charcoal);
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.consult-form__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-block-end: 0.85rem;
+}
+
+.consult-form__calendar {
+  max-inline-size: 17.5rem;
+  margin-inline: auto;
+  padding: 0.5rem;
+  background: var(--color-bg-cream);
+  border: 1px solid var(--color-border);
+  border-radius: 0.55rem;
+}
+
+.consult-form__calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.35rem;
+  margin-block-end: 0.4rem;
+}
+
+.consult-form__cal-title {
+  color: var(--color-dark-charcoal);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.consult-form__cal-nav {
+  inline-size: 1.85rem;
+  block-size: 1.85rem;
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid var(--color-border);
+  border-radius: 0.4rem;
+  background: var(--color-surface);
+  color: var(--color-dark-charcoal);
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.consult-form__cal-nav:hover {
+  border-color: var(--color-gold-primary);
+  color: var(--color-gold-primary);
+}
+
+.consult-form__weekdays,
+.consult-form__grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.1rem;
+}
+
+.consult-form__weekdays span {
+  display: grid;
+  place-items: center;
+  min-block-size: 1.25rem;
+  color: var(--color-text-muted);
+  font-size: 0.6rem;
+  font-weight: 600;
+}
+
+.consult-form__day {
+  aspect-ratio: 1;
+  min-block-size: 1.65rem;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: none;
+  border-radius: 0.35rem;
+  background: transparent;
+  color: var(--color-dark-charcoal);
+  font-family: inherit;
+  font-size: 0.72rem;
+  cursor: pointer;
+}
+
+.consult-form__day:hover:not(:disabled) {
+  background: var(--color-gold-a14);
+}
+
+.consult-form__day--today:not(.consult-form__day--selected) {
+  box-shadow: inset 0 0 0 1px var(--color-gold-a55);
+}
+
+.consult-form__day--selected {
+  color: var(--color-white);
+  background: var(--color-gold-primary);
+  font-weight: 700;
+}
+
+.consult-form__day--empty,
+.consult-form__day:disabled {
+  cursor: default;
+  color: color-mix(in srgb, var(--color-text-muted) 45%, transparent);
+  background: transparent;
+}
+
+.consult-form__day--empty {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.consult-form__selected {
+  margin: 0.35rem 0 0;
+  color: var(--color-text-main);
+  font-size: 0.76rem;
+}
+
+.consult-form__selected--empty {
+  color: var(--color-text-muted);
+}
+
+.consult-form__summary {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  margin: 0 0 0.85rem;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.55rem;
+  background: var(--color-cream-soft);
+}
+
+.consult-form__summary > span {
+  color: var(--color-text-muted);
+  font-size: 0.68rem;
+}
+
+.consult-form__summary > strong {
+  color: var(--color-dark-charcoal);
+  font-size: 0.88rem;
+}
+
+.consult-form__field > span {
+  color: var(--color-text-main);
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+
+.consult-form__field > span b {
+  color: var(--color-gold-primary);
+}
+
+.consult-form__field > span small {
+  color: var(--color-text-muted);
+  font-weight: 400;
+}
+
+.consult-form__field-error {
+  display: block;
+  margin-block-start: 0.35rem;
+  color: var(--color-error);
+  font-size: 0.72rem;
+  line-height: 1.5;
+}
+
+.consult-form__field input[aria-invalid='true'] {
+  border-color: var(--color-error);
+}
+
+.consult-form__field input,
+.consult-form__field select,
+.consult-form__field textarea {
+  width: 100%;
+  padding: 0.7rem 0.8rem;
+  color: var(--color-text-main);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+  font-family: inherit;
+  font-size: 0.84rem;
+  line-height: 1.5;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.consult-form__field textarea {
+  resize: vertical;
+  min-block-size: 5.5rem;
+}
+
+.consult-form__field input::placeholder,
+.consult-form__field textarea::placeholder {
+  color: var(--color-text-muted);
+  opacity: 0.75;
+}
+
+.consult-form__field input:focus-visible,
+.consult-form__field select:focus-visible,
+.consult-form__field textarea:focus-visible {
+  outline: none;
+  border-color: var(--color-gold-primary);
+  box-shadow: 0 0 0 3px var(--color-gold-a10);
+}
+
+.consult-form__row {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.consult-form__consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  margin-block-end: 0.65rem;
+  color: var(--color-text-main);
+  font-size: 0.76rem;
+  line-height: 1.7;
+  cursor: pointer;
+}
+
+.consult-form__consent input {
+  flex: 0 0 auto;
+  margin-block-start: 0.2rem;
+  accent-color: var(--color-gold-primary);
+}
+
+.consult-form__assurance {
+  margin: 0 0 0.85rem;
+  color: var(--color-text-muted);
+  font-size: 0.72rem;
+}
+
+.consult-form__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-block-start: 0.25rem;
+}
+
+.consult-form__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-block-size: 2.65rem;
+  padding: 0.65rem 1.1rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
+}
+
+.consult-form__btn--next,
+.consult-form__btn--submit {
+  color: var(--color-white);
+  background: var(--color-dark-charcoal);
+  border-color: var(--color-dark-charcoal);
+}
+
+.consult-form__btn--back {
+  color: var(--color-text-main);
+  background: transparent;
+  border-color: var(--color-border);
+}
+
+.consult-form__btn:hover:not(:disabled) {
+  background: var(--color-gold-primary);
+  border-color: var(--color-gold-primary);
+  color: var(--color-white);
+}
+
+.consult-form__btn:focus-visible {
+  outline: 2px solid var(--color-gold-light);
+  outline-offset: 2px;
+}
+
+.consult-form__btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+@media (min-width: 640px) {
+  .consult-form__row {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .consult-form__actions {
+    justify-content: flex-end;
+  }
+
+  .consult-form__btn--submit,
+  .consult-form__btn--next {
+    margin-inline-start: auto;
+  }
+}

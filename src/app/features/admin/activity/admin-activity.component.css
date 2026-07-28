@@ -1,0 +1,4 @@
+/* Activity page uses shared .adm-* utilities; keep host minimal. */
+:host {
+  display: block;
+}

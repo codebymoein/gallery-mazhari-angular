@@ -1,0 +1,101 @@
+<div
+  class="dream-canvas"
+  dir="rtl"
+  [class.dream-canvas--has-items]="(canvas.count$ | async)! > 0"
+  [class.dream-canvas--dock-visible]="dockVisible"
+  [hidden]="hiddenOnRoute"
+>
+  <button
+    #triggerBtn
+    class="dream-canvas__trigger"
+    type="button"
+    aria-haspopup="dialog"
+    aria-controls="dream-canvas-dialog"
+    [attr.aria-label]="'باز کردن بوم رویایی من؛ ' + persianCount((canvas.count$ | async) || 0) + ' انتخاب'"
+    [attr.tabindex]="dockVisible ? null : -1"
+    (click)="open()"
+  >
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 20.5 4.3 13A5.2 5.2 0 0 1 12 6a5.2 5.2 0 0 1 7.7 7Z"></path>
+    </svg>
+    <span class="dream-canvas__trigger-label">بوم رویایی من</span>
+    <bdi class="dream-canvas__trigger-count">{{ persianCount((canvas.count$ | async) || 0) }}</bdi>
+  </button>
+
+  <p class="dream-canvas__announcement" role="status" aria-live="polite">
+    {{ canvas.announcement$ | async }}
+  </p>
+
+  <dialog
+    #dialogEl
+    class="dream-canvas__dialog"
+    id="dream-canvas-dialog"
+    aria-labelledby="dream-canvas-title"
+    aria-describedby="dream-canvas-description"
+    (close)="onDialogClose()"
+  >
+    <header class="dream-canvas__header">
+      <div>
+        <p class="dream-canvas__eyebrow" lang="en" dir="ltr">MY DREAM CANVAS</p>
+        <h2 class="dream-canvas__title" id="dream-canvas-title" tabindex="-1">بوم رویایی من</h2>
+        <p class="dream-canvas__description" id="dream-canvas-description">
+          مدل‌ها و جزئیاتی را که دوست دارید کنار هم نگه دارید و با آرامش مقایسه کنید.
+        </p>
+      </div>
+
+      <button
+        class="dream-canvas__close"
+        type="button"
+        aria-label="بستن بوم رویایی"
+        (click)="close()"
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M6 6l12 12M18 6 6 18"></path>
+        </svg>
+      </button>
+    </header>
+
+    <div class="dream-canvas__body">
+      <ng-container *ngIf="(canvas.items$ | async) as items">
+        <div class="dream-canvas__empty" *ngIf="items.length === 0">
+          <span aria-hidden="true">♡</span>
+          <h3>اولین انتخاب، شروع تصویر رویایی شماست</h3>
+          <p>روی نشان قلب محصولات بزنید تا اینجا کنار هم قرار بگیرند.</p>
+        </div>
+
+        <div class="dream-canvas__grid" *ngIf="items.length > 0">
+          <article class="dream-canvas__card" *ngFor="let item of items">
+            <div class="dream-canvas__card-media" *ngIf="item.image; else placeholder">
+              <img [src]="item.image" [alt]="item.name" loading="lazy" />
+            </div>
+            <ng-template #placeholder>
+              <div class="dream-canvas__card-media dream-canvas__card-media--empty" aria-hidden="true">♡</div>
+            </ng-template>
+            <div class="dream-canvas__card-body">
+              <h3>{{ item.name }}</h3>
+              <p *ngIf="item.price">{{ item.price }}</p>
+              <div class="dream-canvas__card-actions">
+                <a
+                  *ngIf="item.slug; else productFallback"
+                  [routerLink]="['/product', item.productId]"
+                  (click)="close()"
+                >مشاهده</a>
+                <ng-template #productFallback>
+                  <a [routerLink]="continueShoppingLink()" (click)="close()">مشاهده کاتالوگ</a>
+                </ng-template>
+                <button type="button" (click)="remove(item.productId)">حذف</button>
+              </div>
+            </div>
+          </article>
+        </div>
+      </ng-container>
+    </div>
+
+    <footer class="dream-canvas__footer">
+      <p>
+        انتخاب‌های مهمان حداکثر ۱۸۰ روز روی همین مرورگر می‌مانند؛ با ورود به حساب، به بوم حساب شما اضافه می‌شوند.
+      </p>
+      <a [routerLink]="continueShoppingLink()" (click)="close()">ادامه مشاهده محصولات</a>
+    </footer>
+  </dialog>
+</div>

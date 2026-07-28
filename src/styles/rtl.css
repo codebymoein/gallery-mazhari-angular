@@ -1,0 +1,153 @@
+/* RTL Support - Gallery Mazhari */
+
+/* Logical Properties for RTL/LTR */
+
+/* Margin */
+.ml-1 {
+  margin-inline-start: 0.25rem;
+}
+
+.ml-2 {
+  margin-inline-start: 0.5rem;
+}
+
+.ml-4 {
+  margin-inline-start: 1rem;
+}
+
+.ml-auto {
+  margin-inline-start: auto;
+}
+
+.mr-1 {
+  margin-inline-end: 0.25rem;
+}
+
+.mr-2 {
+  margin-inline-end: 0.5rem;
+}
+
+.mr-4 {
+  margin-inline-end: 1rem;
+}
+
+.mr-auto {
+  margin-inline-end: auto;
+}
+
+/* Padding */
+.pl-1 {
+  padding-inline-start: 0.25rem;
+}
+
+.pl-2 {
+  padding-inline-start: 0.5rem;
+}
+
+.pl-4 {
+  padding-inline-start: 1rem;
+}
+
+.pr-1 {
+  padding-inline-end: 0.25rem;
+}
+
+.pr-2 {
+  padding-inline-end: 0.5rem;
+}
+
+.pr-4 {
+  padding-inline-end: 1rem;
+}
+
+/* Float */
+[dir="rtl"] .float-left {
+  float: right;
+}
+
+[dir="ltr"] .float-left {
+  float: left;
+}
+
+[dir="rtl"] .float-right {
+  float: left;
+}
+
+[dir="ltr"] .float-right {
+  float: right;
+}
+
+/* Text Align */
+[dir="rtl"] .text-left {
+  text-align: right;
+}
+
+[dir="ltr"] .text-left {
+  text-align: left;
+}
+
+[dir="rtl"] .text-right {
+  text-align: left;
+}
+
+[dir="ltr"] .text-right {
+  text-align: right;
+}
+
+/* Position */
+[dir="rtl"] .left-0 {
+  inset-inline-end: 0;
+}
+
+[dir="ltr"] .left-0 {
+  inset-inline-start: 0;
+}
+
+[dir="rtl"] .right-0 {
+  inset-inline-start: 0;
+}
+
+[dir="ltr"] .right-0 {
+  inset-inline-end: 0;
+}
+
+/* Border */
+[dir="rtl"] .border-l {
+  border-inline-start: 1px solid;
+}
+
+[dir="ltr"] .border-l {
+  border-inline-start: 1px solid;
+}
+
+[dir="rtl"] .border-r {
+  border-inline-end: 1px solid;
+}
+
+[dir="ltr"] .border-r {
+  border-inline-end: 1px solid;
+}
+
+/* Transform */
+.scale-x-m1 {
+  transform: scaleX(-1);
+}
+
+/* Flexbox RTL */
+.flex-row-reverse {
+  flex-direction: row-reverse;
+}
+
+/* Grid RTL */
+.grid-auto-flow-dense {
+  grid-auto-flow: dense;
+}
+
+/* Visibility for Arabic numerals vs Persian numerals */
+.use-persian-numbers {
+  font-feature-settings: 'pnum' on, 'lnum' off;
+}
+
+.use-ltr-numbers {
+  font-feature-settings: 'lnum' on, 'pnum' off;
+}

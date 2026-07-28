@@ -1,0 +1,73 @@
+<section class="adm adm-page" dir="rtl">
+  <header class="adm-page__head">
+    <div>
+      <p class="adm-page__eyebrow" lang="en" dir="ltr">CUSTOMER 360</p>
+      <h1 class="adm-page__title">هوشمندی مشتریان (CRM)</h1>
+      <p class="adm-page__lead">
+        ارزش طول عمر (LTV)، تماس، و دسترسی سریع به بوم رویایی قبل از تماس فروش.
+      </p>
+    </div>
+    <div class="adm-page__actions">
+      <div class="adm-kpi" style="min-width: 10rem; padding: 0.7rem 0.9rem">
+        <span class="adm-kpi__label">جمع LTV</span>
+        <strong class="adm-kpi__value" style="font-size: 1.1rem">{{ formatCompact(totalLtv()) }}</strong>
+      </div>
+    </div>
+  </header>
+
+  <div class="adm-card">
+    <div class="adm-toolbar">
+      <strong>{{ clients().length | number:'1.0-0':'fa-IR' }} مشتری</strong>
+      <div class="adm-search" style="min-width: min(100%, 16rem)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" stroke-linecap="round" />
+        </svg>
+        <input
+          class="adm-input"
+          type="search"
+          placeholder="جستجوی نام، موبایل، شهر…"
+          [ngModel]="query()"
+          (ngModelChange)="onSearch($event)"
+        />
+      </div>
+    </div>
+
+    <div class="adm-table-wrap">
+      <table class="adm-table">
+        <thead>
+          <tr>
+            <th>نام</th>
+            <th>تماس</th>
+            <th>شهر</th>
+            <th>سفارش‌ها</th>
+            <th>LTV</th>
+            <th>آخرین بازدید</th>
+            <th>برچسب</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let c of clients()">
+            <td><strong>{{ c.name }}</strong></td>
+            <td>
+              <div dir="ltr">{{ c.phone }}</div>
+              <small style="color: var(--adm-faint)">{{ c.email }}</small>
+            </td>
+            <td>{{ c.city }}</td>
+            <td>{{ c.ordersCount | number:'1.0-0':'fa-IR' }}</td>
+            <td><strong>{{ formatToman(c.ltv) }}</strong></td>
+            <td>{{ formatFaDate(c.lastVisitAt) }}</td>
+            <td>
+              <span class="crm-tag" *ngFor="let t of c.tags">{{ t }}</span>
+            </td>
+            <td>
+              <a class="adm-btn adm-btn--sm adm-btn--soft" [routerLink]="['/admin/crm', c.id]">
+                پروفایل ۳۶۰
+              </a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>

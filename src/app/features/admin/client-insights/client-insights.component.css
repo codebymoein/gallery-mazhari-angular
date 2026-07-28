@@ -1,0 +1,185 @@
+.insights-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(17.5rem, 1fr));
+  gap: 0.85rem;
+}
+
+.insight-card {
+  display: grid;
+  gap: 0.7rem;
+  padding: 0.95rem;
+  border-radius: 0.75rem;
+  border: 1px solid #e7e5e4;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(28, 25, 23, 0.04);
+}
+
+.insight-card__head {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  align-items: flex-start;
+}
+
+.insight-card__head strong {
+  display: block;
+  font-size: 0.95rem;
+}
+
+.insight-card__phone {
+  display: inline-block;
+  margin-block-start: 0.2rem;
+  color: #b8973e;
+  font-size: 0.78rem;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.insight-card__tag {
+  flex-shrink: 0;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  background: #f5f4f2;
+  color: #57534e;
+  font-size: 0.65rem;
+  font-weight: 800;
+}
+
+.insight-card__tag[data-tag='needs_followup'] {
+  background: #fff7ed;
+  color: #c2410c;
+}
+
+.insight-card__tag[data-tag='contacted'] {
+  background: #ecfdf3;
+  color: #15803d;
+}
+
+.insight-card__tag[data-tag='cancelled'] {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.insight-card__tag[data-tag='scheduled'] {
+  background: #faf6eb;
+  color: #6a5420;
+}
+
+.insight-card__meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.45rem 0.65rem;
+  margin: 0;
+}
+
+.insight-card__meta dt {
+  margin: 0;
+  color: #a8a29e;
+  font-size: 0.62rem;
+}
+
+.insight-card__meta dd {
+  margin: 0.1rem 0 0;
+  font-size: 0.76rem;
+  font-weight: 600;
+}
+
+.insight-card__msg {
+  margin: 0;
+  padding: 0.55rem 0.65rem;
+  border-radius: 0.45rem;
+  background: #fafaf9;
+  color: #44403c;
+  font-size: 0.78rem;
+  line-height: 1.55;
+}
+
+.insight-card__dream h3 {
+  margin: 0 0 0.4rem;
+  font-size: 0.76rem;
+  color: #78716c;
+}
+
+.insight-card__dream-row {
+  display: flex;
+  gap: 0.4rem;
+  overflow-x: auto;
+  padding-block-end: 0.15rem;
+}
+
+.insight-card__dream-row figure {
+  margin: 0;
+  width: 3.6rem;
+  flex: 0 0 auto;
+  text-align: center;
+}
+
+.insight-card__dream-row img {
+  width: 3.5rem;
+  height: 3.5rem;
+  object-fit: cover;
+  border-radius: 0.4rem;
+  border: 1px solid #e7e5e4;
+  background: #eee;
+}
+
+.insight-card__dream-row figcaption {
+  margin-block-start: 0.2rem;
+  font-size: 0.58rem;
+  color: #78716c;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.insight-card__muted {
+  margin: 0;
+  color: #a8a29e;
+  font-size: 0.72rem;
+}
+
+.insight-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  padding-block-start: 0.35rem;
+  border-block-start: 1px solid #f5f4f2;
+}
+
+.insight-card__actions-label {
+  width: 100%;
+  color: #a8a29e;
+  font-size: 0.65rem;
+  font-weight: 700;
+}
+
+.insight-tag-btn {
+  min-height: 1.85rem;
+  padding: 0 0.55rem;
+  border-radius: 999px;
+  border: 1px solid #e7e5e4;
+  background: #fff;
+  color: #44403c;
+  font-family: inherit;
+  font-size: 0.68rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.insight-tag-btn--active {
+  border-color: #b8973e;
+  background: #faf6eb;
+  color: #6a5420;
+}
+
+.kanban-total {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.15rem;
+  padding: 0 0.75rem;
+  border-radius: 0.45rem;
+  background: #fafaf9;
+  border: 1px solid #e7e5e4;
+  font-size: 0.78rem;
+  font-weight: 700;
+}

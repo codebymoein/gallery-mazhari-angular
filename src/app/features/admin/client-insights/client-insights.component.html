@@ -1,0 +1,86 @@
+<section class="adm adm-page insights" dir="rtl">
+  <header class="adm-page__head">
+    <div>
+      <p class="adm-page__eyebrow" lang="en" dir="ltr">CONSULTATION INSIGHTS</p>
+      <h1 class="adm-page__title">بینش مشاوره</h1>
+      <p class="adm-page__lead">
+        درخواست‌های مشاوره و بوم رویایی — پس از تماس، برچسب پیگیری را روی کارت ثبت کنید.
+      </p>
+    </div>
+    <div class="adm-page__actions">
+      <span class="kanban-total">
+        {{ requests.length | number:'1.0-0':'fa-IR' }} درخواست
+      </span>
+    </div>
+  </header>
+
+  <div class="insights-grid" *ngIf="requests.length; else empty">
+    <article class="insight-card" *ngFor="let req of requests" [attr.data-tag]="req.followUpTag || 'none'">
+      <header class="insight-card__head">
+        <div>
+          <strong>{{ req.last_name }}</strong>
+          <a class="insight-card__phone" [href]="'tel:' + req.phone" dir="ltr">{{ req.phone }}</a>
+        </div>
+        <span class="insight-card__tag" [attr.data-tag]="req.followUpTag || 'none'">
+          {{ tagLabel(req.followUpTag) }}
+        </span>
+      </header>
+
+      <dl class="insight-card__meta">
+        <div>
+          <dt>تاریخ مراسم</dt>
+          <dd>{{ formatCeremonyDate(req.ceremony_date) }}</dd>
+        </div>
+        <div>
+          <dt>زمان تماس</dt>
+          <dd>{{ contactTimeLabel(req.contact_time) }}</dd>
+        </div>
+        <div>
+          <dt>مدل/محصول</dt>
+          <dd>{{ req.product_name || '—' }}</dd>
+        </div>
+        <div>
+          <dt>ثبت</dt>
+          <dd>{{ formatDate(req.created_at) }}</dd>
+        </div>
+      </dl>
+
+      <p class="insight-card__msg" *ngIf="req.message">{{ req.message }}</p>
+
+      <div class="insight-card__dream" *ngIf="dreamPreview() as dreams">
+        <h3>بوم رویایی</h3>
+        <div class="insight-card__dream-row" *ngIf="dreams.length; else noDream">
+          <figure *ngFor="let d of dreams">
+            <img [src]="d.image" [alt]="d.name" width="56" height="56" (error)="onImgError($event)" />
+            <figcaption>{{ d.name }}</figcaption>
+          </figure>
+        </div>
+        <ng-template #noDream>
+          <p class="insight-card__muted">آیتم بوم رویایی ثبت نشده است.</p>
+        </ng-template>
+      </div>
+
+      <div class="insight-card__actions" role="group" aria-label="برچسب پیگیری">
+        <span class="insight-card__actions-label">وضعیت پیگیری</span>
+        <button
+          type="button"
+          class="insight-tag-btn"
+          *ngFor="let opt of followUpOptions"
+          [class.insight-tag-btn--active]="req.followUpTag === opt.value"
+          (click)="setTag(req, opt.value)"
+        >
+          {{ opt.label }}
+        </button>
+      </div>
+    </article>
+  </div>
+
+  <ng-template #empty>
+    <div class="adm-empty">
+      <strong>درخواستی ثبت نشده</strong>
+      <p>فرم مشاوره فروشگاه را مشتریان پر می‌کنند؛ اینجا ظاهر می‌شود.</p>
+    </div>
+  </ng-template>
+
+  <div class="adm-toast" *ngIf="toast" role="status">{{ toast }}</div>
+</section>

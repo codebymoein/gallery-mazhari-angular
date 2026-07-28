@@ -1,0 +1,219 @@
+/* ============================================================
+   Loading Screen — Gallery Mazhari
+   White · one-line bride · basket pouring red petals
+   ============================================================ */
+
+.ls {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: #ffffff;
+  opacity: 1;
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.ls--exiting {
+  opacity: 0;
+  transform: scale(1.01);
+  pointer-events: none;
+}
+
+.ls__center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.85rem;
+  text-align: center;
+  width: min(92vw, 36rem);
+  animation: ls-rise 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes ls-rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Scene ── */
+.ls__scene {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  max-height: min(58vh, 28rem);
+}
+
+.ls__bride {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center bottom;
+  user-select: none;
+  pointer-events: none;
+}
+
+/* ── Red petals pouring onto head ── */
+.ls__petal {
+  position: absolute;
+  z-index: 2;
+  top: 10%;
+  left: 62%;
+  width: 0.48rem;
+  height: 0.62rem;
+  margin-left: -0.24rem;
+  border-radius: 50% 0 50% 50%;
+  background: linear-gradient(145deg, #ef4444 0%, #c41e3a 55%, #7f1d1d 100%);
+  opacity: 0;
+  transform-origin: center;
+  animation: petal-pour linear infinite;
+  pointer-events: none;
+}
+
+.ls__petal--2,
+.ls__petal--7,
+.ls__petal--12,
+.ls__petal--16 {
+  background: linear-gradient(145deg, #f87171, #dc2626 60%, #991b1b);
+  width: 0.4rem;
+  height: 0.52rem;
+}
+
+.ls__petal--4,
+.ls__petal--9,
+.ls__petal--14,
+.ls__petal--18 {
+  background: linear-gradient(145deg, #dc2626, #9f1239);
+  width: 0.36rem;
+  height: 0.48rem;
+}
+
+/* Spread from basket mouth */
+.ls__petal--1  { --dx: -6px;  animation-duration: 0.95s; animation-delay: 0s;    }
+.ls__petal--2  { --dx: 4px;   animation-duration: 1.1s;  animation-delay: 0.06s; }
+.ls__petal--3  { --dx: -14px; animation-duration: 0.88s; animation-delay: 0.12s; }
+.ls__petal--4  { --dx: 12px;  animation-duration: 1.05s; animation-delay: 0.04s; }
+.ls__petal--5  { --dx: -2px;  animation-duration: 0.92s; animation-delay: 0.18s; }
+.ls__petal--6  { --dx: 18px;  animation-duration: 1.15s; animation-delay: 0.24s; }
+.ls__petal--7  { --dx: -18px; animation-duration: 1.0s;  animation-delay: 0.1s;  }
+.ls__petal--8  { --dx: 8px;   animation-duration: 0.9s;  animation-delay: 0.3s;  }
+.ls__petal--9  { --dx: -10px; animation-duration: 1.08s; animation-delay: 0.36s; }
+.ls__petal--10 { --dx: 2px;   animation-duration: 0.85s; animation-delay: 0.42s; }
+.ls__petal--11 { --dx: 16px;  animation-duration: 1.12s; animation-delay: 0.48s; }
+.ls__petal--12 { --dx: -20px; animation-duration: 0.98s; animation-delay: 0.54s; }
+.ls__petal--13 { --dx: 0px;   animation-duration: 0.9s;  animation-delay: 0.6s;  }
+.ls__petal--14 { --dx: 10px;  animation-duration: 1.05s; animation-delay: 0.66s; }
+.ls__petal--15 { --dx: -8px;  animation-duration: 0.95s; animation-delay: 0.72s; }
+.ls__petal--16 { --dx: 20px;  animation-duration: 1.18s; animation-delay: 0.78s; }
+.ls__petal--17 { --dx: -16px; animation-duration: 0.88s; animation-delay: 0.84s; }
+.ls__petal--18 { --dx: 6px;   animation-duration: 1.0s;  animation-delay: 0.9s;  }
+
+@keyframes petal-pour {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) rotate(0deg) scale(0.55);
+  }
+  8% {
+    opacity: 1;
+  }
+  55% {
+    /* land around hair / veil */
+    opacity: 0.95;
+    transform: translate(var(--dx), 5.5rem) rotate(150deg) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(calc(var(--dx) * 1.4), 8.5rem) rotate(280deg) scale(0.8);
+  }
+}
+
+@media (min-width: 640px) {
+  @keyframes petal-pour {
+    0% {
+      opacity: 0;
+      transform: translate(0, 0) rotate(0deg) scale(0.55);
+    }
+    8% {
+      opacity: 1;
+    }
+    55% {
+      opacity: 0.95;
+      transform: translate(var(--dx), 7rem) rotate(150deg) scale(1);
+    }
+    100% {
+      opacity: 0;
+      transform: translate(calc(var(--dx) * 1.4), 11rem) rotate(280deg) scale(0.8);
+    }
+  }
+}
+
+/* ── Brand ── */
+.ls__brand {
+  margin: 0;
+  color: #111111;
+  font-family: var(--font-english);
+  font-size: clamp(0.85rem, 2.8vw, 1.05rem);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.28em;
+  line-height: 1.25;
+  text-transform: uppercase;
+}
+
+/* ── Progress ── */
+.ls__bar-track {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 1.5px;
+  background: rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+}
+
+.ls__bar-fill {
+  height: 100%;
+  background: #111111;
+  opacity: 0.22;
+  transition: width 0.08s linear;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ls__petal,
+  .ls__center {
+    animation: none !important;
+  }
+
+  .ls__petal {
+    opacity: 0.85;
+    top: 18%;
+  }
+
+  .ls__petal--1  { transform: translate(-6px, 4rem) rotate(25deg); }
+  .ls__petal--2  { transform: translate(4px, 4.4rem) rotate(-20deg); }
+  .ls__petal--3  { transform: translate(-12px, 3.8rem) rotate(55deg); }
+  .ls__petal--4  { transform: translate(10px, 4.6rem) rotate(-40deg); }
+  .ls__petal--5  { transform: translate(0, 4.2rem) rotate(80deg); }
+  .ls__petal--6,
+  .ls__petal--7,
+  .ls__petal--8,
+  .ls__petal--9,
+  .ls__petal--10,
+  .ls__petal--11,
+  .ls__petal--12,
+  .ls__petal--13,
+  .ls__petal--14,
+  .ls__petal--15,
+  .ls__petal--16,
+  .ls__petal--17,
+  .ls__petal--18 {
+    display: none;
+  }
+
+  .ls {
+    transition-duration: 0.01ms !important;
+  }
+
+  .ls__bar-fill {
+    transition: none;
+  }
+}

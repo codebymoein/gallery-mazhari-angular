@@ -1,0 +1,158 @@
+<section class="adm adm-page" dir="rtl">
+  <header class="adm-page__head">
+    <div>
+      <p class="adm-page__eyebrow" lang="en" dir="ltr">MARKETING & RETENTION</p>
+      <h1 class="adm-page__title">بازاریابی و بازگشت مشتری</h1>
+      <p class="adm-page__lead">
+        موتور کد تخفیف و بازیابی سبدهای رهاشده بیش از ۲۴ ساعت با یک کلیک.
+      </p>
+    </div>
+  </header>
+
+  <div class="mkt-grid">
+    <section class="adm-card">
+      <div class="adm-card__head">
+        <div>
+          <h2 class="adm-card__title">ساخت کد تخفیف</h2>
+          <p class="adm-card__sub">درصدی یا مبلغ ثابت با سقف استفاده</p>
+        </div>
+      </div>
+      <form class="adm-card__body mkt-form" (ngSubmit)="create()">
+        <div class="adm-field">
+          <label class="adm-label" for="promo-code">کد</label>
+          <input id="promo-code" class="adm-input" name="code" [(ngModel)]="code" placeholder="مثلاً BRIDAL10" dir="ltr" />
+        </div>
+        <div class="mkt-form__row">
+          <div class="adm-field">
+            <label class="adm-label" for="promo-type">نوع</label>
+            <select id="promo-type" class="adm-select" name="type" [(ngModel)]="type">
+              <option value="percent">درصدی</option>
+              <option value="fixed">مبلغ ثابت (میلیون تومان)</option>
+            </select>
+          </div>
+          <div class="adm-field">
+            <label class="adm-label" for="promo-value">مقدار</label>
+            <input id="promo-value" class="adm-input" type="number" name="value" [(ngModel)]="value" min="1" />
+          </div>
+        </div>
+        <div class="mkt-form__row">
+          <div class="adm-field">
+            <label class="adm-label" for="promo-start">شروع</label>
+            <input id="promo-start" class="adm-input" type="date" name="startsAt" [(ngModel)]="startsAt" />
+          </div>
+          <div class="adm-field">
+            <label class="adm-label" for="promo-end">پایان</label>
+            <input id="promo-end" class="adm-input" type="date" name="endsAt" [(ngModel)]="endsAt" />
+          </div>
+        </div>
+        <div class="adm-field">
+          <label class="adm-label" for="promo-limit">سقف استفاده</label>
+          <input id="promo-limit" class="adm-input" type="number" name="usageLimit" [(ngModel)]="usageLimit" min="1" />
+        </div>
+        <div class="adm-field">
+          <label class="adm-label" for="promo-note">توضیح</label>
+          <input id="promo-note" class="adm-input" name="note" [(ngModel)]="note" placeholder="اختیاری" />
+        </div>
+        <button class="adm-btn adm-btn--gold" type="submit">ایجاد کد تخفیف</button>
+      </form>
+    </section>
+
+    <section class="adm-card">
+      <div class="adm-card__head">
+        <div>
+          <h2 class="adm-card__title">کدهای فعال / آرشیو</h2>
+          <p class="adm-card__sub">{{ promos().length | number:'1.0-0':'fa-IR' }} کد ثبت‌شده</p>
+        </div>
+      </div>
+      <div class="adm-table-wrap">
+        <table class="adm-table">
+          <thead>
+            <tr>
+              <th>کد</th>
+              <th>مقدار</th>
+              <th>بازه</th>
+              <th>مصرف</th>
+              <th>وضعیت</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let p of promos()">
+              <td class="adm-table__code" dir="ltr">{{ p.code }}</td>
+              <td>{{ valueLabel(p.type, p.value) }}</td>
+              <td>
+                <small>{{ formatFaDate(p.startsAt, false) }}</small>
+                —
+                <small>{{ formatFaDate(p.endsAt, false) }}</small>
+              </td>
+              <td>
+                {{ p.usedCount | number:'1.0-0':'fa-IR' }} /
+                {{ p.usageLimit | number:'1.0-0':'fa-IR' }}
+              </td>
+              <td>
+                <span class="adm-status" [class.adm-status--published]="p.active" [class.adm-status--rejected]="!p.active">
+                  {{ p.active ? 'فعال' : 'غیرفعال' }}
+                </span>
+              </td>
+              <td>
+                <button type="button" class="adm-btn adm-btn--sm adm-btn--ghost" (click)="toggle(p.id)">
+                  {{ p.active ? 'غیرفعال' : 'فعال‌سازی' }}
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <section class="adm-card" style="margin-block-start: 0.85rem">
+    <div class="adm-card__head">
+      <div>
+        <h2 class="adm-card__title">سبدهای رهاشده (+۲۴ ساعت)</h2>
+        <p class="adm-card__sub">ارسال یادآور یک‌کلیکه پیامک / تلگرام</p>
+      </div>
+    </div>
+    <div class="adm-table-wrap" *ngIf="carts().length; else emptyCarts">
+      <table class="adm-table">
+        <thead>
+          <tr>
+            <th>مشتری</th>
+            <th>موبایل</th>
+            <th>اقلام</th>
+            <th>مبلغ سبد</th>
+            <th>آخرین فعالیت</th>
+            <th>کانال</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let cart of carts()">
+            <td><strong>{{ cart.customerName }}</strong></td>
+            <td dir="ltr">{{ cart.phone }}</td>
+            <td>
+              {{ cart.itemsCount | number:'1.0-0':'fa-IR' }}
+              <small style="display:block;color:var(--adm-faint)">{{ cart.itemsPreview.join('، ') }}</small>
+            </td>
+            <td>{{ formatToman(cart.cartTotal) }}</td>
+            <td>{{ formatFaDate(cart.lastActiveAt) }}</td>
+            <td>{{ cart.channelHint === 'telegram' ? 'تلگرام' : 'پیامک' }}</td>
+            <td>
+              <button type="button" class="adm-btn adm-btn--sm adm-btn--success" (click)="remind(cart.id)">
+                ارسال یادآور SMS/Telegram
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <ng-template #emptyCarts>
+      <div class="adm-empty">
+        <strong>سبد رهاشده‌ای باقی نمانده</strong>
+        <p>همه یادآورها ارسال شده‌اند.</p>
+      </div>
+    </ng-template>
+  </section>
+
+  <div class="adm-toast adm-toast--success" *ngIf="toast()" role="status">{{ toast() }}</div>
+</section>

@@ -1,0 +1,111 @@
+<section class="adm adm-page" dir="rtl" *ngIf="client() as c; else missing">
+  <header class="adm-page__head">
+    <div>
+      <p class="adm-page__eyebrow" lang="en" dir="ltr">CLIENT PROFILE</p>
+      <h1 class="adm-page__title">{{ c.name }}</h1>
+      <p class="adm-page__lead">
+        نمای ۳۶۰ درجه — تاریخچه نوبت‌ها و بوم رویایی برای آماده‌سازی تماس فروش.
+      </p>
+    </div>
+    <div class="adm-page__actions">
+      <a class="adm-btn adm-btn--ghost" routerLink="/admin/crm">بازگشت به لیست</a>
+      <a class="adm-btn adm-btn--gold" [href]="'tel:' + c.phone">تماس با مشتری</a>
+    </div>
+  </header>
+
+  <div class="adm-kpis">
+    <article class="adm-kpi adm-kpi--success">
+      <span class="adm-kpi__label">ارزش طول عمر (LTV)</span>
+      <strong class="adm-kpi__value" style="font-size: 1.2rem">{{ formatToman(c.ltv) }}</strong>
+    </article>
+    <article class="adm-kpi">
+      <span class="adm-kpi__label">تعداد سفارش</span>
+      <strong class="adm-kpi__value">{{ c.ordersCount | number:'1.0-0':'fa-IR' }}</strong>
+    </article>
+    <article class="adm-kpi adm-kpi--info">
+      <span class="adm-kpi__label">آیتم بوم رویایی</span>
+      <strong class="adm-kpi__value">{{ c.dreamBoard.length | number:'1.0-0':'fa-IR' }}</strong>
+    </article>
+    <article class="adm-kpi">
+      <span class="adm-kpi__label">تاریخ مراسم</span>
+      <strong class="adm-kpi__value" style="font-size: 1rem">{{ c.ceremonyDate || '—' }}</strong>
+    </article>
+  </div>
+
+  <div class="adm-grid-2">
+    <section class="adm-card">
+      <div class="adm-card__head">
+        <div>
+          <h2 class="adm-card__title">اطلاعات تماس</h2>
+          <p class="adm-card__sub">برای هماهنگی فروش و پرو</p>
+        </div>
+      </div>
+      <div class="adm-card__body">
+        <dl class="profile-dl">
+          <div><dt>موبایل</dt><dd dir="ltr">{{ c.phone }}</dd></div>
+          <div><dt>ایمیل</dt><dd dir="ltr">{{ c.email }}</dd></div>
+          <div><dt>شهر</dt><dd>{{ c.city }}</dd></div>
+          <div><dt>آخرین بازدید</dt><dd>{{ formatFaDate(c.lastVisitAt) }}</dd></div>
+        </dl>
+        <div class="profile-tags">
+          <span *ngFor="let t of c.tags">{{ t }}</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="adm-card">
+      <div class="adm-card__head">
+        <div>
+          <h2 class="adm-card__title">تاریخچه نوبت‌ها</h2>
+          <p class="adm-card__sub">مشاوره و پرو</p>
+        </div>
+      </div>
+      <ul class="adm-list" *ngIf="c.appointments.length; else noAppt">
+        <li class="adm-list__item" *ngFor="let a of c.appointments">
+          <span class="adm-list__dot"></span>
+          <div>
+            <p class="adm-list__title">{{ a.title }}</p>
+            <p class="adm-list__meta">{{ appointmentStatus(a.status) }}</p>
+          </div>
+          <time class="adm-list__time">{{ formatFaDate(a.at) }}</time>
+        </li>
+      </ul>
+      <ng-template #noAppt>
+        <div class="adm-empty"><strong>نوبتی ثبت نشده</strong></div>
+      </ng-template>
+    </section>
+  </div>
+
+  <section class="adm-card">
+    <div class="adm-card__head">
+      <div>
+        <h2 class="adm-card__title">بوم رویایی مشتری</h2>
+        <p class="adm-card__sub">قبل از تماس ببینید چه چیزهایی را ذخیره کرده‌اند</p>
+      </div>
+    </div>
+    <div class="dream-grid" *ngIf="c.dreamBoard.length; else emptyDream">
+      <article class="dream-card" *ngFor="let item of c.dreamBoard">
+        <img [src]="item.image" [alt]="item.name" width="160" height="200" loading="lazy" />
+        <div>
+          <strong>{{ item.name }}</strong>
+          <span>{{ formatToman(item.price) }}</span>
+        </div>
+      </article>
+    </div>
+    <ng-template #emptyDream>
+      <div class="adm-empty">
+        <strong>بوم رویایی خالی است</strong>
+        <p>هنوز آیتمی ذخیره نشده.</p>
+      </div>
+    </ng-template>
+  </section>
+</section>
+
+<ng-template #missing>
+  <section class="adm adm-page" dir="rtl">
+    <div class="adm-empty">
+      <strong>مشتری یافت نشد</strong>
+      <p><a routerLink="/admin/crm">بازگشت به لیست مشتریان</a></p>
+    </div>
+  </section>
+</ng-template>

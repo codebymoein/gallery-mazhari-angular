@@ -1,0 +1,521 @@
+/* ================================================================
+   Real Brides & Testimonials — Gallery Mazhari
+   Magazine masonry + cinematic theater mode · mobile-first
+   ================================================================ */
+
+.real-brides {
+  position: relative;
+  padding-block: 1.35rem 1.55rem;
+  background: var(--gradient-cream-section);
+  font-family: var(--font-persian);
+  overflow: hidden;
+}
+
+.real-brides__inner {
+  width: min(100% - 1.5rem, var(--container-max));
+  margin-inline: auto;
+}
+
+/* ── Header ── */
+.real-brides__header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  max-width: 22rem;
+  margin: 0 auto 1rem;
+  padding-inline: 0.25rem;
+  text-align: center;
+}
+
+.real-brides__eyebrow {
+  margin: 0;
+  color: var(--mds-color-primary);
+  font-family: var(--font-english);
+  font-size: 0.55rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+}
+
+.real-brides__title {
+  margin: 0;
+  color: var(--mds-color-heading);
+  font-family: var(--font-display);
+  font-size: clamp(1.1rem, 4.1vw, 2.2rem);
+  font-weight: 500;
+  line-height: 1.3;
+  text-wrap: balance;
+}
+
+.real-brides__lead {
+  margin: 0.15rem 0 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.12rem;
+  max-width: 18rem;
+  color: var(--mds-color-text-muted);
+  font-size: clamp(0.72rem, 2vw, 0.92rem);
+  line-height: 1.65;
+}
+
+.real-brides__lead-sep { display: none; }
+
+/* ── Gallery: mobile horizontal strip ── */
+.real-brides__gallery {
+  display: flex;
+  gap: 0.65rem;
+  padding-block: 0.1rem 0.25rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  overscroll-behavior-inline: contain;
+}
+.real-brides__gallery::-webkit-scrollbar { display: none; }
+
+/* ── Card ── */
+.bride-card {
+  position: relative;
+  isolation: isolate;
+  flex: 0 0 min(72vw, 14.5rem);
+  max-width: 14.5rem;
+  min-height: 18.5rem;
+  display: flex;
+  align-items: flex-end;
+  padding: 0;
+  margin: 0;
+  scroll-snap-align: start;
+  border: 1px solid var(--color-primary-a28);
+  border-radius: 0.85rem;
+  background: var(--color-dark-charcoal);
+  overflow: hidden;
+  cursor: pointer;
+  text-align: right;
+  font: inherit;
+  color: inherit;
+  box-shadow:
+    0 10px 24px color-mix(in srgb, var(--color-matte-black) 10%, transparent),
+    0 0 0 1px var(--color-gold-a04);
+  transition:
+    transform 0.35s ease,
+    border-color 0.3s ease,
+    box-shadow 0.35s ease;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.bride-card:hover,
+.bride-card:focus-visible {
+  border-color: var(--color-gold-a55);
+  box-shadow:
+    0 16px 36px color-mix(in srgb, var(--color-matte-black) 16%, transparent),
+    0 0 28px var(--color-gold-a22);
+}
+
+.bride-card:focus-visible {
+  outline: 2px solid var(--color-gold-light);
+  outline-offset: 3px;
+}
+
+.bride-card:active { transform: scale(0.985); }
+
+.bride-card__media {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.bride-card__img {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 18%;
+  display: block;
+  filter: saturate(0.9) contrast(1.02);
+  transition: transform 0.75s cubic-bezier(0.2, 0.7, 0.2, 1), filter 0.35s ease;
+}
+.bride-card:hover .bride-card__img,
+.bride-card:focus-visible .bride-card__img {
+  transform: scale(1.045);
+  filter: saturate(1) contrast(1.04);
+}
+
+.bride-card__fallback {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: linear-gradient(155deg, var(--color-fallback-warm) 0%, var(--color-matte-black) 100%);
+}
+
+/* Soft gold glow accent */
+.bride-card__glow {
+  position: absolute;
+  inset-inline-end: -20%;
+  inset-block-start: -15%;
+  z-index: 2;
+  width: 55%;
+  height: 40%;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--color-gold-a28) 0%, transparent 70%);
+  pointer-events: none;
+  opacity: 0.65;
+  transition: opacity 0.35s ease;
+}
+.bride-card:hover .bride-card__glow,
+.bride-card:focus-visible .bride-card__glow {
+  opacity: 1;
+}
+
+.bride-card__overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    var(--color-overlay-a05) 20%,
+    var(--color-overlay-a28) 55%,
+    var(--color-overlay-a88) 100%
+  );
+}
+
+.bride-card__caption {
+  position: relative;
+  z-index: 4;
+  width: 100%;
+  padding: 0.85rem 0.8rem 0.95rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.28rem;
+  color: var(--color-white);
+}
+
+.bride-card__name {
+  color: var(--color-champagne-gold);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.bride-card__quote {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--color-white-a80);
+  font-size: 0.7rem;
+  line-height: 1.55;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.bride-card__venue {
+  margin-top: 0.15rem;
+  color: var(--color-text-on-dark-faint);
+  font-size: 0.6rem;
+  letter-spacing: 0.01em;
+}
+
+/* Gold underline accent on name */
+.bride-card__name::after {
+  content: '';
+  display: block;
+  width: 1.35rem;
+  height: 1px;
+  margin-top: 0.3rem;
+  background: linear-gradient(90deg, var(--color-champagne-gold), transparent);
+  box-shadow: 0 0 8px var(--color-gold-a55);
+}
+
+/* ════════════════════════════════════
+   THEATER MODE
+   ════════════════════════════════════ */
+
+.theater-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-theater-backdrop);
+  background: var(--color-overlay-a88);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.32s ease, visibility 0.32s ease;
+}
+.theater-backdrop--open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.theater {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-theater);
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: auto 1fr auto;
+  align-items: center;
+  justify-items: center;
+  padding: 0.75rem;
+  padding-block-end: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: scale(0.96);
+  transition:
+    opacity 0.32s ease,
+    visibility 0.32s ease,
+    transform 0.38s cubic-bezier(0.33, 1, 0.68, 1);
+}
+.theater--open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: scale(1);
+}
+
+.theater__close {
+  position: absolute;
+  inset-block-start: max(0.75rem, env(safe-area-inset-top, 0px));
+  inset-inline-end: 0.75rem;
+  z-index: 3;
+  width: 2.35rem;
+  height: 2.35rem;
+  display: grid;
+  place-items: center;
+  color: var(--color-champagne-gold);
+  background: var(--color-white-a05);
+  border: 1px solid var(--color-gold-a35);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+  touch-action: manipulation;
+}
+.theater__close svg { width: 0.95rem; height: 0.95rem; }
+.theater__close:hover {
+  background: var(--color-gold-a14);
+  transform: scale(1.04);
+}
+.theater__close:focus-visible {
+  outline: 2px solid var(--color-gold-light);
+  outline-offset: 2px;
+}
+
+.theater__nav {
+  display: none;
+  position: absolute;
+  inset-block-start: 50%;
+  z-index: 3;
+  width: 2.5rem;
+  height: 2.5rem;
+  place-items: center;
+  color: var(--color-champagne-gold);
+  background: var(--color-white-a05);
+  border: 1px solid var(--color-gold-a32);
+  border-radius: 50%;
+  cursor: pointer;
+  transform: translateY(-50%);
+  transition: background 0.2s ease;
+  touch-action: manipulation;
+}
+.theater__nav svg { width: 0.95rem; height: 0.95rem; }
+.theater__nav:hover { background: var(--color-gold-a14); }
+.theater__nav--prev { inset-inline-start: 1rem; }
+.theater__nav--next { inset-inline-end: 1rem; }
+.theater__nav:focus-visible {
+  outline: 2px solid var(--color-gold-light);
+  outline-offset: 2px;
+}
+
+.theater__stage {
+  margin: 0;
+  width: min(100%, 28rem);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.theater__frame {
+  position: relative;
+  width: 100%;
+  max-height: min(62dvh, 34rem);
+  border-radius: 0.75rem;
+  overflow: hidden;
+  border: 1px solid var(--color-gold-a38);
+  background: var(--color-surface-dark-deep);
+  box-shadow:
+    0 24px 60px color-mix(in srgb, var(--color-matte-black) 45%, transparent),
+    0 0 40px var(--color-gold-a12);
+}
+
+.theater__img {
+  display: block;
+  width: 100%;
+  max-height: min(62dvh, 34rem);
+  object-fit: contain;
+  object-position: center;
+  background: var(--color-surface-dark-deeper);
+}
+
+.theater__frame-glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  box-shadow: inset 0 0 40px var(--color-gold-a08);
+}
+
+.theater__caption {
+  width: 100%;
+  max-width: 24rem;
+  text-align: center;
+  padding-inline: 0.5rem;
+}
+
+.theater__name {
+  margin: 0 0 0.35rem;
+  color: var(--color-champagne-gold);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.theater__quote {
+  margin: 0;
+  color: var(--color-white-a80);
+  font-size: clamp(0.78rem, 2.4vw, 0.95rem);
+  line-height: 1.7;
+  text-wrap: pretty;
+}
+
+.theater__venue {
+  margin: 0.45rem 0 0;
+  color: var(--color-text-on-dark-faint);
+  font-size: 0.68rem;
+}
+
+.theater__counter {
+  position: absolute;
+  inset-block-end: max(0.85rem, env(safe-area-inset-bottom, 0px));
+  inset-inline: 0;
+  text-align: center;
+  color: var(--color-gold-a70);
+  font-family: var(--font-english);
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  pointer-events: none;
+}
+
+/* ════════════════════════════════════
+   BREAKPOINTS
+   ════════════════════════════════════ */
+
+@media (max-width: 359px) {
+  .real-brides__inner { width: calc(100% - 1.1rem); }
+  .bride-card {
+    flex-basis: min(78vw, 13.25rem);
+    max-width: 13.25rem;
+    min-height: 17rem;
+  }
+  .bride-card__quote { font-size: 0.66rem; }
+}
+
+@media (min-width: 480px) {
+  .real-brides { padding-block: 1.65rem 1.85rem; }
+  .real-brides__header { max-width: 28rem; margin-bottom: 1.15rem; }
+  .real-brides__lead { max-width: 22rem; }
+  .bride-card {
+    flex-basis: min(48vw, 15.5rem);
+    max-width: 15.5rem;
+    min-height: 20rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .real-brides {
+    padding-block: clamp(2.75rem, 6vw, 5rem);
+  }
+  .real-brides__inner { width: min(calc(100% - 3rem), var(--container-max)); }
+
+  .real-brides__header {
+    max-width: 40rem;
+    gap: 0.4rem;
+    margin-bottom: 1.75rem;
+  }
+  .real-brides__eyebrow {
+    font-size: 0.68rem;
+    letter-spacing: 0.2em;
+  }
+  .real-brides__title {
+    font-size: clamp(1.55rem, 3.4vw, 2.35rem);
+  }
+  .real-brides__lead {
+    display: block;
+    max-width: 34rem;
+    font-size: 0.92rem;
+    line-height: 1.8;
+  }
+  .real-brides__lead-sep { display: inline; }
+
+  /* Magazine masonry via CSS columns */
+  .real-brides__gallery {
+    display: block;
+    columns: 3;
+    column-gap: 0.9rem;
+    overflow: visible;
+    scroll-snap-type: none;
+  }
+
+  .bride-card {
+    flex: none;
+    max-width: none;
+    width: 100%;
+    min-height: 0;
+    margin-block-end: 0.9rem;
+    break-inside: avoid;
+    border-radius: 1rem;
+  }
+
+  .bride-card--tall  { aspect-ratio: 3 / 4.2; }
+  .bride-card--wide  { aspect-ratio: 4 / 3.4; }
+  .bride-card--square { aspect-ratio: 3 / 3.5; }
+
+  .bride-card__caption { padding: 1.1rem 1.05rem 1.15rem; }
+  .bride-card__name { font-size: 0.8rem; }
+  .bride-card__quote {
+    font-size: 0.78rem;
+    -webkit-line-clamp: 3;
+  }
+  .bride-card__venue { font-size: 0.68rem; }
+
+  .theater {
+    padding: 1.5rem;
+  }
+  .theater__nav { display: grid; }
+  .theater__stage { width: min(100%, 42rem); }
+  .theater__frame,
+  .theater__img {
+    max-height: min(72dvh, 44rem);
+  }
+  .theater__quote { font-size: 1rem; }
+}
+
+@media (min-width: 1100px) {
+  .real-brides__gallery {
+    columns: 3;
+    column-gap: 1.1rem;
+  }
+  .bride-card { margin-block-end: 1.1rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bride-card,
+  .bride-card__img,
+  .bride-card__glow,
+  .theater,
+  .theater-backdrop {
+    transition-duration: 0.01ms !important;
+  }
+}

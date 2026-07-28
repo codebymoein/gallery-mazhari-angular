@@ -1,0 +1,145 @@
+<article class="bridal-product" dir="rtl" *ngIf="product as p">
+  <nav class="bridal-product__crumb" aria-label="مسیر صفحه">
+    <a routerLink="/">خانه</a>
+    <span aria-hidden="true">/</span>
+    <ng-container *ngIf="shopParent as parent">
+      <a [routerLink]="['/shop', parent.slug]">{{ parent.title }}</a>
+      <span *ngIf="shopSub" aria-hidden="true">/</span>
+      <a *ngIf="shopSub as sub" [routerLink]="['/shop', parent.slug, sub.slug]">{{ sub.label }}</a>
+    </ng-container>
+    <ng-container *ngIf="!shopParent && category as cat">
+      <a routerLink="/collections/bridal-clothing">پوشاک عروس</a>
+      <span aria-hidden="true">/</span>
+      <a [routerLink]="['/collections', cat.slug]">{{ cat.title }}</a>
+    </ng-container>
+    <span aria-hidden="true">/</span>
+    <span>{{ p.name }}</span>
+  </nav>
+
+  <div class="bridal-product__stage">
+    <div class="bridal-product__gallery">
+      <figure class="bridal-product__hero">
+        <img
+          [src]="activeImage"
+          [alt]="p.name"
+          width="900"
+          height="1200"
+          decoding="async"
+          (error)="hideBrokenImage($event)"
+        />
+        <span class="bridal-product__tag">{{ p.tag }}</span>
+      </figure>
+
+      <div class="bridal-product__thumbs" *ngIf="galleryImages().length > 1" role="list">
+        <button
+          *ngFor="let src of galleryImages()"
+          type="button"
+          class="bridal-product__thumb"
+          role="listitem"
+          [class.bridal-product__thumb--active]="src === activeImage"
+          [attr.aria-label]="'نمایش تصویر ' + p.name"
+          [attr.aria-pressed]="src === activeImage"
+          (click)="selectImage(src)"
+        >
+          <img [src]="src" [alt]="''" width="120" height="160" loading="lazy" decoding="async" />
+        </button>
+      </div>
+    </div>
+
+    <div class="bridal-product__info">
+      <p class="bridal-product__eyebrow" lang="en" dir="ltr">BRIDAL GOWN</p>
+      <h1 class="bridal-product__title">{{ p.name }}</h1>
+      <p class="bridal-product__collection" *ngIf="category as cat">
+        از
+        <a [routerLink]="['/collections', cat.slug]">{{ cat.title }}</a>
+      </p>
+      <p class="bridal-product__collection" *ngIf="!category && shopSub as sub">
+        از
+        <a [routerLink]="['/shop', shopParent!.slug, sub.slug]">{{ sub.label }}</a>
+      </p>
+
+      <p class="bridal-product__lead">{{ p.description }}</p>
+
+      <p class="bridal-product__price">{{ priceLabel }}</p>
+
+      <dl class="bridal-product__meta">
+        <div>
+          <dt>فرم لباس</dt>
+          <dd>{{ p.silhouette }}</dd>
+        </div>
+        <div>
+          <dt>پارچه</dt>
+          <dd>{{ p.fabric }}</dd>
+        </div>
+      </dl>
+
+      <ul class="bridal-product__highlights" aria-label="جزئیات برجسته">
+        <li *ngFor="let item of p.highlights">{{ item }}</li>
+      </ul>
+
+      <div class="bridal-product__commerce">
+        <button class="bridal-product__cart-btn" type="button" (click)="addToCart()">
+          افزودن به سبد خرید
+        </button>
+        <button
+          class="bridal-product__dream-btn"
+          type="button"
+          [class.bridal-product__dream-btn--active]="onDreamBoard"
+          (click)="addToDreamBoard()"
+        >
+          {{ onDreamBoard ? 'در بوم رویایی' : 'افزودن به بوم رویایی' }}
+        </button>
+      </div>
+
+      <div class="bridal-product__actions">
+        <a
+          class="bridal-product__cta"
+          routerLink="/consultation"
+          [queryParams]="{ product: p.name, productId: p.id }"
+        >
+          درخواست مشاوره برای این مدل
+          <span aria-hidden="true">←</span>
+        </a>
+        <a
+          class="bridal-product__secondary"
+          [routerLink]="backLink"
+        >
+          {{ backLabel }}
+        </a>
+      </div>
+
+      <p class="bridal-product__note">
+        برای دیدن جزئیات پارچه، اندازه‌ها و هماهنگی اکسسوری، پس از ثبت درخواست با شما هماهنگ می‌کنیم.
+      </p>
+    </div>
+  </div>
+
+  <section class="bridal-product__related" *ngIf="related.length" aria-labelledby="related-title">
+    <header class="bridal-product__related-head">
+      <h2 id="related-title">مدل‌های مشابه</h2>
+      <p>از همین کالکشن ببینید</p>
+    </header>
+
+    <div class="bridal-product__related-grid">
+      <a
+        class="bridal-product__related-card"
+        *ngFor="let item of related"
+        [routerLink]="['/product', item.id]"
+      >
+        <span class="bridal-product__related-media">
+          <img
+            [src]="item.image"
+            [alt]="item.name"
+            width="280"
+            height="380"
+            loading="lazy"
+            decoding="async"
+            (error)="hideBrokenImage($event)"
+          />
+        </span>
+        <strong>{{ item.name }}</strong>
+        <small>{{ item.tag }}</small>
+      </a>
+    </div>
+  </section>
+</article>

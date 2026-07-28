@@ -1,0 +1,124 @@
+.mgr-list {
+  display: grid;
+  gap: 0.85rem;
+  padding: 1rem 1.1rem 1.15rem;
+}
+
+.mgr-card {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 1rem;
+  align-items: center;
+  padding: 0.95rem;
+  border-radius: var(--adm-radius-sm, 0.5rem);
+  border: 1px solid var(--adm-line, #e7e5e4);
+  background: var(--adm-surface-soft, #fafaf9);
+}
+
+.mgr-card__media {
+  display: grid;
+  gap: 0.25rem;
+  justify-items: center;
+}
+
+.mgr-card__media img {
+  width: 6rem;
+  height: 6rem;
+  object-fit: cover;
+  border-radius: 0.55rem;
+  border: 1px solid var(--adm-line, #e7e5e4);
+  background: #eee;
+}
+
+.mgr-card__media small {
+  color: var(--adm-muted, #78716c);
+  font-size: 0.68rem;
+}
+
+.mgr-card__top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+  margin-block-end: 0.3rem;
+}
+
+.mgr-card__body h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.mgr-new {
+  display: inline-block;
+  margin-inline-start: 0.35rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+  background: #ecfdf3;
+  color: #15803d;
+  font-size: 0.62rem;
+  font-weight: 800;
+  vertical-align: middle;
+}
+
+.mgr-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.4rem 0.9rem;
+  margin: 0.6rem 0 0;
+}
+
+.mgr-meta dt {
+  margin: 0;
+  font-size: 0.62rem;
+  color: var(--adm-faint, #a8a29e);
+}
+
+.mgr-meta dd {
+  margin: 0.05rem 0 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.mgr-thumbs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-block-start: 0.65rem;
+}
+
+.mgr-thumbs img {
+  width: 2.75rem;
+  height: 2.75rem;
+  object-fit: cover;
+  border-radius: 0.35rem;
+  border: 1px solid var(--adm-line, #e7e5e4);
+  background: #eee;
+}
+
+.mgr-card__actions {
+  display: grid;
+  gap: 0.45rem;
+  min-width: 12rem;
+}
+
+@media (max-width: 900px) {
+  .mgr-card {
+    grid-template-columns: auto 1fr;
+  }
+
+  .mgr-card__actions {
+    grid-column: 1 / -1;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 560px) {
+  .mgr-card {
+    grid-template-columns: 1fr;
+  }
+
+  .mgr-meta {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,70 @@
+<section class="cat-hub" dir="rtl" *ngIf="category as cat">
+
+  <nav class="cat-hub__crumb" aria-label="مسیر صفحه">
+    <a class="cat-hub__crumb-link" routerLink="/">خانه</a>
+    <span class="cat-hub__crumb-sep" aria-hidden="true">←</span>
+    <span class="cat-hub__crumb-current" aria-current="page">{{ cat.title }}</span>
+  </nav>
+
+  <header class="cat-hub__hero">
+    <div class="cat-hub__hero-media">
+      <img
+        class="cat-hub__hero-img"
+        [src]="cat.image"
+        [alt]="cat.title"
+        loading="eager"
+        decoding="async"
+        width="960"
+        height="420"
+        (error)="onImgError($event)"
+      />
+      <span class="cat-hub__hero-overlay" aria-hidden="true"></span>
+      <div class="cat-hub__hero-copy">
+        <p class="cat-hub__eyebrow" lang="en" dir="ltr">{{ cat.subtitle }}</p>
+        <h1 class="cat-hub__title">{{ cat.title }}</h1>
+        <p class="cat-hub__lead">مجموعه‌ها را انتخاب کنید</p>
+      </div>
+    </div>
+  </header>
+
+  <ng-container *ngIf="cat.subcategories.length; else emptyHub">
+    <div class="cat-hub__mosaic" role="list" aria-label="زیردسته‌ها">
+      <a
+        *ngFor="let sub of cat.subcategories; let i = index; trackBy: trackSub"
+        class="cat-hub__card"
+        [class]="'cat-hub__card cat-hub__card--' + cardShape(i)"
+        role="listitem"
+        [routerLink]="['/shop', parentSlug, sub.slug]"
+        [attr.aria-label]="sub.label"
+      >
+        <span class="cat-hub__card-media">
+          <img
+            class="cat-hub__card-img"
+            [src]="sub.image || cat.image"
+            [alt]="sub.label"
+            loading="lazy"
+            decoding="async"
+            width="320"
+            height="400"
+            (error)="onImgError($event)"
+          />
+          <span class="cat-hub__card-fallback" aria-hidden="true"></span>
+        </span>
+        <span class="cat-hub__card-overlay" aria-hidden="true"></span>
+        <span class="cat-hub__card-body">
+          <span class="cat-hub__card-icon" aria-hidden="true">{{ sub.icon || '✦' }}</span>
+          <strong class="cat-hub__card-label">{{ sub.label }}</strong>
+          <span class="cat-hub__card-cta">مشاهده محصولات</span>
+        </span>
+      </a>
+    </div>
+  </ng-container>
+
+  <ng-template #emptyHub>
+    <div class="cat-hub__empty">
+      <p class="cat-hub__empty-text">زیردسته‌ای برای این بخش ثبت نشده است.</p>
+      <a class="cat-hub__empty-cta" routerLink="/">بازگشت به صفحه اصلی</a>
+    </div>
+  </ng-template>
+
+</section>

@@ -1,0 +1,180 @@
+<section class="adm adm-page kanban-page" dir="rtl">
+  <header class="adm-page__head">
+    <div>
+      <p class="adm-page__eyebrow" lang="en" dir="ltr">BRIDAL WORKFLOW</p>
+      <h1 class="adm-page__title">کانبان سفارش و گردش‌کار عروس</h1>
+      <p class="adm-page__lead">
+        سفارش‌ها از فروشگاه همگام می‌شوند. با چک‌باکس چند سفارش را انتخاب و وضعیت را یکجا تغییر دهید.
+      </p>
+    </div>
+    <div class="adm-page__actions">
+      <a class="adm-btn adm-btn--ghost adm-btn--sm" routerLink="/admin/crm">مشتریان</a>
+      <span class="kanban-total">
+        {{ ordersService.orders().length | number:'1.0-0':'fa-IR' }} سفارش
+      </span>
+    </div>
+  </header>
+
+  <div class="kanban-bulk" *ngIf="checkedCount()" role="toolbar" aria-label="عملیات گروهی">
+    <strong>{{ checkedCount() | number:'1.0-0':'fa-IR' }} سفارش انتخاب‌شده</strong>
+    <label class="kanban-bulk__stage">
+      <span>انتقال به</span>
+      <select [ngModel]="bulkStage()" (ngModelChange)="bulkStage.set($event)">
+        <option *ngFor="let s of stages" [ngValue]="s">{{ labels[s] }}</option>
+      </select>
+    </label>
+    <button type="button" class="adm-btn adm-btn--gold adm-btn--sm" (click)="applyBulkStage()">
+      اعمال وضعیت
+    </button>
+    <button type="button" class="adm-btn adm-btn--ghost adm-btn--sm" (click)="clearSelection()">
+      لغو انتخاب
+    </button>
+  </div>
+
+  <div class="kanban" cdkDropListGroup *ngIf="ordersService.orders().length; else emptyBoard">
+    <section class="kanban__col" *ngFor="let stage of stages" [attr.data-stage]="stage">
+      <header class="kanban__col-head">
+        <div>
+          <strong>{{ labels[stage] }}</strong>
+          <small>{{ stageHint(stage) }}</small>
+        </div>
+        <span class="adm-badge">{{ byStage()[stage].length | number:'1.0-0':'fa-IR' }}</span>
+      </header>
+
+      <div
+        class="kanban__list"
+        cdkDropList
+        [id]="'stage-' + stage"
+        [cdkDropListData]="byStage()[stage]"
+        [cdkDropListConnectedTo]="dropListIds()"
+        (cdkDropListDropped)="onDrop($event, stage)"
+      >
+        <article
+          class="kanban__card"
+          [class.kanban__card--checked]="isChecked(order.id)"
+          *ngFor="let order of byStage()[stage]"
+          cdkDrag
+          [cdkDragData]="order"
+        >
+          <div class="kanban__card-top">
+            <label class="kanban__check" (click)="$event.stopPropagation()">
+              <input
+                type="checkbox"
+                [checked]="isChecked(order.id)"
+                (change)="toggleCheck(order.id, $any($event.target).checked, $event)"
+                [attr.aria-label]="'انتخاب ' + order.orderNo"
+              />
+            </label>
+            <button
+              type="button"
+              class="kanban__handle"
+              cdkDragHandle
+              aria-label="جابه‌جایی کارت"
+              title="بکشید"
+            >
+              ⋮⋮
+            </button>
+            <strong dir="ltr">{{ order.orderNo }}</strong>
+            <span class="kanban__pay kanban__pay--{{ order.paymentStatus }}">
+              {{ paymentLabel(order.paymentStatus) }}
+            </span>
+          </div>
+          <button type="button" class="kanban__open" (click)="open(order)">
+            <p class="kanban__name">{{ order.customerName }}</p>
+            <p class="kanban__meta" dir="ltr">{{ order.customerPhone }}</p>
+            <div class="kanban__foot">
+              <span>{{ formatToman(order.total) }}</span>
+              <small>{{ formatFaDate(order.updatedAt) }}</small>
+            </div>
+          </button>
+        </article>
+
+        <p class="kanban__empty" *ngIf="!byStage()[stage].length">خالی</p>
+      </div>
+    </section>
+  </div>
+
+  <ng-template #emptyBoard>
+    <div class="adm-empty">
+      <strong>هنوز سفارشی نیست</strong>
+      <p>با تکمیل خرید در فروشگاه، سفارش‌ها اینجا ظاهر می‌شوند.</p>
+      <a class="adm-btn adm-btn--gold adm-btn--sm" routerLink="/" target="_blank" rel="noopener">فروشگاه</a>
+    </div>
+  </ng-template>
+
+  <div class="drawer-backdrop" *ngIf="selected()" (click)="close()"></div>
+  <aside class="drawer" *ngIf="selected() as order" role="dialog" aria-modal="true" [attr.aria-label]="'جزئیات ' + order.orderNo">
+    <header class="drawer__head">
+      <div>
+        <p class="adm-page__eyebrow" lang="en" dir="ltr">ORDER DETAIL</p>
+        <h2>{{ order.orderNo }}</h2>
+        <span class="adm-status adm-status--ready_for_approval">{{ labels[order.stage] }}</span>
+      </div>
+      <button type="button" class="adm-btn adm-btn--ghost adm-btn--sm" (click)="close()">بستن</button>
+    </header>
+
+    <div class="drawer__body">
+      <section class="drawer__block">
+        <h3>مشتری و گیرنده</h3>
+        <dl class="drawer__dl">
+          <div><dt>نام</dt><dd>{{ order.customerName }}</dd></div>
+          <div><dt>موبایل</dt><dd dir="ltr">{{ order.customerPhone }}</dd></div>
+          <div *ngIf="order.shippingAddress as addr">
+            <dt>آدرس گیرنده</dt>
+            <dd>{{ addr.city }}، {{ addr.address }} — {{ addr.postalCode }}</dd>
+          </div>
+          <div><dt>تاریخ مراسم</dt><dd>{{ order.ceremonyDate || '—' }}</dd></div>
+        </dl>
+        <a class="adm-btn adm-btn--soft adm-btn--sm" [routerLink]="['/admin/crm', order.customerId]">
+          پروفایل CRM
+        </a>
+      </section>
+
+      <section class="drawer__block">
+        <h3>پرداخت</h3>
+        <dl class="drawer__dl">
+          <div><dt>وضعیت</dt><dd>{{ paymentLabel(order.paymentStatus) }}</dd></div>
+          <div><dt>جمع فاکتور</dt><dd>{{ formatToman(order.total) }}</dd></div>
+          <div><dt>پرداخت‌شده</dt><dd>{{ formatToman(order.paidAmount) }}</dd></div>
+          <div><dt>مانده</dt><dd>{{ formatToman(order.total - order.paidAmount) }}</dd></div>
+        </dl>
+      </section>
+
+      <section class="drawer__block">
+        <h3>اقلام فاکتور</h3>
+        <div class="adm-table-wrap">
+          <table class="adm-table">
+            <thead>
+              <tr>
+                <th>کد</th>
+                <th>نام</th>
+                <th>تعداد</th>
+                <th>مبلغ</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let line of order.lines">
+                <td class="adm-table__code" dir="ltr">{{ line.productCode }}</td>
+                <td>{{ line.name }}</td>
+                <td>{{ line.qty | number:'1.0-0':'fa-IR' }}</td>
+                <td>{{ formatToman(line.unitPrice * line.qty) }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="drawer__note" *ngIf="order.notes">{{ order.notes }}</p>
+      </section>
+    </div>
+
+    <footer class="drawer__foot">
+      <button type="button" class="adm-btn adm-btn--gold adm-btn--block" (click)="exportPdf()">
+        خروجی فاکتور
+      </button>
+      <button type="button" class="adm-btn adm-btn--soft adm-btn--block" (click)="exportShippingLabel(order)">
+        خروجی لیبل ارسال
+      </button>
+    </footer>
+  </aside>
+
+  <div class="adm-toast" *ngIf="toast()" role="status">{{ toast() }}</div>
+</section>

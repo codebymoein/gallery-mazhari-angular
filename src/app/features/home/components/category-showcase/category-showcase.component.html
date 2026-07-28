@@ -1,0 +1,114 @@
+<section class="cat-showcase" dir="rtl" aria-label="دسته‌بندی‌های گالری مظهری">
+
+  <div class="cat-showcase__header">
+    <p class="cat-showcase__eyebrow" lang="en" dir="ltr">SHOP BY CATEGORY</p>
+    <h2 class="cat-showcase__title">دسته‌بندی محصولات</h2>
+    <p class="cat-showcase__lead">
+      <span>از لباس عروس تا آخرین اکسسوری</span>
+      <span class="cat-showcase__lead-sep" aria-hidden="true"> — </span>
+      <span>همه چیز برای رویای شما</span>
+    </p>
+  </div>
+
+  <!-- Mobile irregular category grid → dedicated shop pages -->
+  <div class="cat-showcase__stories" role="list" aria-label="دسته‌بندی‌ها">
+    <a
+      *ngFor="let cat of categories; let i = index"
+      class="cat-story"
+      [class.cat-story--wide]="i % 4 === 0 || i % 4 === 3"
+      [class.cat-story--tall]="i % 4 === 1"
+      role="listitem"
+      [routerLink]="['/shop', cat.slug]"
+      [attr.aria-label]="'مشاهده ' + cat.title"
+    >
+      <div class="cat-story__ring">
+        <div class="cat-story__img-wrap">
+          <img
+            class="cat-story__img"
+            [src]="cat.image"
+            [alt]="cat.title"
+            loading="lazy"
+            decoding="async"
+            width="80"
+            height="80"
+            (error)="hideBrokenImage($event)"
+          />
+          <div class="cat-story__fallback" aria-hidden="true"></div>
+        </div>
+      </div>
+      <span class="cat-story__label">{{ cat.title }}</span>
+    </a>
+  </div>
+
+  <!-- Desktop bento → same dedicated shop pages -->
+  <div class="cat-bento" aria-label="دسته‌بندی‌ها — نمای شبکه‌ای">
+    <a
+      *ngFor="let cat of largeCards()"
+      class="cat-card cat-card--large"
+      [routerLink]="['/shop', cat.slug]"
+      [attr.aria-label]="cat.title"
+    >
+      <img class="cat-card__img" [src]="cat.image" [alt]="cat.title"
+           loading="lazy" decoding="async" width="600" height="700"
+           (error)="hideBrokenImage($event)"/>
+      <div class="cat-card__overlay" aria-hidden="true"></div>
+      <div class="cat-card__content">
+        <p class="cat-card__eyebrow" lang="en" dir="ltr">{{ cat.subtitle }}</p>
+        <h3 class="cat-card__title">{{ cat.title }}</h3>
+        <span class="cat-card__cta">
+          مشاهده مجموعه‌ها
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor"
+               stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
+            <path d="M12 8H4M8 4l-4 4 4 4"/>
+          </svg>
+        </span>
+      </div>
+    </a>
+
+    <a
+      *ngFor="let cat of mediumCards()"
+      class="cat-card cat-card--medium"
+      [routerLink]="['/shop', cat.slug]"
+      [attr.aria-label]="cat.title"
+    >
+      <img class="cat-card__img" [src]="cat.image" [alt]="cat.title"
+           loading="lazy" decoding="async" width="400" height="450"
+           (error)="hideBrokenImage($event)"/>
+      <div class="cat-card__overlay" aria-hidden="true"></div>
+      <div class="cat-card__content">
+        <p class="cat-card__eyebrow" lang="en" dir="ltr">{{ cat.subtitle }}</p>
+        <h3 class="cat-card__title">{{ cat.title }}</h3>
+        <span class="cat-card__cta">
+          مشاهده مجموعه‌ها
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor"
+               stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
+            <path d="M12 8H4M8 4l-4 4 4 4"/>
+          </svg>
+        </span>
+      </div>
+    </a>
+
+    <a
+      *ngFor="let cat of smallCards()"
+      class="cat-card cat-card--small"
+      [routerLink]="['/shop', cat.slug]"
+      [attr.aria-label]="cat.title"
+    >
+      <img class="cat-card__img" [src]="cat.image" [alt]="cat.title"
+           loading="lazy" decoding="async" width="300" height="300"
+           (error)="hideBrokenImage($event)"/>
+      <div class="cat-card__overlay" aria-hidden="true"></div>
+      <div class="cat-card__content">
+        <h3 class="cat-card__title">{{ cat.title }}</h3>
+        <span class="cat-card__cta">
+          مشاهده مجموعه‌ها
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor"
+               stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
+            <path d="M12 8H4M8 4l-4 4 4 4"/>
+          </svg>
+        </span>
+      </div>
+    </a>
+  </div>
+
+</section>

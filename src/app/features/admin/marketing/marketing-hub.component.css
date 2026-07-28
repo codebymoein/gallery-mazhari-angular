@@ -1,0 +1,24 @@
+.mkt-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.25fr);
+  gap: 0.85rem;
+  align-items: start;
+}
+
+.mkt-form {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.mkt-form__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.65rem;
+}
+
+@media (max-width: 960px) {
+  .mkt-grid,
+  .mkt-form__row {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,70 @@
+.profile-dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin: 0;
+}
+
+.profile-dl dt {
+  margin: 0;
+  font-size: 0.65rem;
+  color: var(--adm-faint);
+}
+
+.profile-dl dd {
+  margin: 0.15rem 0 0;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.profile-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-block-start: 1rem;
+}
+
+.profile-tags span {
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: #faf6eb;
+  color: #6a5420;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.dream-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
+  gap: 0.75rem;
+  padding: 1rem 1.1rem 1.2rem;
+}
+
+.dream-card {
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.45rem;
+  border-radius: 0.55rem;
+  border: 1px solid var(--adm-line);
+  background: #fafaf9;
+}
+
+.dream-card img {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  border-radius: 0.4rem;
+  background: #eee;
+}
+
+.dream-card strong {
+  display: block;
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.dream-card span {
+  color: var(--adm-gold-deep, #8f742e);
+  font-size: 0.72rem;
+  font-weight: 700;
+}

@@ -1,0 +1,61 @@
+<section class="cat-products" dir="rtl" *ngIf="category && subcategory as sub">
+
+  <nav class="cat-products__crumb" aria-label="مسیر صفحه">
+    <a class="cat-products__crumb-link" routerLink="/">خانه</a>
+    <span class="cat-products__crumb-sep" aria-hidden="true">←</span>
+    <a class="cat-products__crumb-link" [routerLink]="['/shop', parentSlug]">{{ category.title }}</a>
+    <span class="cat-products__crumb-sep" aria-hidden="true">←</span>
+    <span class="cat-products__crumb-current" aria-current="page">{{ sub.label }}</span>
+  </nav>
+
+  <header class="cat-products__intro">
+    <a class="cat-products__back" [routerLink]="['/shop', parentSlug]">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
+        <path d="M12 8H4M8 4l-4 4 4 4"/>
+      </svg>
+      بازگشت به {{ category.title }}
+    </a>
+
+    <p class="cat-products__eyebrow" lang="en" dir="ltr">{{ category.subtitle }}</p>
+    <h1 class="cat-products__title">{{ sub.label }}</h1>
+  </header>
+
+  <ng-container *ngIf="products.length; else emptyProducts">
+    <div class="cat-products__grid" role="list" aria-label="محصولات">
+      <a
+        *ngFor="let product of products"
+        class="cat-products__card"
+        role="listitem"
+        [routerLink]="['/product', product.id]"
+        [attr.aria-label]="product.name"
+      >
+        <span class="cat-products__media">
+          <img
+            class="cat-products__img"
+            [src]="product.image"
+            [alt]="product.name"
+            loading="lazy"
+            decoding="async"
+            width="320"
+            height="420"
+            (error)="hideBrokenImage($event)"
+          />
+          <span class="cat-products__tag">{{ product.tag }}</span>
+        </span>
+        <span class="cat-products__body">
+          <strong class="cat-products__name">{{ product.name }}</strong>
+          <small class="cat-products__price">{{ priceLabel(product) }}</small>
+        </span>
+      </a>
+    </div>
+  </ng-container>
+
+  <ng-template #emptyProducts>
+    <div class="cat-products__empty">
+      <p class="cat-products__empty-icon" aria-hidden="true">✦</p>
+      <p class="cat-products__empty-text">محصولی در این دسته‌بندی یافت نشد.</p>
+      <a class="cat-products__empty-cta" routerLink="/">بازگشت به صفحه اصلی</a>
+    </div>
+  </ng-template>
+
+</section>

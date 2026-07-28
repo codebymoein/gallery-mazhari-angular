@@ -1,0 +1,475 @@
+/* ================================================================
+   AR Magic Mirror — Virtual Try-On
+   Full-screen camera UI · matte black + champagne gold · mobile-first
+   ================================================================ */
+
+.ar-mirror {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  color: #f8f5f2;
+  background: #0a0a0a;
+  font-family: var(--font-persian);
+  opacity: 1;
+  transform: scale(1);
+  transition:
+    opacity 0.32s ease,
+    transform 0.32s ease;
+}
+
+.ar-mirror--entering {
+  opacity: 0;
+  transform: scale(1.04);
+}
+
+.ar-mirror--leaving {
+  opacity: 0;
+  transform: scale(0.97);
+  pointer-events: none;
+}
+
+/* ── Stage / video ── */
+.ar-mirror__stage {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: #111;
+}
+
+.ar-mirror__video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1);
+  background: #0a0a0a;
+}
+
+.ar-mirror__canvas {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.ar-mirror__try-on {
+  position: absolute;
+  left: 50%;
+  inset-block-start: 18%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  pointer-events: none;
+  transform: translateX(-50%);
+  transition: inset-block-start 0.35s ease, opacity 0.35s ease;
+}
+
+.ar-mirror__try-on-glow {
+  display: block;
+  inline-size: min(48vw, 11rem);
+  block-size: min(18vw, 4.5rem);
+  border: 1.5px solid rgba(212, 175, 55, 0.55);
+  border-radius: 50% 50% 40% 40%;
+  background:
+    radial-gradient(ellipse at 50% 30%, rgba(212, 175, 55, 0.35), transparent 70%);
+  box-shadow:
+    0 0 28px rgba(212, 175, 55, 0.35),
+    inset 0 0 18px rgba(212, 175, 55, 0.2);
+  animation: ar-mirror-float 3.2s ease-in-out infinite;
+}
+
+.ar-mirror__try-on[data-kind='veil'] .ar-mirror__try-on-glow {
+  inline-size: min(72vw, 16rem);
+  block-size: min(42vw, 12rem);
+  border-radius: 50% 50% 20% 20%;
+  inset-block-start: 8%;
+  background:
+    linear-gradient(180deg, rgba(248, 245, 242, 0.35), transparent 80%);
+  border-color: rgba(248, 245, 242, 0.35);
+}
+
+.ar-mirror__try-on[data-kind='earrings'] {
+  inset-block-start: 32%;
+  flex-direction: row;
+  gap: 9rem;
+}
+
+.ar-mirror__try-on[data-kind='earrings'] .ar-mirror__try-on-glow {
+  inline-size: 0.85rem;
+  block-size: 2.4rem;
+  border-radius: 999px;
+}
+
+.ar-mirror__try-on[data-kind='necklace'] {
+  inset-block-start: 48%;
+}
+
+.ar-mirror__try-on[data-kind='necklace'] .ar-mirror__try-on-glow {
+  inline-size: min(36vw, 8rem);
+  block-size: 1.1rem;
+  border-radius: 999px;
+}
+
+.ar-mirror__try-on-label {
+  padding: 0.2rem 0.65rem;
+  color: #d4af37;
+  background: rgba(10, 10, 10, 0.45);
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  border-radius: 999px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.ar-mirror__flash {
+  position: absolute;
+  inset: 0;
+  background: #f8f5f2;
+  opacity: 0.85;
+  animation: ar-mirror-flash 0.42s ease-out forwards;
+  pointer-events: none;
+}
+
+.ar-mirror__loading,
+.ar-mirror__error {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  gap: 0.75rem;
+  padding: 1.5rem;
+  text-align: center;
+  background: rgba(10, 10, 10, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.ar-mirror__loading p,
+.ar-mirror__error p {
+  margin: 0;
+  color: #f8f5f2;
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+.ar-mirror__spinner {
+  justify-self: center;
+  inline-size: 2rem;
+  block-size: 2rem;
+  border: 2px solid rgba(212, 175, 55, 0.25);
+  border-block-start-color: #d4af37;
+  border-radius: 50%;
+  animation: ar-mirror-spin 0.8s linear infinite;
+}
+
+/* ── Top bar ── */
+.ar-mirror__top {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding:
+    max(0.85rem, env(safe-area-inset-top, 0px))
+    max(0.85rem, env(safe-area-inset-left, 0px))
+    0.5rem
+    max(0.85rem, env(safe-area-inset-right, 0px));
+  pointer-events: none;
+}
+
+.ar-mirror__brand {
+  pointer-events: none;
+  padding: 0.55rem 0.85rem;
+  background: rgba(10, 10, 10, 0.4);
+  border: 1px solid rgba(212, 175, 55, 0.25);
+  border-radius: 0.75rem;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.ar-mirror__eyebrow {
+  margin: 0 0 0.15rem;
+  color: #d4af37;
+  font-family: var(--font-english);
+  font-size: 0.5625rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+}
+
+.ar-mirror__title {
+  margin: 0;
+  color: #f8f5f2;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+.ar-mirror__close {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 48px;
+  block-size: 48px;
+  min-inline-size: 48px;
+  min-block-size: 48px;
+  padding: 0;
+  color: #f8f5f2;
+  background: rgba(10, 10, 10, 0.5);
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  border-radius: 50%;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.ar-mirror__close:hover,
+.ar-mirror__close:focus-visible {
+  background: rgba(212, 175, 55, 0.18);
+  transform: scale(1.04);
+}
+
+.ar-mirror__close:focus-visible {
+  outline: 2px solid #d4af37;
+  outline-offset: 3px;
+}
+
+.ar-mirror__close > svg {
+  inline-size: 1.15rem;
+  block-size: 1.15rem;
+}
+
+.ar-mirror__status {
+  position: relative;
+  z-index: 2;
+  align-self: center;
+  margin: 0.65rem 1rem 0;
+  padding: 0.45rem 0.9rem;
+  color: #0a0a0a;
+  background: #d4af37;
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+/* ── Bottom glass dock ── */
+.ar-mirror__dock {
+  position: absolute;
+  z-index: 2;
+  inset-inline: 0;
+  inset-block-end: 0;
+  padding:
+    0
+    max(0.75rem, env(safe-area-inset-right, 0px))
+    max(0.75rem, calc(env(safe-area-inset-bottom, 0px) + 0.35rem))
+    max(0.75rem, env(safe-area-inset-left, 0px));
+}
+
+.ar-mirror__dock-glass {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  padding: 0.85rem 0.75rem 1rem;
+  background: rgba(10, 10, 10, 0.55);
+  border: 1px solid rgba(212, 175, 55, 0.28);
+  border-radius: 1.15rem 1.15rem 0.85rem 0.85rem;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.35);
+}
+
+.ar-mirror__dock-hint {
+  margin: 0;
+  color: rgba(248, 245, 242, 0.65);
+  font-size: 0.75rem;
+  text-align: center;
+}
+
+.ar-mirror__carousel {
+  display: flex;
+  flex-direction: row;
+  gap: 0.55rem;
+  padding-block: 0.15rem 0.35rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.ar-mirror__carousel::-webkit-scrollbar {
+  display: none;
+}
+
+.ar-mirror__thumb {
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  min-inline-size: 4.5rem;
+  min-block-size: 48px;
+  padding: 0.35rem;
+  color: #f8f5f2;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.ar-mirror__thumb:focus {
+  outline: none;
+}
+
+.ar-mirror__thumb:focus-visible .ar-mirror__thumb-visual {
+  outline: 2px solid #d4af37;
+  outline-offset: 3px;
+}
+
+.ar-mirror__thumb-visual {
+  display: block;
+  inline-size: 3.5rem;
+  block-size: 3.5rem;
+  border: 1.5px solid rgba(212, 175, 55, 0.35);
+  border-radius: 0.75rem;
+  background:
+    radial-gradient(circle at 40% 30%, rgba(212, 175, 55, 0.35), transparent 55%),
+    rgba(255, 255, 255, 0.06);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.ar-mirror__thumb-visual[data-kind='veil'] {
+  background:
+    linear-gradient(180deg, rgba(248, 245, 242, 0.35), rgba(212, 175, 55, 0.12)),
+    rgba(255, 255, 255, 0.05);
+}
+
+.ar-mirror__thumb-visual[data-kind='earrings'] {
+  background:
+    radial-gradient(circle at 50% 70%, #d4af37 0 18%, transparent 19%),
+    rgba(255, 255, 255, 0.06);
+}
+
+.ar-mirror__thumb--active .ar-mirror__thumb-visual {
+  border-color: #d4af37;
+  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.35), 0 0 18px rgba(212, 175, 55, 0.4);
+}
+
+.ar-mirror__thumb-label {
+  max-inline-size: 4.5rem;
+  color: rgba(248, 245, 242, 0.8);
+  font-size: 0.6875rem;
+  line-height: 1.3;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ar-mirror__thumb--active .ar-mirror__thumb-label {
+  color: #d4af37;
+  font-weight: 700;
+}
+
+.ar-mirror__capture-row {
+  display: flex;
+  justify-content: center;
+  padding-block-start: 0.15rem;
+}
+
+.ar-mirror__capture {
+  position: relative;
+  display: inline-grid;
+  justify-items: center;
+  gap: 0.35rem;
+  min-inline-size: 48px;
+  min-block-size: 48px;
+  padding: 0;
+  color: #d4af37;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.ar-mirror__capture:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.ar-mirror__capture:focus-visible {
+  outline: none;
+}
+
+.ar-mirror__capture:focus-visible .ar-mirror__capture-ring {
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.55);
+}
+
+.ar-mirror__capture-ring {
+  position: relative;
+  display: grid;
+  place-items: center;
+  inline-size: 4.5rem;
+  block-size: 4.5rem;
+  border: 2px solid #d4af37;
+  border-radius: 50%;
+  box-shadow: 0 0 24px rgba(212, 175, 55, 0.35);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.ar-mirror__capture-core {
+  position: absolute;
+  inset: 0.55rem;
+  background: linear-gradient(145deg, #e8c97a, #d4af37 45%, #b8973e);
+  border-radius: 50%;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  pointer-events: none;
+}
+
+.ar-mirror__capture:hover:not(:disabled) .ar-mirror__capture-ring,
+.ar-mirror__capture:active:not(:disabled) .ar-mirror__capture-ring {
+  transform: scale(0.96);
+}
+
+.ar-mirror__capture-text {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+@keyframes ar-mirror-float {
+  0%,
+  100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes ar-mirror-flash {
+  0% { opacity: 0.9; }
+  100% { opacity: 0; }
+}
+
+@keyframes ar-mirror-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (min-width: 769px) {
+  .ar-mirror__dock {
+    left: 50%;
+    right: auto;
+    inline-size: min(28rem, calc(100% - 2rem));
+    transform: translateX(-50%);
+    padding-inline: 0;
+  }
+
+  .ar-mirror__title {
+    font-size: 1.125rem;
+  }
+}

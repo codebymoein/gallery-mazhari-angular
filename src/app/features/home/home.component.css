@@ -1,0 +1,258 @@
+/* ================================================================
+   Home Page — Split Hero
+   Mobile-first: موبایل پایه، desktop override
+   ================================================================ */
+
+/* ── Hero Section ── */
+.split-hero {
+  width: 100%;
+  padding: 0.35rem;
+  padding-block-end: 0.15rem;
+  display: flex;
+  flex-direction: column;   /* موبایل: ستونی */
+  gap: 0.35rem;
+  background: var(--color-bg-cream);
+  font-family: var(--font-persian);
+  box-sizing: border-box;
+}
+
+/* ── Single Panel ── */
+.split-hero__panel {
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  min-height: 17.5rem;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+  border-radius: 0.85rem;
+  background: var(--color-dark-charcoal);
+}
+
+/* Keep the primary H1/LCP panel first on narrow screens and in the visual flow. */
+.split-hero__panel--bridal {
+  order: -1;
+}
+
+/* Gradient Overlay */
+.split-hero__panel::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(
+    to top,
+    var(--color-overlay-a78) 0%,
+    var(--color-overlay-a28) 50%,
+    var(--color-overlay-a05) 100%
+  );
+  pointer-events: none;
+}
+
+/* Image */
+.split-hero__media {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  transition: transform 1.2s cubic-bezier(.2, .7, .2, 1);
+}
+.split-hero__panel--bridal      .split-hero__media { object-position: center 20%; }
+.split-hero__panel--accessories .split-hero__media { object-position: center; }
+.split-hero__panel:hover        .split-hero__media { transform: scale(1.04); }
+
+/* Content */
+.split-hero__content {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  padding: 0.9rem 0.95rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+  color: var(--color-white);
+}
+
+.split-hero__eyebrow {
+  margin: 0;
+  color: var(--color-gold-light);
+  font-family: var(--font-english);
+  font-size: 0.58rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+}
+
+.split-hero__title {
+  margin: 0;
+  color: var(--color-white);
+  font-family: var(--font-display);
+  font-size: clamp(1.2rem, 5.5vw, 1.65rem);
+  font-weight: 500;
+  line-height: 1.25;
+}
+
+.split-hero__subtitle {
+  margin: 0;
+  color: var(--color-white-a80);
+  font-size: 0.78rem;
+  line-height: 1.55;
+  max-width: 22rem;
+}
+
+/* Buttons */
+.split-hero__button {
+  max-width: 100%;
+  min-height: 2.4rem;
+  padding: 0 1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.4rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: opacity .3s ease, transform .3s ease;
+  margin-top: 0.15rem;
+  text-shadow: none;
+  text-align: center;
+}
+.split-hero__button:hover  { opacity: .88; transform: translateY(-2px); }
+.split-hero__button:active { transform: scale(.97); }
+
+.split-hero__button--gold {
+  background: var(--mds-color-primary);
+  color: var(--color-white);
+  border: none;
+}
+.split-hero__button--ghost {
+  background: var(--color-white-a08);
+  color: var(--color-white);
+  border: 1px solid var(--color-white-a80);
+  backdrop-filter: blur(4px);
+}
+
+@media (max-width: 768px) {
+  .split-hero {
+    padding: 0.35rem;
+    gap: 0.35rem;
+  }
+
+  .split-hero__panel {
+    min-height: 17.5rem;
+    border-radius: 0.85rem;
+  }
+
+  .split-hero__content {
+    padding: 0.9rem 0.95rem 1rem;
+    gap: 0.35rem;
+  }
+
+  .split-hero__eyebrow {
+    font-size: 0.58rem;
+    letter-spacing: 0.14em;
+  }
+
+  .split-hero__title {
+    font-size: clamp(1.25rem, 5.5vw, 1.65rem);
+    line-height: 1.25;
+  }
+
+  .split-hero__subtitle {
+    font-size: 0.78rem;
+    line-height: 1.55;
+    max-width: 22rem;
+  }
+
+  .split-hero__button {
+    min-height: 2.4rem;
+    width: auto;
+    max-width: 100%;
+    padding: 0 1rem;
+    margin-top: 0.15rem;
+    border-radius: 0.4rem;
+    font-size: 0.78rem;
+  }
+}
+
+@media (max-width: 479px) {
+  .split-hero {
+    padding: 0.3rem;
+    gap: 0.3rem;
+  }
+
+  .split-hero__panel {
+    /* Magazine proportion — not full-viewport tall */
+    min-height: min(19rem, 52svh);
+    border-radius: 0.75rem;
+  }
+
+  .split-hero__content {
+    padding: 0.8rem 0.85rem 0.95rem;
+  }
+
+  .split-hero__title {
+    font-size: clamp(1.15rem, 6vw, 1.45rem);
+  }
+
+  .split-hero__subtitle {
+    font-size: 0.74rem;
+    line-height: 1.5;
+  }
+
+  .split-hero__button {
+    min-height: 2.25rem;
+    padding-inline: 0.85rem;
+    font-size: 0.74rem;
+  }
+}
+
+/* ── Tablet: دو ستون ── */
+@media (min-width: 640px) {
+  .split-hero {
+    flex-direction: row;
+    padding: .75rem;
+    gap: .75rem;
+    min-height: 70vw;
+  }
+  .split-hero__panel {
+    flex: 1;
+    min-height: 480px;
+    border-radius: 22px;
+  }
+}
+
+/* ── Desktop: بلند‌تر ── */
+@media (min-width: 1024px) {
+  .split-hero {
+    padding: .875rem;
+    gap: .875rem;
+    min-height: 88svh;
+  }
+  .split-hero__panel {
+    min-height: 600px;
+    border-radius: 28px;
+  }
+  .split-hero__content {
+    padding: 2rem 2.5rem;
+    gap: .75rem;
+  }
+  .split-hero__title {
+    font-size: clamp(2rem, 3.5vw, 4rem);
+  }
+  .split-hero__subtitle {
+    font-size: 1.05rem;
+  }
+  .split-hero__button {
+    min-height: 52px;
+    padding: 0 2rem;
+    font-size: 1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .split-hero__media,
+  .split-hero__button { transition-duration: .01ms !important; }
+}

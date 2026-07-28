@@ -1,0 +1,116 @@
+<section class="cart" dir="rtl" aria-labelledby="cart-title">
+
+  <header class="cart__header">
+    <p class="cart__eyebrow" lang="en" dir="ltr">SHOPPING CART</p>
+    <h1 id="cart-title" class="cart__title">سبد خرید</h1>
+  </header>
+
+  <!-- Empty state -->
+  <div class="cart__empty" *ngIf="emptyCart$ | async">
+    <div class="cart__empty-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" focusable="false">
+        <path fill="currentColor" d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0 0 20 4H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/>
+      </svg>
+    </div>
+    <p class="cart__empty-text">سبد خرید شما خالی است.</p>
+    <a
+      class="cart__btn cart__btn--primary"
+      [routerLink]="(continueShoppingLink$ | async) || ['/']"
+    >مشاهده فروشگاه</a>
+  </div>
+
+  <!-- Cart with items -->
+  <ng-container *ngIf="!(emptyCart$ | async)">
+    <div class="cart__layout">
+
+      <!-- Line items -->
+      <ul class="cart__items" aria-label="اقلام سبد خرید">
+        <li
+          class="cart__item"
+          *ngFor="let item of cartItems$ | async; trackBy: trackByProductId"
+        >
+          <div class="cart__item-image-wrap">
+            <img
+              *ngIf="item.product_image"
+              class="cart__item-image"
+              [src]="item.product_image"
+              [alt]="item.product_name || 'محصول'"
+              loading="lazy"
+              (error)="onImageError($event)"
+            />
+            <span class="cart__item-image-fallback" *ngIf="!item.product_image" aria-hidden="true">
+              <svg viewBox="0 0 24 24" focusable="false">
+                <path fill="currentColor" d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+              </svg>
+            </span>
+          </div>
+
+          <div class="cart__item-body">
+            <h2 class="cart__item-name">{{ item.product_name || 'محصول #' + item.product_id }}</h2>
+            <p class="cart__item-unit">{{ formatPrice(item.price) }}</p>
+
+            <div class="cart__qty">
+              <button
+                type="button"
+                class="cart__qty-btn"
+                (click)="decrement(item.product_id)"
+                [attr.aria-label]="'کاهش تعداد ' + (item.product_name || '')"
+              >−</button>
+              <span class="cart__qty-value" aria-live="polite">{{ item.quantity | number:'1.0-0':'fa' }}</span>
+              <button
+                type="button"
+                class="cart__qty-btn"
+                (click)="increment(item.product_id)"
+                [attr.aria-label]="'افزایش تعداد ' + (item.product_name || '')"
+              >+</button>
+            </div>
+          </div>
+
+          <div class="cart__item-side">
+            <p class="cart__item-total">{{ formatPrice(lineTotal(item)) }}</p>
+            <button
+              type="button"
+              class="cart__remove"
+              (click)="remove(item.product_id)"
+              [attr.aria-label]="'حذف ' + (item.product_name || 'محصول') + ' از سبد'"
+            >
+              حذف
+            </button>
+          </div>
+        </li>
+      </ul>
+
+      <!-- Summary -->
+      <aside class="cart__summary" aria-labelledby="cart-summary-title">
+        <h2 id="cart-summary-title" class="cart__summary-title">خلاصه سفارش</h2>
+
+        <ng-container *ngIf="cartTotals$ | async as totals">
+          <dl class="cart__summary-rows">
+            <div class="cart__summary-row">
+              <dt>جمع جزء</dt>
+              <dd>{{ formatPrice(totals.subtotal) }}</dd>
+            </div>
+            <div class="cart__summary-row cart__summary-row--note">
+              <dt>هزینه ارسال</dt>
+              <dd>محاسبه در مرحله بعد</dd>
+            </div>
+            <div class="cart__summary-row cart__summary-row--total">
+              <dt>مبلغ قابل پرداخت</dt>
+              <dd>{{ formatPrice(totals.total) }}</dd>
+            </div>
+          </dl>
+        </ng-container>
+
+        <div class="cart__summary-actions">
+          <a routerLink="/checkout" class="cart__btn cart__btn--primary">ادامه فرآیند خرید</a>
+          <a
+            class="cart__btn cart__btn--outline"
+            [routerLink]="(continueShoppingLink$ | async) || ['/']"
+          >ادامه خرید</a>
+        </div>
+      </aside>
+
+    </div>
+  </ng-container>
+
+</section>

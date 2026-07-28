@@ -1,0 +1,213 @@
+/* ================================================================
+   Home Appointment — consultation section (from WP home-appointment)
+   ================================================================ */
+
+.home-appointment {
+  padding-block: 2.5rem 3rem;
+  background: var(--color-bg-cream);
+  font-family: var(--font-persian);
+}
+
+.home-appointment__divider {
+  width: min(100% - 1.5rem, var(--container-max));
+  margin-inline: auto;
+  margin-block-end: 2rem;
+}
+
+.home-appointment__divider > span {
+  display: block;
+  block-size: 1px;
+  background: linear-gradient(
+    to left,
+    transparent,
+    var(--color-gold-a22) 20%,
+    var(--color-gold-a22) 80%,
+    transparent
+  );
+}
+
+.home-appointment__inner {
+  width: min(100% - 1.5rem, var(--container-max));
+  margin-inline: auto;
+  display: grid;
+  gap: 1.75rem;
+  align-items: start;
+}
+
+.home-appointment__intro-image {
+  display: block;
+  width: 100%;
+  max-block-size: 22rem;
+  object-fit: cover;
+  border-radius: 0.85rem;
+  margin-block-end: 1.1rem;
+}
+
+.home-appointment__eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0 0 0.55rem;
+  color: var(--color-gold-primary);
+  font-family: var(--font-english);
+  font-size: 0.58rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+}
+
+.home-appointment__eyebrow > span {
+  inline-size: 1.5rem;
+  block-size: 1px;
+  background: var(--color-gold-primary);
+}
+
+.home-appointment__title {
+  margin: 0 0 0.65rem;
+  color: var(--color-dark-charcoal);
+  font-family: var(--font-display);
+  font-size: clamp(1.35rem, 4.5vw, 2.15rem);
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+.home-appointment__title > span {
+  display: block;
+  color: var(--color-gold-primary);
+}
+
+.home-appointment__description {
+  margin: 0 0 1rem;
+  max-width: 26rem;
+  color: var(--color-text-muted);
+  font-size: 0.86rem;
+  line-height: 1.75;
+}
+
+.home-appointment__steps {
+  margin: 0 0 1rem;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.home-appointment__steps li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+}
+
+.home-appointment__steps li > span {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 1.5rem;
+  block-size: 1.5rem;
+  border: 1px solid var(--color-gold-a22);
+  border-radius: 50%;
+  color: var(--color-gold-primary);
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.home-appointment__steps p {
+  margin: 0;
+  color: var(--color-text-main);
+  font-size: 0.8rem;
+  line-height: 1.6;
+}
+
+.home-appointment__steps strong {
+  display: block;
+  margin-block-end: 0.1rem;
+  font-weight: 600;
+}
+
+.home-appointment__note {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0.7rem 0.8rem;
+  border-inline-start: 2px solid var(--color-gold-primary);
+  background: var(--color-gold-a04);
+  color: var(--color-text-muted);
+  font-size: 0.76rem;
+  line-height: 1.65;
+}
+
+.home-appointment__form-card {
+  max-inline-size: 26rem;
+  margin-inline: auto;
+  padding: 0.95rem 0.85rem 1.05rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 0.85rem;
+  box-shadow: 0 10px 28px var(--color-gold-a04);
+}
+
+.home-appointment__form-card--done {
+  display: grid;
+  place-items: center;
+  text-align: center;
+  min-block-size: 12rem;
+  padding-block: 2rem;
+}
+
+.home-appointment__done-title {
+  margin: 0 0 0.35rem;
+  color: #1b5e20;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 500;
+}
+
+.home-appointment__done-text {
+  margin: 0;
+  color: #2e7d32;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.home-appointment__form-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  margin-block-end: 1rem;
+  padding-block-end: 0.85rem;
+  border-block-end: 1px solid var(--color-border);
+}
+
+.home-appointment__form-heading > span {
+  color: var(--color-gold-primary);
+  font-family: var(--font-english);
+  font-size: 0.58rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+}
+
+.home-appointment__form-heading > strong {
+  color: var(--color-dark-charcoal);
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 500;
+}
+
+@media (min-width: 900px) {
+  .home-appointment__inner {
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.85fr);
+    gap: 2rem;
+    justify-content: center;
+  }
+
+  .home-appointment__intro-image {
+    max-block-size: 24rem;
+  }
+
+  .home-appointment__form-card {
+    max-inline-size: 24rem;
+    justify-self: center;
+  }
+}

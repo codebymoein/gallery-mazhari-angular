@@ -1,0 +1,133 @@
+<section class="adm adm-page" dir="rtl">
+  <header class="adm-page__head">
+    <div>
+      <p class="adm-page__eyebrow" lang="en" dir="ltr">INVENTORY & CATEGORIES</p>
+      <h1 class="adm-page__title">هاب انبار و دسته‌بندی</h1>
+      <p class="adm-page__lead">
+        کارت‌های دسته مانند فروشگاه؛ با کلیک فقط محصولات همان دسته را ببینید.
+      </p>
+    </div>
+    <div class="adm-page__actions">
+      <a class="adm-btn adm-btn--ghost" routerLink="/admin/import">تگ‌گذاری اکسل</a>
+      <a class="adm-btn adm-btn--gold" routerLink="/admin/staging">
+        صف عکس ({{ queue.pendingItems().length | number:'1.0-0':'fa-IR' }})
+      </a>
+    </div>
+  </header>
+
+  <section class="inv-cats" aria-label="دسته‌بندی‌های اصلی">
+    <a
+      class="inv-cat-card"
+      *ngFor="let cat of categoryCards()"
+      [routerLink]="['/admin/inventory/category', cat.slug]"
+    >
+      <img
+        class="inv-cat-card__img"
+        [src]="cat.image"
+        [alt]="cat.title"
+        width="320"
+        height="200"
+        loading="lazy"
+        (error)="onImgError($event)"
+      />
+      <span class="inv-cat-card__overlay" aria-hidden="true"></span>
+      <span class="inv-cat-card__body">
+        <small lang="en" dir="ltr">{{ cat.subtitle }}</small>
+        <strong>{{ cat.title }}</strong>
+        <em>{{ cat.count | number:'1.0-0':'fa-IR' }} محصول</em>
+      </span>
+    </a>
+  </section>
+
+  <div class="adm-card">
+    <div class="adm-card__head">
+      <div>
+        <h2 class="adm-card__title">همه محصولات انبار</h2>
+        <p class="adm-card__sub">فیلتر هوشمند و ویرایش گروهی</p>
+      </div>
+    </div>
+    <div class="adm-toolbar inv-toolbar">
+      <div class="adm-chips">
+        <button type="button" class="adm-chip" [class.adm-chip--active]="filter() === 'all'" (click)="setFilter('all')">همه</button>
+        <button type="button" class="adm-chip" [class.adm-chip--active]="filter() === 'missing_photo'" (click)="setFilter('missing_photo')">بدون عکس</button>
+        <button type="button" class="adm-chip" [class.adm-chip--active]="filter() === 'low_stock'" (click)="setFilter('low_stock')">موجودی کم</button>
+        <button type="button" class="adm-chip" [class.adm-chip--active]="filter() === 'internal'" (click)="setFilter('internal')">مصرف داخلی</button>
+        <button type="button" class="adm-chip" [class.adm-chip--active]="filter() === 'on_sale'" (click)="setFilter('on_sale')">حراج</button>
+      </div>
+      <div class="adm-search" style="min-width: min(100%, 14rem)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" stroke-linecap="round" />
+        </svg>
+        <input class="adm-input" type="search" placeholder="کد یا نام…" [ngModel]="query()" (ngModelChange)="onSearch($event)" />
+      </div>
+    </div>
+
+    <div class="inv-bulk" *ngIf="selectedCount()">
+      <span>{{ selectedCount() | number:'1.0-0':'fa-IR' }} مورد انتخاب‌شده</span>
+      <div class="inv-bulk__actions">
+        <button type="button" class="adm-btn adm-btn--sm adm-btn--gold" (click)="bulkDiscount()">اعمال تخفیف ۱۰٪</button>
+        <button type="button" class="adm-btn adm-btn--sm adm-btn--soft" (click)="bulkSale()">افزودن به حراج</button>
+        <button type="button" class="adm-btn adm-btn--sm adm-btn--ghost" (click)="bulkOutOfStock()">ناموجود کردن</button>
+      </div>
+    </div>
+
+    <div class="adm-table-wrap" *ngIf="rows().length; else emptyInv">
+      <table class="adm-table">
+        <thead>
+          <tr>
+            <th>
+              <input
+                type="checkbox"
+                [checked]="selectedCount() && selectedCount() === rows().length"
+                (change)="toggleAll(($any($event.target)).checked)"
+                aria-label="انتخاب همه"
+              />
+            </th>
+            <th>کد</th>
+            <th>نام</th>
+            <th>طبقه</th>
+            <th>قیمت</th>
+            <th>موجودی</th>
+            <th>عکس</th>
+            <th>وضعیت</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of rows()" [class.inv-row--selected]="isChecked(item.id)">
+            <td>
+              <input
+                type="checkbox"
+                [checked]="isChecked(item.id)"
+                (change)="toggle(item.id, ($any($event.target)).checked)"
+                [attr.aria-label]="'انتخاب ' + item.code"
+              />
+            </td>
+            <td class="adm-table__code" dir="ltr">{{ item.code }}</td>
+            <td>
+              {{ item.name }}
+              <span class="inv-sale" *ngIf="item.onSale">حراج {{ (item.discountPercent || 0) | number:'1.0-0':'fa-IR' }}٪</span>
+            </td>
+            <td>{{ item.category }}</td>
+            <td>{{ formatToman(item.price) }}</td>
+            <td [class.inv-low]="item.stock > 0 && item.stock <= 3">
+              {{ item.stock | number:'1.0-0':'fa-IR' }}
+            </td>
+            <td>
+              <img *ngIf="item.photoUrl" class="adm-thumb" [src]="item.photoUrl" [alt]="item.code" width="40" height="40" (error)="onImgError($event)" />
+              <span *ngIf="!item.hasPhoto" class="adm-status adm-status--waiting_photo">بدون عکس</span>
+            </td>
+            <td>{{ statusLabel(item.status) }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <ng-template #emptyInv>
+      <div class="adm-empty">
+        <strong>محصولی در انبار نیست</strong>
+        <p>از تگ‌گذاری اکسل و انتشار Staging محصولات را اضافه کنید.</p>
+      </div>
+    </ng-template>
+  </div>
+
+  <div class="adm-toast" *ngIf="toast()" role="status">{{ toast() }}</div>
+</section>

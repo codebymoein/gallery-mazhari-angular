@@ -1,0 +1,16 @@
+.inv-cat-hero {
+  margin-block-end: 1rem;
+  border-radius: 0.85rem;
+  overflow: hidden;
+  border: 1px solid #e7e5e4;
+  min-height: 10rem;
+  background: #12100e;
+}
+
+.inv-cat-hero img {
+  display: block;
+  width: 100%;
+  height: clamp(10rem, 28vw, 16rem);
+  object-fit: cover;
+  object-position: center 20%;
+}

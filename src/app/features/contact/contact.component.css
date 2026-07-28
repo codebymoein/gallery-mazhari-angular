@@ -1,0 +1,365 @@
+/* ================================================================
+   Contact Page — Gallery Mazhari
+   Luxury · RTL Persian · mobile-first
+   ================================================================ */
+
+.contact {
+  background: var(--color-bg-cream);
+  font-family: var(--font-persian);
+  padding-block-end: var(--space-lg);
+}
+
+/* ── Hero ── */
+.contact__hero {
+  background: var(--bg-luxury-dark);
+  padding-block: clamp(2.5rem, 8vw, 4.5rem);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.contact__hero::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  block-size: 1px;
+  background: linear-gradient(
+    to left,
+    transparent,
+    var(--color-gold-a35) 30%,
+    var(--color-gold-a35) 70%,
+    transparent
+  );
+}
+
+.contact__hero-inner {
+  width: min(100% - 1.5rem, var(--container-max));
+  margin-inline: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.contact__eyebrow {
+  margin: 0;
+  color: var(--color-champagne-gold);
+  font-family: var(--font-english);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+}
+
+.contact__brand-fa {
+  margin: 0.25rem 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.75rem, 7vw, 3rem);
+  font-weight: 500;
+  color: var(--color-white);
+  line-height: 1.2;
+}
+
+.contact__brand-en {
+  margin: 0;
+  font-family: var(--font-english);
+  font-size: clamp(0.65rem, 2.5vw, 0.85rem);
+  font-weight: 600;
+  letter-spacing: 0.28em;
+  color: var(--color-text-on-dark-soft);
+}
+
+.contact__lead {
+  margin: 0.85rem 0 0;
+  max-width: 28rem;
+  color: var(--color-text-on-dark);
+  font-size: clamp(0.82rem, 2.4vw, 0.95rem);
+  line-height: 1.75;
+}
+
+/* ── Branches ── */
+.contact__branches {
+  width: min(100% - 1.5rem, var(--container-max));
+  margin-inline: auto;
+  margin-block-start: clamp(1.75rem, 5vw, 2.75rem);
+  display: grid;
+  gap: 1rem;
+}
+
+.contact__branch {
+  background: var(--color-surface);
+  border: 1px solid color-mix(in srgb, var(--color-gold-primary) 14%, transparent);
+  border-radius: var(--mds-radius-md);
+  padding: 1.25rem 1.15rem 1.35rem;
+  box-shadow: var(--shadow-luxury);
+  transition: box-shadow var(--transition-fast), border-color var(--transition-fast);
+}
+
+.contact__branch:hover {
+  border-color: color-mix(in srgb, var(--color-champagne-gold) 28%, transparent);
+  box-shadow: var(--shadow-gold);
+}
+
+.contact__branch-header {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin-block-end: 0.85rem;
+}
+
+.contact__branch-num {
+  display: grid;
+  place-items: center;
+  inline-size: 1.75rem;
+  block-size: 1.75rem;
+  border-radius: var(--mds-radius-round);
+  background: var(--color-gold-a10);
+  color: var(--color-gold-primary);
+  font-family: var(--font-english);
+  font-size: 0.72rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.contact__branch-name {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1rem, 3.5vw, 1.2rem);
+  font-weight: 600;
+  color: var(--mds-color-heading);
+}
+
+.contact__address {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  margin: 0 0 0.75rem;
+  font-style: normal;
+  color: var(--mds-color-text);
+  font-size: 0.88rem;
+  line-height: 1.7;
+}
+
+.contact__metro {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 1rem;
+  padding: 0.55rem 0.75rem;
+  background: var(--color-gold-a08);
+  border-radius: var(--mds-radius-sm);
+  color: var(--color-gold-primary);
+  font-size: 0.82rem;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.contact__icon {
+  inline-size: 1.1rem;
+  block-size: 1.1rem;
+  flex-shrink: 0;
+  color: var(--color-gold-primary);
+  margin-block-start: 0.15rem;
+}
+
+.contact__icon--metro {
+  margin-block-start: 0;
+  color: var(--color-champagne-gold);
+}
+
+.contact__branch-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.contact__phone {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.85rem;
+  background: var(--color-matte-black);
+  color: var(--color-champagne-gold);
+  border-radius: var(--mds-radius-sm);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.contact__phone:hover {
+  background: var(--color-dark-charcoal);
+  color: var(--color-gold-bright);
+}
+
+.contact__maps {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--touch-target);
+  padding-inline: 0.85rem;
+  border: 1px solid color-mix(in srgb, var(--color-gold-primary) 35%, transparent);
+  border-radius: var(--mds-radius-sm);
+  color: var(--color-gold-primary);
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+
+.contact__maps:hover {
+  background: var(--color-gold-a08);
+  border-color: var(--color-champagne-gold);
+}
+
+/* ── Info grid ── */
+.contact__info-grid {
+  width: min(100% - 1.5rem, var(--container-max));
+  margin-inline: auto;
+  margin-block-start: 1.25rem;
+  display: grid;
+  gap: 1rem;
+}
+
+.contact__panel {
+  background: var(--color-cream-warm);
+  border: 1px solid color-mix(in srgb, var(--color-gold-primary) 10%, transparent);
+  border-radius: var(--mds-radius-md);
+  padding: 1.15rem 1.1rem 1.25rem;
+}
+
+.contact__panel-title {
+  margin: 0 0 0.85rem;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--mds-color-heading);
+  padding-block-end: 0.55rem;
+  border-block-end: 1px solid color-mix(in srgb, var(--color-gold-primary) 16%, transparent);
+}
+
+.contact__hours-list,
+.contact__support-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.contact__hours-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  font-size: 0.88rem;
+  color: var(--mds-color-text);
+}
+
+.contact__hours-list time {
+  font-family: var(--font-english);
+  font-weight: 600;
+  color: var(--color-gold-primary);
+  white-space: nowrap;
+}
+
+.contact__support-list li {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.contact__support-label {
+  font-size: 0.82rem;
+  color: var(--mds-color-text-muted);
+}
+
+.contact__support-phone {
+  font-family: var(--font-english);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-matte-black);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+.contact__support-phone:hover {
+  color: var(--color-gold-primary);
+}
+
+/* ── CTAs ── */
+.contact__cta {
+  width: min(100% - 1.5rem, var(--container-max));
+  margin-inline: auto;
+  margin-block-start: clamp(1.5rem, 4vw, 2.25rem);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: stretch;
+}
+
+.contact__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-block-size: var(--touch-target);
+  padding-inline: 1.25rem;
+  border-radius: var(--mds-radius-sm);
+  font-family: var(--font-persian);
+  font-size: 0.92rem;
+  font-weight: 600;
+  text-decoration: none;
+  text-align: center;
+  transition: background var(--transition-fast), color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.contact__btn--primary {
+  background: var(--gradient-gold-cta);
+  color: var(--color-matte-black);
+  box-shadow: var(--shadow-gold);
+}
+
+.contact__btn--primary:hover {
+  box-shadow: var(--shadow-gold-glow);
+}
+
+.contact__btn--outline {
+  background: transparent;
+  color: var(--color-matte-black);
+  border: 1.5px solid var(--color-matte-black);
+}
+
+.contact__btn--outline:hover {
+  background: var(--color-matte-black);
+  color: var(--color-champagne-gold);
+}
+
+/* ── Tablet+ ── */
+@media (min-width: 640px) {
+  .contact__branches {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.15rem;
+  }
+
+  .contact__info-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.15rem;
+  }
+
+  .contact__cta {
+    flex-direction: row;
+    justify-content: center;
+  }
+
+  .contact__btn {
+    flex: 0 1 auto;
+    min-inline-size: 12rem;
+  }
+}
+
+@media (min-width: 960px) {
+  .contact__branch {
+    padding: 1.5rem 1.35rem 1.6rem;
+  }
+}

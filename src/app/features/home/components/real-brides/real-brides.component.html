@@ -1,0 +1,135 @@
+<section class="real-brides" dir="rtl" aria-labelledby="real-brides-title">
+
+  <div class="real-brides__inner">
+
+    <header class="real-brides__header">
+      <p class="real-brides__eyebrow" lang="en" dir="ltr">REAL BRIDES &amp; TIMELESS MOMENTS</p>
+      <h2 class="real-brides__title" id="real-brides-title">
+        گالری عروس‌های واقعی و لحظه‌های ماندگار
+      </h2>
+      <p class="real-brides__lead">
+        <span>پرتره‌هایی از عروس‌هایی که کالکشن گالری مظهری را پوشیده‌اند</span>
+        <span class="real-brides__lead-sep" aria-hidden="true"> — </span>
+        <span>هر قاب، یک خاطره جاودان</span>
+      </p>
+    </header>
+
+    <!-- Mobile: horizontal magazine strip · Desktop: masonry -->
+    <div class="real-brides__gallery" role="list" aria-label="گالری عروس‌های واقعی">
+      <button
+        *ngFor="let moment of moments; let i = index"
+        type="button"
+        class="bride-card"
+        [class]="'bride-card bride-card--' + moment.span"
+        role="listitem"
+        [attr.aria-label]="'مشاهده تصویر ' + moment.name + ' در حالت سینمایی'"
+        (click)="openTheater(i)">
+
+        <div class="bride-card__media">
+          <img
+            class="bride-card__img"
+            [src]="moment.image"
+            [alt]="moment.name + ' — ' + moment.venue"
+            loading="lazy"
+            decoding="async"
+            width="640"
+            height="800"
+            (error)="hideBrokenImage($event)"
+          />
+          <div class="bride-card__fallback" aria-hidden="true"></div>
+          <div class="bride-card__glow" aria-hidden="true"></div>
+          <div class="bride-card__overlay" aria-hidden="true"></div>
+        </div>
+
+        <div class="bride-card__caption">
+          <span class="bride-card__name">{{ moment.name }}</span>
+          <span class="bride-card__quote">{{ moment.quote }}</span>
+          <span class="bride-card__venue">{{ moment.venue }}</span>
+        </div>
+      </button>
+    </div>
+
+  </div>
+
+  <!-- ═══ Cinematic Theater Mode ═══ -->
+  <div
+    class="theater-backdrop"
+    [class.theater-backdrop--open]="theaterOpen()"
+    (click)="closeTheater()"
+    aria-hidden="true">
+  </div>
+
+  <div
+    class="theater"
+    [class.theater--open]="theaterOpen()"
+    role="dialog"
+    aria-modal="true"
+    [attr.inert]="!theaterOpen() ? '' : null"
+    [attr.aria-hidden]="!theaterOpen()"
+    [attr.aria-label]="activeMoment() ? 'نمایش سینمایی: ' + activeMoment()!.name : 'نمایش سینمایی'"
+    dir="rtl"
+    (click)="closeTheater()">
+
+    <ng-container *ngIf="activeMoment() as moment">
+
+      <button
+        type="button"
+        class="theater__close"
+        aria-label="بستن نمایش سینمایی"
+        (click)="closeTheater(); $event.stopPropagation()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
+          <path d="M6 6l12 12M18 6L6 18"/>
+        </svg>
+      </button>
+
+      <button
+        type="button"
+        class="theater__nav theater__nav--prev"
+        aria-label="تصویر قبلی"
+        (click)="prev(); $event.stopPropagation()">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor"
+             stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
+          <path d="M6 4l4 4-4 4"/>
+        </svg>
+      </button>
+
+      <figure class="theater__stage" (click)="$event.stopPropagation()">
+        <div class="theater__frame">
+          <img
+            class="theater__img"
+            [src]="moment.image"
+            [alt]="moment.name + ' — ' + moment.venue"
+            decoding="async"
+            (error)="hideBrokenImage($event)"
+          />
+          <div class="theater__frame-glow" aria-hidden="true"></div>
+        </div>
+        <figcaption class="theater__caption">
+          <p class="theater__name">{{ moment.name }}</p>
+          <p class="theater__quote">«{{ moment.quote }}»</p>
+          <p class="theater__venue">{{ moment.venue }}</p>
+        </figcaption>
+      </figure>
+
+      <button
+        type="button"
+        class="theater__nav theater__nav--next"
+        aria-label="تصویر بعدی"
+        (click)="next(); $event.stopPropagation()">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor"
+             stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
+          <path d="M10 4L6 8l4 4"/>
+        </svg>
+      </button>
+
+      <div class="theater__counter" lang="en" dir="ltr" aria-live="polite">
+        {{ ((activeIndex() ?? 0) + 1).toString().padStart(2, '0') }}
+        <span aria-hidden="true"> / </span>
+        {{ moments.length.toString().padStart(2, '0') }}
+      </div>
+
+    </ng-container>
+  </div>
+
+</section>

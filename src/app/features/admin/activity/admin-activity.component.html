@@ -1,0 +1,68 @@
+<section class="adm adm-page" dir="rtl">
+  <header class="adm-page__head">
+    <div>
+      <p class="adm-page__eyebrow" lang="en" dir="ltr">STAFF MONITORING</p>
+      <h1 class="adm-page__title">لاگ حسابرسی سیستم</h1>
+      <p class="adm-page__lead">
+        گزارش فقط‌خواندنی از اقدامات کارکنان برای پاسخ‌گویی و نظارت مدیر.
+      </p>
+    </div>
+  </header>
+
+  <div class="adm-card">
+    <div class="adm-toolbar">
+      <div class="adm-chips" role="tablist" aria-label="فیلتر نوع فعالیت">
+        <button type="button" class="adm-chip" [class.adm-chip--active]="filter() === 'all'" (click)="setFilter('all')">همه</button>
+        <button type="button" class="adm-chip" [class.adm-chip--active]="filter() === 'import'" (click)="setFilter('import')">واردات</button>
+        <button type="button" class="adm-chip" [class.adm-chip--active]="filter() === 'photo_attach'" (click)="setFilter('photo_attach')">عکس</button>
+        <button type="button" class="adm-chip" [class.adm-chip--active]="filter() === 'publish'" (click)="setFilter('publish')">انتشار</button>
+        <button type="button" class="adm-chip" [class.adm-chip--active]="filter() === 'login'" (click)="setFilter('login')">ورود</button>
+      </div>
+      <div class="adm-search" style="min-width: min(100%, 14rem)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <circle cx="11" cy="11" r="7" />
+          <path d="m20 20-3.5-3.5" stroke-linecap="round" />
+        </svg>
+        <input
+          class="adm-input"
+          type="search"
+          placeholder="جستجو در فعالیت‌ها…"
+          [ngModel]="query()"
+          (ngModelChange)="onSearch($event)"
+        />
+      </div>
+    </div>
+
+    <div class="adm-table-wrap" *ngIf="rows().length; else empty">
+      <table class="adm-table">
+        <thead>
+          <tr>
+            <th scope="col">زمان</th>
+            <th scope="col">نوع</th>
+            <th scope="col">کاربر</th>
+            <th scope="col">نقش</th>
+            <th scope="col">شرح</th>
+            <th scope="col">کد کالا</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let row of rows()">
+            <td>{{ formatDate(row.createdAt) }}</td>
+            <td>{{ labels[row.action] }}</td>
+            <td dir="ltr">{{ row.actor }}</td>
+            <td>{{ roleLabel(row.actorRole) }}</td>
+            <td>{{ row.summary }}</td>
+            <td class="adm-table__code" dir="ltr">{{ row.entityCode || '—' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <ng-template #empty>
+      <div class="adm-empty">
+        <strong>موردی یافت نشد</strong>
+        <p>فیلتر یا عبارت جستجو را تغییر دهید.</p>
+      </div>
+    </ng-template>
+  </div>
+</section>

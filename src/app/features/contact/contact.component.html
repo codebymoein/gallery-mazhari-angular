@@ -1,0 +1,101 @@
+<section class="contact" dir="rtl" aria-labelledby="contact-title">
+
+  <!-- Hero -->
+  <header class="contact__hero">
+    <div class="contact__hero-inner">
+      <p class="contact__eyebrow" lang="en" dir="ltr">CONTACT US</p>
+      <h1 id="contact-title" class="contact__brand-fa">گالری مظهری</h1>
+      <p class="contact__brand-en" lang="en" dir="ltr">GALLERY MAZHARI</p>
+      <p class="contact__lead">
+        برای بازدید حضوری، مشاوره تخصصی یا پیگیری سفارش، با ما در ارتباط باشید.
+      </p>
+    </div>
+  </header>
+
+  <!-- Branch cards -->
+  <div class="contact__branches">
+    <article
+      class="contact__branch"
+      *ngFor="let branch of branches; let i = index"
+      [attr.aria-labelledby]="'branch-' + branch.id"
+    >
+      <div class="contact__branch-header">
+        <span class="contact__branch-num" aria-hidden="true">{{ (i + 1) | number:'2.0-0':'fa' }}</span>
+        <h2 [id]="'branch-' + branch.id" class="contact__branch-name">{{ branch.name }}</h2>
+      </div>
+
+      <address class="contact__address">
+        <svg class="contact__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path fill="currentColor" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/>
+        </svg>
+        <span>{{ branch.address }}</span>
+      </address>
+
+      <p class="contact__metro">
+        <svg class="contact__icon contact__icon--metro" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path fill="currentColor" d="M4 16c0 .88.39 1.67 1 2.22V20a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-1h8v1a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-1.78c.61-.55 1-1.34 1-2.22V6c0-3.5-3.58-4-8-4S4 2.5 4 6v10zm3.5 1c-.83 0-1.5-.67-1.5-1.5S6.67 14 7.5 14s1.5.67 1.5 1.5S8.33 17 7.5 17zm9 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm1.5-6H6V6h12v5z"/>
+        </svg>
+        {{ branch.metroHint }}
+      </p>
+
+      <div class="contact__branch-actions">
+        <a class="contact__phone" [href]="'tel:' + branch.phone">
+          <svg class="contact__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path fill="currentColor" d="M6.62 10.79a15.05 15.05 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.01-.24c1.12.37 2.33.57 3.58.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1C10.07 21 3 13.93 3 5a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.46.57 3.58a1 1 0 0 1-.25 1.01l-2.2 2.2z"/>
+          </svg>
+          <bdi lang="en" dir="ltr">{{ branch.phoneDisplay }}</bdi>
+        </a>
+        <a
+          class="contact__maps"
+          [href]="branch.googleMaps"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          مسیریابی در نقشه ↗
+        </a>
+      </div>
+    </article>
+  </div>
+
+  <!-- Hours & support -->
+  <div class="contact__info-grid">
+
+    <section class="contact__panel contact__hours" aria-labelledby="contact-hours-title">
+      <h2 id="contact-hours-title" class="contact__panel-title">ساعات کاری</h2>
+      <ul class="contact__hours-list">
+        <li>
+          <span>شنبه تا پنجشنبه</span>
+          <time datetime="10:00/20:00">۱۰:۰۰ – ۲۰:۰۰</time>
+        </li>
+        <li>
+          <span>جمعه</span>
+          <time datetime="11:00/19:00">۱۱:۰۰ – ۱۹:۰۰</time>
+        </li>
+      </ul>
+    </section>
+
+    <section class="contact__panel contact__support" aria-labelledby="contact-support-title">
+      <h2 id="contact-support-title" class="contact__panel-title">پشتیبانی تلفنی</h2>
+      <ul class="contact__support-list">
+        <li *ngFor="let line of supportLines">
+          <span class="contact__support-label">{{ line.label }}</span>
+          <a class="contact__support-phone" [href]="'tel:' + line.phone">
+            <bdi lang="en" dir="ltr">{{ line.phoneDisplay }}</bdi>
+          </a>
+        </li>
+      </ul>
+    </section>
+
+  </div>
+
+  <!-- CTAs -->
+  <footer class="contact__cta">
+    <a routerLink="/consultation" class="contact__btn contact__btn--primary">
+      رزرو مشاوره اختصاصی
+    </a>
+    <a href="tel:09352181200" class="contact__btn contact__btn--outline">
+      تماس با پشتیبانی
+    </a>
+  </footer>
+
+</section>

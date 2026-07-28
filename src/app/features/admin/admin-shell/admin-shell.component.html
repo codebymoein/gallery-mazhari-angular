@@ -1,0 +1,113 @@
+<div
+  class="adm shell"
+  dir="rtl"
+  [class.shell--collapsed]="collapsed() && sidenavMode() === 'side'"
+  [class.shell--drawer-open]="sidebarOpen()"
+  [class.shell--mode-side]="sidenavMode() === 'side'"
+  [class.shell--mode-over]="sidenavMode() === 'over'"
+>
+  <div class="shell__backdrop" *ngIf="sidebarOpen()" (click)="sidebarOpen.set(false)"></div>
+
+  <aside class="shell__sidebar" aria-label="منوی پنل مدیریت">
+    <div class="shell__brand">
+      <div class="shell__mark" aria-hidden="true">M</div>
+      <div class="shell__brand-text">
+        <p class="shell__eyebrow" lang="en" dir="ltr">GALLERY MAZHARI</p>
+        <strong>کنسول سازمانی</strong>
+      </div>
+      <button
+        type="button"
+        class="shell__collapse"
+        (click)="toggleCollapsed()"
+        [attr.aria-label]="collapsed() ? 'باز کردن منو' : 'جمع کردن منو'"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M4 6h16M4 12h10M4 18h16" stroke-linecap="round" />
+        </svg>
+      </button>
+    </div>
+
+    <label class="shell__search" *ngIf="!collapsed()">
+      <span class="visually-hidden">جستجوی منو</span>
+      <input
+        type="search"
+        placeholder="جستجوی بخش…"
+        [ngModel]="navQuery()"
+        (ngModelChange)="onNavSearch($event)"
+        autocomplete="off"
+      />
+    </label>
+
+    <nav class="shell__nav">
+      <ng-container *ngFor="let group of navGroups()">
+        <p class="shell__nav-label">{{ group.name }}</p>
+        <a
+          *ngFor="let item of group.items"
+          [routerLink]="item.path"
+          routerLinkActive="shell__link--active"
+          [class.shell__link--active]="item.path === '/admin/crm' && isCrmActive()"
+          class="shell__link"
+          [attr.title]="item.label"
+          (click)="sidebarOpen.set(false)"
+        >
+          <span class="shell__icon" [attr.data-icon]="item.icon" aria-hidden="true"></span>
+          <span class="shell__link-text">{{ item.label }}</span>
+          <span class="adm-badge" *ngIf="badgeCount(item.badge) as n">
+            {{ n | number:'1.0-0':'fa-IR' }}
+          </span>
+        </a>
+      </ng-container>
+
+      <p class="shell__nav-empty" *ngIf="!navGroups().length">موردی یافت نشد</p>
+    </nav>
+
+    <div class="shell__footer">
+      <div class="shell__user">
+        <span class="shell__avatar" aria-hidden="true">{{ initials() }}</span>
+        <div class="shell__user-meta">
+          <strong>{{ user()?.displayName }}</strong>
+          <small>{{ roleLabel() }}</small>
+        </div>
+      </div>
+      <button type="button" class="adm-btn adm-btn--ghost adm-btn--sm shell__logout" (click)="logout()">
+        خروج
+      </button>
+    </div>
+  </aside>
+
+  <div class="shell__main">
+    <header class="shell__topbar">
+      <div class="shell__topbar-start">
+        <button
+          type="button"
+          class="shell__menu-btn"
+          (click)="toggleSidebar()"
+          aria-label="باز و بسته کردن منو"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M4 7h16M4 12h16M4 17h16" stroke-linecap="round" />
+          </svg>
+        </button>
+        <nav class="shell__crumbs" aria-label="مسیر صفحه">
+          <a routerLink="/admin/dashboard">پنل مدیریت</a>
+          <span aria-hidden="true">/</span>
+          <span>{{ breadcrumb() }}</span>
+          <span aria-hidden="true">/</span>
+          <strong>{{ pageTitle() }}</strong>
+        </nav>
+      </div>
+
+      <div class="shell__topbar-end">
+        <span class="shell__clock">{{ nowLabel() }}</span>
+        <a class="adm-btn adm-btn--soft adm-btn--sm" routerLink="/admin/orders">سفارش‌ها</a>
+        <a class="adm-btn adm-btn--ghost adm-btn--sm" routerLink="/" target="_blank" rel="noopener">
+          فروشگاه
+        </a>
+      </div>
+    </header>
+
+    <div class="shell__content">
+      <router-outlet></router-outlet>
+    </div>
+  </div>
+</div>

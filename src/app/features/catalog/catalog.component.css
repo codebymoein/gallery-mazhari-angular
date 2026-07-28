@@ -1,0 +1,591 @@
+/* ================================================================
+   Bridal Collection Catalog Page
+   Mobile-first · responsive category nav + products area
+   ================================================================ */
+
+.bridal-catalog {
+  background: var(--color-bg-cream);
+  font-family: var(--font-persian);
+}
+
+/* ── Intro ── */
+.bridal-catalog__intro {
+  width: min(100% - 1.5rem, var(--container-max, 72rem));
+  margin-inline: auto;
+  padding: 1.35rem 0.25rem 0.9rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  text-align: center;
+}
+
+.bridal-catalog__eyebrow {
+  margin: 0;
+  color: var(--mds-color-primary);
+  font-family: var(--font-english);
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+}
+
+.bridal-catalog__title {
+  margin: 0;
+  font-family: var(--font-display);
+  color: var(--mds-color-heading);
+  font-size: clamp(1.2rem, 5.5vw, 2rem);
+  font-weight: 500;
+  line-height: 1.25;
+}
+
+.bridal-catalog__lead {
+  margin: 0.15rem 0 0;
+  max-width: 32rem;
+  color: var(--mds-color-text-muted);
+  font-size: clamp(0.76rem, 2.2vw, 0.92rem);
+  line-height: 1.65;
+}
+
+/* ── Category Nav ── */
+.bridal-catalog__nav {
+  padding-block: 1.1rem 0.5rem;
+  border-block-end: 1px solid color-mix(in srgb, var(--color-gold-primary) 12%, transparent);
+}
+
+.bridal-catalog__nav-eyebrow {
+  margin: 0 0 0.75rem;
+  padding-inline: 0.9rem;
+  color: var(--mds-color-primary);
+  font-family: var(--font-english);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-align: center;
+}
+
+/* Mobile in-page cards */
+.bridal-catalog__nav-scroll {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: 5.35rem;
+  gap: 0.55rem;
+  padding: 0.15rem 0.85rem 0.6rem;
+}
+
+.bridal-catalog__chip {
+  display: flex;
+  flex-direction: column-reverse;
+  justify-content: flex-end;
+  width: 100%;
+  min-height: 100%;
+  padding: 0.55rem 0.5rem;
+  position: relative;
+  overflow: hidden;
+  border-radius: 0.85rem;
+  border: 1px solid var(--color-gold-a16);
+  background: linear-gradient(160deg, var(--color-white) 0%, var(--color-cream-soft) 100%);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--color-matte-black) 7%, transparent);
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.bridal-catalog__chip-media {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.bridal-catalog__chip--wide {
+  grid-column: span 2;
+}
+
+.bridal-catalog__chip--tall {
+  grid-row: span 2;
+}
+
+.bridal-catalog__chip-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 0.85rem;
+  object-fit: cover;
+  object-position: center top;
+  filter: saturate(1.06);
+}
+
+.bridal-catalog__chip-fallback {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: 0.85rem;
+  background: linear-gradient(145deg, var(--color-gold-a18), var(--color-cream-warm) 70%);
+}
+
+.bridal-catalog__chip::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    var(--color-overlay-a78) 0%,
+    var(--color-overlay-a18) 55%,
+    transparent 100%
+  );
+  z-index: 1;
+}
+
+.bridal-catalog__chip-label {
+  position: relative;
+  z-index: 2;
+  max-width: 100%;
+  color: var(--color-white);
+  font-size: 0.69rem;
+  font-weight: 600;
+  line-height: 1.3;
+  text-align: right;
+  text-wrap: balance;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.32);
+}
+
+.bridal-catalog__chip--active {
+  border-color: var(--color-gold-a70);
+  box-shadow:
+    0 0 0 1px var(--color-gold-a35),
+    0 10px 28px color-mix(in srgb, var(--color-gold-primary) 24%, transparent);
+  transform: translateY(-2px);
+}
+
+.bridal-catalog__chip:active {
+  transform: scale(0.98);
+}
+
+/* Desktop card grid — hidden on mobile */
+.bridal-catalog__nav-grid {
+  display: none;
+}
+
+/* ── Collection Rails ── */
+.bridal-catalog__rails {
+  width: min(100% - 1.5rem, var(--container-max, 72rem));
+  margin-inline: auto;
+  padding-block: 1.2rem 2.5rem;
+}
+
+.bridal-catalog__rail-header {
+  padding-inline: 0.25rem;
+  margin-bottom: 0.7rem;
+}
+
+.bridal-catalog__rail-title {
+  margin: 0;
+  color: var(--mds-color-heading);
+  font-family: var(--font-display);
+  font-size: clamp(1rem, 3.8vw, 1.4rem);
+  font-weight: 500;
+}
+
+.bridal-catalog__rail-subtitle {
+  margin: 0.18rem 0 0;
+  color: var(--mds-color-text-muted);
+  font-family: var(--font-english);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+}
+
+.bridal-catalog__rail-track {
+  display: flex;
+  gap: 0.65rem;
+  overflow-x: auto;
+  padding: 0.1rem 0.25rem 0.5rem;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.bridal-catalog__rail-track::-webkit-scrollbar {
+  display: none;
+}
+
+.bridal-catalog__rail-card {
+  flex: 0 0 10.5rem;
+  border-radius: 0.85rem;
+  overflow: hidden;
+  background: var(--color-surface);
+  border: 1px solid color-mix(in srgb, var(--color-gold-primary) 16%, transparent);
+  box-shadow: var(--shadow-luxury);
+  scroll-snap-align: start;
+}
+
+.bridal-catalog__rail-link {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+  height: 100%;
+}
+
+.bridal-catalog__rail-media {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  background: var(--color-cream-warm);
+}
+
+.bridal-catalog__rail-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+}
+
+.bridal-catalog__rail-tag {
+  position: absolute;
+  top: 0.5rem;
+  inset-inline-start: 0.5rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  background: var(--color-overlay-a78);
+  color: var(--color-white);
+  font-size: 0.6rem;
+  font-weight: 600;
+}
+
+.bridal-catalog__rail-body {
+  padding: 0.6rem 0.65rem 0.72rem;
+}
+
+.bridal-catalog__rail-name {
+  margin: 0 0 0.45rem;
+  color: var(--mds-color-heading);
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  line-height: 1.35;
+}
+
+.bridal-catalog__rail-cta {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2rem;
+  padding: 0 0.65rem;
+  border-radius: 0.35rem;
+  background: var(--color-gold-a10);
+  color: var(--mds-color-primary);
+  font-size: 0.66rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.bridal-catalog__rail-divider {
+  height: 1px;
+  margin: 1rem 0 1.1rem;
+  background: linear-gradient(
+    to left,
+    transparent 0%,
+    color-mix(in srgb, var(--color-gold-primary) 20%, transparent) 18%,
+    color-mix(in srgb, var(--color-gold-primary) 20%, transparent) 82%,
+    transparent 100%
+  );
+}
+
+/* ── Generic catalog ── */
+.generic-catalog {
+  width: min(100% - 1.5rem, var(--container-max, 72rem));
+  margin-inline: auto;
+  padding: 2rem 0 3rem;
+  font-family: var(--font-persian);
+}
+
+.generic-catalog__intro {
+  margin-block-end: 1.35rem;
+  text-align: center;
+}
+
+.generic-catalog__eyebrow {
+  margin: 0 0 0.35rem;
+  color: var(--mds-color-primary);
+  font-family: var(--font-english);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+}
+
+.generic-catalog__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.25rem, 4vw, 1.85rem);
+  font-weight: 500;
+}
+
+.generic-catalog__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.generic-catalog__card {
+  display: grid;
+  gap: 0.4rem;
+  color: inherit;
+  text-decoration: none;
+  transition: transform 0.2s ease;
+}
+
+.generic-catalog__card:hover {
+  transform: translateY(-3px);
+}
+
+.generic-catalog__media {
+  position: relative;
+  display: block;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  border-radius: 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--color-gold-primary) 16%, transparent);
+  background: var(--color-cream-warm);
+}
+
+.generic-catalog__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.generic-catalog__tag {
+  position: absolute;
+  inset-block-start: 0.5rem;
+  inset-inline-start: 0.5rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: var(--color-overlay-a78);
+  color: var(--color-white);
+  font-size: 0.62rem;
+  font-weight: 600;
+}
+
+.generic-catalog__card strong {
+  font-family: var(--font-display);
+  font-size: 0.82rem;
+  font-weight: 500;
+}
+
+.generic-catalog__card small {
+  color: var(--mds-color-primary);
+  font-size: 0.74rem;
+  font-weight: 600;
+}
+
+.generic-catalog__lead {
+  margin: 0 0 1rem;
+  color: var(--mds-color-text-muted);
+  text-align: center;
+}
+
+.generic-catalog__link {
+  display: inline-flex;
+  margin-inline: auto;
+  padding: 0.7rem 1.2rem;
+  color: var(--mds-color-text-light);
+  background: var(--mds-color-secondary);
+  border-radius: 999px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+@media (min-width: 768px) {
+  .generic-catalog__grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1rem;
+  }
+}
+
+/* ════════════════════════════════════
+   Tablet+
+   ════════════════════════════════════ */
+@media (min-width: 768px) {
+  .bridal-catalog__intro {
+    padding-top: 1.8rem;
+    padding-bottom: 1.15rem;
+  }
+
+  .bridal-catalog__nav {
+    width: min(100% - 2rem, var(--container-max, 72rem));
+    margin-inline: auto;
+    padding-block: 1.35rem 0.75rem;
+  }
+
+  .bridal-catalog__nav-eyebrow {
+    margin-bottom: 0.9rem;
+    padding-inline: 0.25rem;
+    font-size: 0.68rem;
+  }
+
+  .bridal-catalog__nav-scroll {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-auto-rows: 6rem;
+    padding-inline: 0.25rem;
+  }
+
+  .bridal-catalog__nav-grid {
+    display: none;
+  }
+
+  .bridal-catalog__rails {
+    width: min(100% - 2rem, var(--container-max, 72rem));
+  }
+
+  .bridal-catalog__rail-track {
+    gap: 0.8rem;
+  }
+
+  .bridal-catalog__rail-card {
+    flex-basis: 12.2rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .bridal-catalog__nav-scroll {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-auto-rows: 6.6rem;
+  }
+
+  .bridal-catalog__rail-card {
+    flex-basis: 13.6rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bridal-catalog__chip-media,
+  .bridal-catalog__chip,
+  .bridal-catalog__rail-img {
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ── Smart Search ── */
+.search-catalog {
+  background: var(--color-bg-cream);
+  font-family: var(--font-persian);
+  padding-block-end: 2rem;
+}
+
+.search-catalog__intro {
+  width: min(100% - 1.5rem, var(--container-max, 72rem));
+  margin-inline: auto;
+  padding: 1.35rem 0.25rem 0.75rem;
+  text-align: center;
+}
+
+.search-catalog__eyebrow {
+  margin: 0;
+  color: var(--mds-color-primary);
+  font-family: var(--font-english);
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+}
+
+.search-catalog__title {
+  margin: 0.3rem 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.2rem, 5vw, 1.75rem);
+  font-weight: 500;
+}
+
+.search-catalog__query {
+  margin: 0.35rem 0 0;
+  color: var(--mds-color-text-muted);
+  font-size: 0.85rem;
+}
+
+.search-catalog__section {
+  width: min(100% - 1.5rem, var(--container-max, 72rem));
+  margin-inline: auto;
+  padding-block: 0.85rem;
+}
+
+.search-catalog__section-title {
+  margin: 0 0 0.75rem;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--mds-color-heading);
+}
+
+.search-catalog__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.search-catalog__card {
+  display: grid;
+  gap: 0.35rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+.search-catalog__media {
+  position: relative;
+  display: block;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  border-radius: 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--color-gold-primary) 16%, transparent);
+  background: var(--color-cream-warm);
+}
+
+.search-catalog__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.search-catalog__tag {
+  position: absolute;
+  inset-block-start: 0.5rem;
+  inset-inline-start: 0.5rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: var(--color-overlay-a78);
+  color: var(--color-white);
+  font-size: 0.62rem;
+  font-weight: 600;
+}
+
+.search-catalog__card strong {
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.search-catalog__card small {
+  color: var(--mds-color-primary);
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.search-catalog__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.search-catalog__chip {
+  display: inline-flex;
+  padding: 0.45rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--color-gold-primary) 22%, transparent);
+  background: var(--color-gold-a10);
+  color: var(--mds-color-primary);
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+@media (min-width: 768px) {
+  .search-catalog__grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1rem;
+  }
+}

@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /account
+Disallow: /cart
+Disallow: /dream-canvas
+
+Sitemap: https://gallery-mazhari.ir/sitemap.xml
