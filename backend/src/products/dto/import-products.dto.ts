@@ -3,12 +3,30 @@ import {
   IsArray,
   IsBoolean,
   IsInt,
+  IsIn,
   IsOptional,
   IsString,
   MaxLength,
   Min,
   ValidateNested,
 } from 'class-validator';
+
+export class ImportVariationRowDto {
+  @IsString()
+  @MaxLength(60)
+  sku: string;
+
+  @IsString()
+  @MaxLength(60)
+  barcode: string;
+
+  @IsOptional() @IsString() @MaxLength(40) size?: string;
+  @IsOptional() @IsString() @MaxLength(80) color?: string;
+  @IsOptional() @IsString() @MaxLength(80) material?: string;
+  @IsOptional() @Min(0) price?: number;
+  @IsInt() @Min(0) stock: number;
+  @IsBoolean() available: boolean;
+}
 
 export class ImportProductRowDto {
   @IsString()
@@ -43,8 +61,47 @@ export class ImportProductRowDto {
   stock: number;
 
   @IsOptional()
+  @IsIn(['waiting_photo', 'rejected'])
+  status?: 'waiting_photo' | 'rejected';
+
+  @IsOptional()
+  @Min(0)
+  price?: number;
+
+  @IsOptional()
   @IsBoolean()
   isNewImport?: boolean;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(40)
+  size?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(80)
+  material?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(80)
+  heelHeight?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(80)
+  platformHeight?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  variantKey?: string;
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ImportVariationRowDto)
+  variations?: ImportVariationRowDto[];
 }
 
 export class ImportProductsDto {

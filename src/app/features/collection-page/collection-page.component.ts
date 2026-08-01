@@ -1,5 +1,5 @@
-import { Component, OnDestroy, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, HostListener, OnDestroy, OnInit, inject } from '@angular/core';
+
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { ShoppingContextService } from '@core/services/shopping-context.service';
@@ -13,7 +13,7 @@ import {
 @Component({
   selector: 'app-collection-page',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [RouterLink],
   templateUrl: './collection-page.component.html',
   styleUrls: ['./collection-page.component.css']
 })
@@ -27,16 +27,15 @@ export class CollectionPageComponent implements OnInit, OnDestroy {
   activeCollection: BridalCollectionCategory = this.collections[0];
   products: BridalSampleProduct[] = [];
   isAllDresses = false;
+  visibleCount = 20;
 
   ngOnInit(): void {
     this.sub = this.route.paramMap.subscribe(params => {
       const slug = params.get('slug') ?? this.collections[0].slug;
       this.activeCollection = this.collections.find(c => c.slug === slug) ?? this.collections[0];
       this.isAllDresses = this.activeCollection.slug === 'bridal-clothing';
-      this.products = this.expandAndShuffle(
-        productsForCategory(this.activeCollection.slug),
-        this.isAllDresses ? 12 : 10
-      );
+      this.products = productsForCategory(this.activeCollection.slug);
+      this.visibleCount = Math.min(this.products.length, this.rowsPerBatch());
       this.shoppingContext.rememberPath(['/collections', this.activeCollection.slug]);
       window.scrollTo({ top: 0, behavior: 'auto' });
     });
@@ -50,22 +49,31 @@ export class CollectionPageComponent implements OnInit, OnDestroy {
     (event.currentTarget as HTMLImageElement).hidden = true;
   }
 
-  private expandAndShuffle(source: BridalSampleProduct[], count: number): BridalSampleProduct[] {
-    if (source.length === 0) {
-      return [];
-    }
+  get visibleProducts(): BridalSampleProduct[] {
+    return this.products.slice(0, this.visibleCount);
+  }
 
-    const working: BridalSampleProduct[] = [];
-    while (working.length < count) {
-      working.push(...source);
-    }
+  galleryImages(product: BridalSampleProduct): string[] {
+    const images = (product.gallery?.length ? product.gallery : [product.image]).filter(Boolean);
+    return Array.from(new Set(images)).slice(0, 5);
+  }
 
-    const shuffled = [...working];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  trackByProductId(_index: number, product: BridalSampleProduct): string {
+    return product.id;
+  }
+
+  @HostListener('window:scroll')
+  loadMoreNearBottom(): void {
+    if (this.visibleCount >= this.products.length) return;
+    const remaining = document.documentElement.scrollHeight - (window.scrollY + window.innerHeight);
+    if (remaining < window.innerHeight * 1.5) {
+      this.visibleCount = Math.min(this.products.length, this.visibleCount + this.rowsPerBatch());
     }
-    return shuffled.slice(0, count);
+  }
+
+  private rowsPerBatch(): number {
+    const columns = window.innerWidth >= 1024 ? 4 : window.innerWidth >= 640 ? 3 : 2;
+    return columns * 10;
   }
 
   ngOnDestroy(): void {

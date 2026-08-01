@@ -18,24 +18,32 @@
       </p>
 
       <div class="guide-faq__chips" role="group" aria-label="انتخاب فرم بدن">
-        <button
-          *ngFor="let shape of bodyShapes"
-          type="button"
-          class="guide-faq__chip"
-          [class.guide-faq__chip--active]="isSelected(shape.id)"
-          [attr.aria-pressed]="isSelected(shape.id)"
-          (click)="selectShape(shape.id)">
-          {{ shape.label }}
-        </button>
+        @for (shape of bodyShapes; track shape) {
+          <button
+            type="button"
+            class="guide-faq__chip"
+            [class.guide-faq__chip--active]="isSelected(shape.id)"
+            [attr.aria-pressed]="isSelected(shape.id)"
+            (click)="selectShape(shape.id)">
+            {{ shape.label }}
+          </button>
+        }
       </div>
 
-      <p
-        *ngIf="selectedTip as tip"
-        class="guide-faq__tip"
-        role="status"
-        aria-live="polite">
-        {{ tip }}
-      </p>
+      @if (selectedTip; as tip) {
+        <p
+          class="guide-faq__tip"
+          role="status"
+          aria-live="polite">
+          {{ tip }}
+        </p>
+      }
+
+      @if (selectedShapeId) {
+        <nav class="guide-faq__recommendations" aria-label="مشاهده پیشنهادهای مناسب">
+          <a routerLink="/collections/bridal-clothing">لباس مناسب خود را پیدا کنید</a>
+        </nav>
+      }
     </div>
 
     <!-- Crown & Face Shape Guide -->
@@ -48,24 +56,32 @@
       </p>
 
       <div class="guide-faq__chips" role="group" aria-label="انتخاب فرم صورت">
-        <button
-          *ngFor="let face of faceShapes"
-          type="button"
-          class="guide-faq__chip"
-          [class.guide-faq__chip--active]="isFaceSelected(face.id)"
-          [attr.aria-pressed]="isFaceSelected(face.id)"
-          (click)="selectFace(face.id)">
-          {{ face.label }}
-        </button>
+        @for (face of faceShapes; track face) {
+          <button
+            type="button"
+            class="guide-faq__chip"
+            [class.guide-faq__chip--active]="isFaceSelected(face.id)"
+            [attr.aria-pressed]="isFaceSelected(face.id)"
+            (click)="selectFace(face.id)">
+            {{ face.label }}
+          </button>
+        }
       </div>
 
-      <p
-        *ngIf="selectedFaceTip as tip"
-        class="guide-faq__tip"
-        role="status"
-        aria-live="polite">
-        {{ tip }}
-      </p>
+      @if (selectedFaceTip; as tip) {
+        <p
+          class="guide-faq__tip"
+          role="status"
+          aria-live="polite">
+          {{ tip }}
+        </p>
+      }
+
+      @if (selectedFaceId) {
+        <nav class="guide-faq__recommendations" aria-label="مشاهده پیشنهادهای مناسب">
+          <a routerLink="/shop/bridal-hair-accessories/bridal-tiaras">تاج مناسب خود را پیدا کنید</a>
+        </nav>
+      }
     </div>
 
     <!-- FAQ Accordion -->
@@ -75,18 +91,19 @@
       </h3>
 
       <div class="guide-faq__accordion">
-        <details
-          *ngFor="let item of faqs"
-          class="guide-faq__item"
-          [attr.name]="'guide-faq'">
-          <summary class="guide-faq__summary">
-            <span class="guide-faq__question">{{ item.question }}</span>
-            <span class="guide-faq__toggle" aria-hidden="true"></span>
-          </summary>
-          <div class="guide-faq__answer">
-            <p>{{ item.answer }}</p>
-          </div>
-        </details>
+        @for (item of faqs; track item) {
+          <details
+            class="guide-faq__item"
+            [attr.name]="'guide-faq'">
+            <summary class="guide-faq__summary">
+              <span class="guide-faq__question">{{ item.question }}</span>
+              <span class="guide-faq__toggle" aria-hidden="true"></span>
+            </summary>
+            <div class="guide-faq__answer">
+              <p>{{ item.answer }}</p>
+            </div>
+          </details>
+        }
       </div>
     </div>
   </div>

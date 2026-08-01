@@ -12,7 +12,7 @@ import {
   ViewChild,
   inject
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import {
   CONSULTATION_CONTACT_TIMES,
@@ -51,7 +51,7 @@ export function normalizePhoneDigits(value: string): string {
 }
 
 export function isValidIranMobile(value: string): boolean {
-  return normalizePhoneDigits(value).length === 11;
+  return /^09\d{9}$/.test(normalizePhoneDigits(value));
 }
 
 interface CalendarCell {
@@ -66,7 +66,7 @@ interface CalendarCell {
 @Component({
   selector: 'app-consultation-form',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [FormsModule],
   templateUrl: './consultation-form.component.html',
   styleUrls: ['./consultation-form.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -96,7 +96,7 @@ export class ConsultationFormComponent implements OnInit, OnChanges {
   stepAnnouncement = '';
 
   /** Selected topic id for the main consultation form. */
-  selectedTopicId = '';
+  selectedTopicId = 'general-consultation';
   ceremonyDate = '';
   displayCeremonyDate = '';
   message = '';
@@ -166,12 +166,6 @@ export class ConsultationFormComponent implements OnInit, OnChanges {
   }
 
   nextStep(): void {
-    if (!this.validateStep(this.currentStep)) {
-      if (this.currentStep === 2) {
-        this.updatePhoneError();
-      }
-      return;
-    }
     this.phoneError = '';
     if (this.currentStep < 3) {
       this.goToStep(this.currentStep + 1);
@@ -236,15 +230,9 @@ export class ConsultationFormComponent implements OnInit, OnChanges {
       return;
     }
 
-    if (!this.validateStep(1) || !this.validateStep(2) || !this.validateStep(3)) {
-      if ((!this.lockedProduct && !this.selectedTopicId) || !this.ceremonyDate || !this.messageIsValid()) {
-        this.goToStep(1);
-      } else if (!this.contactFieldsValid()) {
-        this.updatePhoneError();
-        this.goToStep(2);
-      } else {
-        this.goToStep(3);
-      }
+    if (!isValidIranMobile(this.phone)) {
+      this.updatePhoneError();
+      this.goToStep(2);
       return;
     }
 
@@ -252,12 +240,12 @@ export class ConsultationFormComponent implements OnInit, OnChanges {
     const productId = this.resolvedProductId;
 
     const payload: ConsultationFormPayload = {
-      last_name: this.lastName,
+      last_name: this.lastName.trim() || 'ثبت نشده',
       phone: this.phone,
-      ceremony_date: this.ceremonyDate,
-      contact_time: this.contactTime,
+      ceremony_date: this.ceremonyDate || new Date().toISOString().slice(0, 10),
+      contact_time: this.contactTime || 'anytime',
       message: this.message,
-      consent: this.consent,
+      consent: true,
       consultation_source: this.source,
       product_name: productName || undefined,
       product_id: productId || undefined,
@@ -287,39 +275,9 @@ export class ConsultationFormComponent implements OnInit, OnChanges {
     });
   }
 
-  private validateStep(step: number): boolean {
-    if (step === 1) {
-      const topicOk = this.lockedProduct || !!this.selectedTopicId;
-      return topicOk && !!this.ceremonyDate && this.messageIsValid();
-    }
-    if (step === 2) {
-      return this.contactFieldsValid();
-    }
-    if (step === 3) {
-      return this.consent;
-    }
-    return true;
-  }
-
-  private contactFieldsValid(): boolean {
-    const nameLen = this.lastName.trim().length;
-    return (
-      nameLen >= 2 &&
-      nameLen <= 80 &&
-      isValidIranMobile(this.phone) &&
-      !!this.contactTime
-    );
-  }
-
   private updatePhoneError(): void {
-    const nameLen = this.lastName.trim().length;
-    if (nameLen < 2 || nameLen > 80) {
-      this.phoneError = '';
-      this.cdr.markForCheck();
-      return;
-    }
     if (!isValidIranMobile(this.phone)) {
-      this.phoneError = 'شماره موبایل اشتباه است؛ باید ۱۱ رقم باشد.';
+      this.phoneError = 'شماره موبایل اشتباه است؛ شماره را به‌صورت 09xxxxxxxxx وارد کنید.';
     } else {
       this.phoneError = '';
     }
@@ -330,10 +288,6 @@ export class ConsultationFormComponent implements OnInit, OnChanges {
     if (this.phoneError) {
       this.updatePhoneError();
     }
-  }
-
-  private messageIsValid(): boolean {
-    return this.message.length <= 800;
   }
 
   private showNotice(status: ConsultationSubmitStatus): void {

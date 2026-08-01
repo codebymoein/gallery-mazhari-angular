@@ -2,7 +2,7 @@ import { bootstrapApplication } from '@angular/platform-browser';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideRouter, withInMemoryScrolling } from '@angular/router';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
-import { importProvidersFrom } from '@angular/core';
+import { importProvidersFrom, provideZoneChangeDetection } from '@angular/core';
 import { registerLocaleData } from '@angular/common';
 import localeFa from '@angular/common/locales/fa';
 import { StoreModule } from '@ngrx/store';
@@ -22,8 +22,14 @@ registerLocaleData(localeFa, 'fa-IR');
 
 bootstrapApplication(AppComponent, {
   providers: [
-    provideAnimations(),
-    provideRouter(routes, withInMemoryScrolling({ scrollPositionRestoration: 'top' })),
+    provideZoneChangeDetection(),provideAnimations(),
+    provideRouter(
+      routes,
+      withInMemoryScrolling({
+        scrollPositionRestoration: 'top',
+        anchorScrolling: 'enabled'
+      })
+    ),
     provideHttpClient(withInterceptorsFromDi()),
     HTTP_INTERCEPTOR_PROVIDERS,
     importProvidersFrom(

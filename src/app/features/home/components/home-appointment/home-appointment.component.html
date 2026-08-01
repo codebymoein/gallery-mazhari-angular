@@ -3,7 +3,7 @@
   [id]="sectionId"
   dir="rtl"
   aria-labelledby="home-appointment-title"
->
+  >
   <div class="home-appointment__divider" aria-hidden="true">
     <span></span>
   </div>
@@ -12,13 +12,13 @@
     <aside class="home-appointment__intro">
       <img
         class="home-appointment__intro-image"
-        [src]="introImage"
+        [src]="introImage()"
         alt="چیدمان هماهنگ لباس و اکسسوری‌های عروس برای مشاوره انتخاب"
         width="1024"
         height="1536"
         loading="lazy"
         decoding="async"
-      />
+        />
 
       <p class="home-appointment__eyebrow">
         <span aria-hidden="true"></span>
@@ -55,25 +55,27 @@
       </p>
     </aside>
 
-    <div class="home-appointment__form-card" *ngIf="!formClosed; else formDone">
-      <div class="home-appointment__form-heading">
-        <span>درخواست مشاوره</span>
-        <strong *ngIf="!productName">شروع یک انتخاب هماهنگ</strong>
+    @if (!formClosed) {
+      <div class="home-appointment__form-card">
+        <div class="home-appointment__form-heading">
+          <span>درخواست مشاوره</span>
+          @if (!productName) {
+            <strong>شروع یک انتخاب هماهنگ</strong>
+          }
+        </div>
+        <app-consultation-form
+          [source]="source"
+          [productId]="productId"
+          [productName]="productName"
+          (completed)="onFormCompleted()"
+          />
       </div>
-
-      <app-consultation-form
-        [source]="source"
-        [productId]="productId"
-        [productName]="productName"
-        (completed)="onFormCompleted()"
-      />
-    </div>
-
-    <ng-template #formDone>
+    } @else {
       <div class="home-appointment__form-card home-appointment__form-card--done" role="status">
         <p class="home-appointment__done-title">درخواست شما ثبت شد</p>
         <p class="home-appointment__done-text">به زودی باهاتون تماس می‌گیریم.</p>
       </div>
-    </ng-template>
+    }
+
   </div>
 </section>

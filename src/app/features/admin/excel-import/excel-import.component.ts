@@ -10,6 +10,7 @@ import { RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { InventoryExcelService } from '@core/services/inventory-excel.service';
 import { StagingQueueService } from '@core/services/staging-queue.service';
+import { PublishedCatalogSyncService } from '@core/services/published-catalog-sync.service';
 import { ExcelImportResult } from '@shared/models/staging-product.model';
 
 @Component({
@@ -23,6 +24,7 @@ import { ExcelImportResult } from '@shared/models/staging-product.model';
 export class ExcelImportComponent implements OnDestroy {
   private readonly excel = inject(InventoryExcelService);
   private readonly queue = inject(StagingQueueService);
+  private readonly publishedCatalog = inject(PublishedCatalogSyncService);
   private readonly cdr = inject(ChangeDetectorRef);
   private sub?: Subscription;
 
@@ -80,7 +82,12 @@ export class ExcelImportComponent implements OnDestroy {
     this.cdr.markForCheck();
 
     this.sub?.unsubscribe();
-    this.sub = this.excel.parseInventoryFile(file).subscribe({
+    this.sub = this.excel
+      .parseInventoryFile(file, [
+        ...this.queue.items().map(item => item.code),
+        ...this.publishedCatalog.getCachedProductCodes()
+      ])
+      .subscribe({
       next: (result) => {
         void this.queue
           .applyExcelImport(result.accepted, result.removedOutOfStock, {

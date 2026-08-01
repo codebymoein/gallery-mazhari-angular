@@ -237,12 +237,27 @@
 
 .orders__detail-grid {
   display: grid;
-  gap: 1rem;
+  gap: 0.75rem;
   padding-block-start: 0.85rem;
 }
 
 .orders__detail-block {
   min-inline-size: 0;
+}
+
+.orders__detail-block:last-child {
+  align-self: start;
+  padding: 0.85rem;
+  background: color-mix(in srgb, var(--color-gold-subtle) 30%, var(--color-surface));
+  border: 1px solid color-mix(in srgb, var(--color-gold-primary) 38%, transparent);
+  border-radius: 0.75rem;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.orders__detail-block:last-child .orders__detail-title {
+  margin-block-end: 0.45rem;
+  padding-block-end: 0.55rem;
+  border-block-end: 1px solid color-mix(in srgb, var(--color-gold-primary) 34%, transparent);
 }
 
 .orders__detail-title {
@@ -371,6 +386,58 @@
   line-height: 1.5;
 }
 
+.orders__detail-block:last-child .orders__meta {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.orders__detail-block:last-child .orders__meta-row {
+  display: grid;
+  grid-template-columns: 5.5rem minmax(0, 1fr);
+  justify-content: start;
+  align-items: start;
+  gap: 0.65rem;
+  padding: 0.42rem 0.5rem;
+  border-block-end: 0;
+  border-radius: 0.4rem;
+}
+
+.orders__detail-block:last-child .orders__meta-row:nth-child(even) {
+  background: rgba(255, 255, 255, 0.48);
+}
+
+.orders__detail-block:last-child .orders__meta-row dd {
+  max-width: none;
+  text-align: start;
+  overflow-wrap: anywhere;
+}
+
+.orders__pay-btn {
+  width: 100%;
+  min-height: 2.75rem;
+  margin-block-start: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #251b07;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.65), transparent 45%),
+    linear-gradient(115deg, #96702a, #efd382 28%, #ad802d 55%, #f5df9b 76%, #916824);
+  border: 1px solid #dfbd66;
+  border-radius: 0.65rem;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.75),
+    0 5px 14px rgba(117, 82, 20, 0.28);
+  font-family: var(--font-persian);
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.orders__pay-btn:hover {
+  filter: brightness(1.08);
+}
+
 /* ── Buttons ── */
 .orders__btn {
   display: inline-flex;
@@ -414,5 +481,6 @@
 @media (min-width: 768px) {
   .orders__detail-grid {
     grid-template-columns: 1fr 1fr;
+    gap: 0.85rem;
   }
 }

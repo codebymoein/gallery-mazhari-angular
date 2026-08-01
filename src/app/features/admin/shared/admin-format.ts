@@ -2,9 +2,9 @@
 
 export function formatToman(value: number): string {
   try {
-    return new Intl.NumberFormat('fa-IR').format(Math.round(value)) + ' تومان';
+    return new Intl.NumberFormat('fa-IR').format(Math.round(value)) + ' ریال';
   } catch {
-    return `${value} تومان`;
+    return `${value} ریال`;
   }
 }
 

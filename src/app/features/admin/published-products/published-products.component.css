@@ -1,0 +1,26 @@
+.pub__search { width: min(100%, 32rem); }
+.pub__grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(330px,1fr)); gap: 1rem; padding: 1rem; }
+.pub__card { display:flex; gap:1rem; padding:1rem; border:1px solid #e7ded4; border-radius:14px; background:#fff; }
+.pub__card>img { object-fit:cover; border-radius:10px; background:#eee; }
+.pub__card h2 { margin:0 0 .35rem; font-size:1rem; }
+.pub__card p { margin:.35rem 0; color:#786b61; }
+.pub__actions { display:flex; flex-wrap:wrap; gap:.5rem; margin-top:.7rem; }
+.pub__unpublish { color:#9f1239; border-color:#fecdd3; background:#fff1f2; }
+.pub__unpublish:hover { background:#ffe4e6; }
+.pub__unpublish:disabled { opacity:.55; cursor:wait; }
+.pub__backdrop { position:fixed; inset:0; z-index:90; background:rgba(20,16,13,.45); }
+.pub__editor { position:fixed; z-index:91; inset:0 0 0 auto; width:min(94vw,620px); overflow:auto; padding:1.5rem; background:#fff; box-shadow:-10px 0 40px #0003; }
+.pub__editor header,.pub__editor footer { display:flex; align-items:center; justify-content:space-between; gap:1rem; }
+.pub__editor header button { border:0; background:none; font-size:2rem; cursor:pointer; }
+.pub__editor label { display:grid; gap:.4rem; margin:1rem 0; font-weight:600; }
+.pub__cols { display:grid; grid-template-columns:1fr 1fr; gap:0 1rem; }
+.pub__images { display:flex; flex-wrap:wrap; gap:.7rem; margin:1rem 0; }
+.pub__images figure { margin:0; position:relative; display:grid; gap:.3rem; width:110px; }
+.pub__images img { object-fit:cover; border-radius:8px; }
+.pub__images button { border:0; border-radius:5px; background:#fff1f2; color:#a00; padding:.3rem; font:inherit; font-size:.68rem; cursor:pointer; }
+.pub__images .pub__make-primary { background:#f5efe0; color:#765a12; }
+.pub__primary-badge { position:absolute; inset:4px 4px auto auto; padding:.2rem .4rem; border-radius:999px; background:#1f6d45; color:#fff; font-size:.62rem; }
+.pub__collections { margin:1rem 0; padding:1rem; border:1px solid #e7ded4; border-radius:12px; }
+.pub__collections>label { display:inline-flex; grid-auto-flow:column; align-items:center; gap:.4rem; margin:.35rem .25rem; padding:.45rem .65rem; border-radius:999px; background:#f7f3ee; }
+@media(max-width:600px){.pub__cols{grid-template-columns:1fr}.pub__grid{grid-template-columns:1fr}.pub__card{flex-direction:column}}
+.pub__backup-actions { display:flex; flex-wrap:wrap; gap:.55rem; }

@@ -4,9 +4,11 @@ import {
   HostListener,
   OnDestroy,
   computed,
+  inject,
   signal
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
+import { AppearanceApiService } from '@core/services/appearance-api.service';
 
 export interface RealBrideMoment {
   id: string;
@@ -20,16 +22,17 @@ export interface RealBrideMoment {
 @Component({
   selector: 'app-real-brides',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   templateUrl: './real-brides.component.html',
   styleUrls: ['./real-brides.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class RealBridesComponent implements OnDestroy {
+  private readonly appearance = inject(AppearanceApiService);
   readonly activeIndex = signal<number | null>(null);
   readonly theaterOpen = signal(false);
 
-  readonly moments: RealBrideMoment[] = [
+  private readonly defaultMoments: RealBrideMoment[] = [
     {
       id: '1',
       name: 'سارا م.',
@@ -79,6 +82,19 @@ export class RealBridesComponent implements OnDestroy {
       span: 'square'
     }
   ];
+
+  get moments(): RealBrideMoment[] {
+    const configured = this.appearance.appearance()?.memories
+      ?.filter(item => item.active && item.image)
+      .map(item => ({ ...item } as RealBrideMoment));
+    return configured?.length ? configured : [];
+  }
+
+  constructor() {
+    // Kept only as a migration reference; published memories are API-only.
+    void this.defaultMoments;
+    this.appearance.load();
+  }
 
   readonly activeMoment = computed(() => {
     const i = this.activeIndex();

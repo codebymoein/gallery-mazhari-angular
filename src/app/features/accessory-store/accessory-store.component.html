@@ -1,0 +1,39 @@
+<main class="accessory-store" dir="rtl">
+  <header class="accessory-store__intro">
+    <span class="accessory-store__ornament" aria-hidden="true">✦</span>
+    <h1 class="accessory-store__title">فروشگاه اکسسوری عروس</h1>
+    <p class="accessory-store__lead">
+      جزئیاتی که استایل شما را کامل می‌کنند؛ از تاج و تور تا زیورآلات، کفش و ملزومات مراسم
+    </p>
+  </header>
+
+  <section class="accessory-store__mosaic" role="list" aria-label="دسته‌بندی‌های فروشگاه اکسسوری">
+    @for (category of categories(); track category; let i = $index) {
+      <a
+        class="accessory-store__card"
+        [class]="'accessory-store__card accessory-store__card--' + cardShape(i)"
+        [routerLink]="['/shop', category.slug]"
+        [attr.aria-label]="'مشاهده ' + category.title"
+        role="listitem">
+        <img
+          class="accessory-store__image"
+          [src]="category.image"
+          [alt]="category.title"
+          loading="lazy"
+          decoding="async"
+          width="480"
+          height="620"
+          (error)="onImgError($event)"
+          />
+        <span class="accessory-store__shade" aria-hidden="true"></span>
+        <span class="accessory-store__content">
+          @if (category.subtitle) {
+            <small lang="en" dir="ltr">{{ category.subtitle }}</small>
+          }
+          <strong>{{ category.title }}</strong>
+          <span>مشاهده مجموعه <b aria-hidden="true">←</b></span>
+        </span>
+      </a>
+    }
+  </section>
+</main>

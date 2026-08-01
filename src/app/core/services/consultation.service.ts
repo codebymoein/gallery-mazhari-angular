@@ -1,11 +1,11 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
-import {
-  CONSULTATION_CONTACT_TIMES,
-  ConsultationFormPayload
-} from '@shared/data/consultation-options';
+import { Observable, map, tap } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { HttpHeaders } from '@angular/common/http';
+import { AdminAuthService } from './admin-auth.service';
+import { ConsultationFormPayload } from '@shared/data/consultation-options';
 import { environment } from '@env/environment';
-import { NotificationService } from './notification.service';
+import { DreamCanvasService, DreamCanvasItem } from './dream-canvas.service';
 
 export type ConsultationSubmitStatus =
   | 'success'
@@ -23,14 +23,17 @@ export type ConsultationFollowUpTag =
 export const CONSULTATION_FOLLOW_UP_LABELS: Record<ConsultationFollowUpTag, string> = {
   needs_followup: 'نیاز به پیگیری',
   contacted: 'تماس گرفته شد',
-  cancelled: 'کنسل شد',
-  scheduled: 'وقت رزرو شد'
+  cancelled: 'لغو شده',
+  scheduled: 'وقت رزرو شده'
 };
 
 export interface StoredConsultationRequest extends ConsultationFormPayload {
   id: string;
   created_at: string;
   followUpTag?: ConsultationFollowUpTag;
+  adminNote?: string;
+  /** Snapshot taken when the request is submitted; prevents mixing customers' canvases. */
+  dreamItems?: Pick<DreamCanvasItem, 'productId' | 'name'>[];
 }
 
 const STATUS_MESSAGES: Record<ConsultationSubmitStatus, string> = {
@@ -54,17 +57,16 @@ function normalizePhoneDigits(value: string): string {
 }
 
 function isValidIranMobile(value: string): boolean {
-  return normalizePhoneDigits(value).length === 11;
+  return /^09\d{9}$/.test(normalizePhoneDigits(value));
 }
 
-const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
-const RATE_LIMIT_MS = 60_000;
 
 @Injectable({ providedIn: 'root' })
 export class ConsultationService {
   private readonly storageKey = environment.storageKeys.consultationRequests;
-  private readonly rateLimitKey = environment.storageKeys.consultationRateLimit;
-  private readonly notifications = inject(NotificationService);
+  private readonly http = inject(HttpClient);
+  private readonly auth = inject(AdminAuthService);
+  private readonly dreamCanvas = inject(DreamCanvasService);
 
   messageFor(status: ConsultationSubmitStatus): string {
     return STATUS_MESSAGES[status];
@@ -74,11 +76,49 @@ export class ConsultationService {
     return this.readRequests();
   }
 
+  refreshFromServer(): Observable<StoredConsultationRequest[]> {
+    return this.http.get<Array<{
+      id: string; lastName: string; phone: string; ceremonyDate: string; contactTime: string;
+      message?: string; source: ConsultationFormPayload['consultation_source']; productName?: string;
+      productId?: string; dreamItems?: Pick<DreamCanvasItem, 'productId' | 'name'>[];
+      followUpTag?: ConsultationFollowUpTag; adminNote?: string; createdAt: string;
+    }>>(`${environment.backendApiBaseUrl}/consultations`, this.authOptions()).pipe(
+      tap(items => localStorage.setItem(this.storageKey, JSON.stringify(items.map(item => ({
+        id: item.id, last_name: item.lastName, phone: item.phone, ceremony_date: item.ceremonyDate,
+        contact_time: item.contactTime, message: item.message || '', consent: true,
+        consultation_source: item.source, product_name: item.productName, product_id: item.productId,
+        dreamItems: item.dreamItems || [], followUpTag: item.followUpTag,
+        adminNote: item.adminNote || '', created_at: item.createdAt,
+      }))))),
+      // Read the normalized cache so all existing admin consumers keep one shape.
+      map(() => this.readRequests())
+    );
+  }
+
   setFollowUpTag(id: string, tag: ConsultationFollowUpTag): void {
     const requests = this.readRequests().map((r) =>
       r.id === id ? { ...r, followUpTag: tag } : r
     );
     localStorage.setItem(this.storageKey, JSON.stringify(requests));
+    this.http.patch(`${environment.backendApiBaseUrl}/consultations/${encodeURIComponent(id)}`, { followUpTag: tag }, this.authOptions()).subscribe();
+  }
+
+  setAdminNote(id: string, adminNote: string): void {
+    const requests = this.readRequests().map(request =>
+      request.id === id ? { ...request, adminNote: adminNote.trim() } : request
+    );
+    localStorage.setItem(this.storageKey, JSON.stringify(requests));
+    this.http.patch(`${environment.backendApiBaseUrl}/consultations/${encodeURIComponent(id)}`, { adminNote: adminNote.trim() }, this.authOptions()).subscribe();
+  }
+
+  deleteRequests(ids: string[]): number {
+    const idSet = new Set(ids);
+    if (!idSet.size) return 0;
+    const current = this.readRequests();
+    const next = current.filter(request => !idSet.has(request.id));
+    localStorage.setItem(this.storageKey, JSON.stringify(next));
+    for (const id of idSet) this.http.delete(`${environment.backendApiBaseUrl}/consultations/${encodeURIComponent(id)}`, this.authOptions()).subscribe();
+    return current.length - next.length;
   }
 
   submit(payload: ConsultationFormPayload): Observable<ConsultationSubmitStatus> {
@@ -97,15 +137,26 @@ export class ConsultationService {
           return;
         }
 
-        if (this.isRateLimited()) {
-          subscriber.error('rate-limited');
-          return;
-        }
-
-        this.persist(normalized);
-        this.markRateLimited();
-        subscriber.next('success');
-        subscriber.complete();
+        this.http.post(`${environment.backendApiBaseUrl}/consultations`, {
+          lastName: normalized.last_name,
+          phone: normalized.phone,
+          ceremonyDate: normalized.ceremony_date,
+          contactTime: normalized.contact_time,
+          message: normalized.message,
+          consent: normalized.consent,
+          source: normalized.consultation_source,
+          productName: normalized.product_name,
+          productId: normalized.product_id,
+          website: normalized.website,
+          dreamItems: this.dreamCanvas.items.map(item => ({ productId: item.productId, name: item.name })),
+        }).subscribe({
+          next: () => {
+            this.persist(normalized);
+            subscriber.next('success');
+            subscriber.complete();
+          },
+          error: () => subscriber.error('save-error'),
+        });
       } catch {
         subscriber.error('save-error');
       }
@@ -128,42 +179,24 @@ export class ConsultationService {
   }
 
   private isValid(payload: ConsultationFormPayload): boolean {
-    const nameLen = payload.last_name.length;
-    const messageLen = payload.message.length;
-
-    return (
-      payload.consent &&
-      nameLen >= 2 &&
-      nameLen <= 80 &&
-      messageLen <= 800 &&
-      isValidIranMobile(payload.phone) &&
-      ISO_DATE_PATTERN.test(payload.ceremony_date) &&
-      payload.contact_time in CONSULTATION_CONTACT_TIMES
-    );
+    return isValidIranMobile(payload.phone);
   }
 
   private persist(payload: ConsultationFormPayload): void {
     const record: StoredConsultationRequest = {
       ...payload,
       id: crypto.randomUUID(),
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
+      dreamItems: this.dreamCanvas.items.map(item => ({
+        productId: item.productId,
+        name: item.name
+      }))
     };
 
     const requests = this.readRequests();
     requests.unshift(record);
     localStorage.setItem(this.storageKey, JSON.stringify(requests));
 
-    this.notifications
-      .sendConsultationAlert({
-        lastName: record.last_name,
-        phone: record.phone,
-        weddingDate: record.ceremony_date,
-        contactTime: CONSULTATION_CONTACT_TIMES[record.contact_time] ?? record.contact_time,
-        productName: record.product_name,
-        message: record.message,
-        source: record.consultation_source
-      })
-      .subscribe();
   }
 
   private readRequests(): StoredConsultationRequest[] {
@@ -180,21 +213,9 @@ export class ConsultationService {
     }
   }
 
-  private isRateLimited(): boolean {
-    try {
-      const raw = localStorage.getItem(this.rateLimitKey);
-      if (!raw) {
-        return false;
-      }
 
-      const lastSubmit = Number(raw);
-      return Number.isFinite(lastSubmit) && Date.now() - lastSubmit < RATE_LIMIT_MS;
-    } catch {
-      return false;
-    }
-  }
-
-  private markRateLimited(): void {
-    localStorage.setItem(this.rateLimitKey, String(Date.now()));
+  private authOptions(): { headers?: HttpHeaders } {
+    const token = this.auth.user()?.accessToken;
+    return token ? { headers: new HttpHeaders({ Authorization: `Bearer ${token}` }) } : {};
   }
 }

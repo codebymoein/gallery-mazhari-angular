@@ -10,6 +10,8 @@ export const environment = {
   apiBaseUrl: 'https://gallery-mazhari.ir',
   apiPath: '/wp-json',
   backendApiBaseUrl: 'https://api.gallery-mazhari.ir/api',
+  /** Product photos and large files are deployed independently from app code. */
+  mediaBaseUrl: 'https://media.gallery-mazhari.ir',
   apiTimeout: 30000,
 
   // WordPress

@@ -1,0 +1,16 @@
+<section class="adm custom-admin" dir="rtl">
+  <header class="custom-admin__head"><div><p>درخواست‌های مشتری</p><h1>درخواست‌های سفارشی</h1></div><span>{{ requests.length | number:'1.0-0':'fa-IR' }} درخواست</span></header>
+  <nav class="custom-admin__tabs" aria-label="فیلتر نوع درخواست"><button type="button" [class.active]="filter === 'all'" (click)="filter='all'">همه</button><button type="button" [class.active]="filter === 'veil'" (click)="filter='veil'">درخواست تور سفارشی</button><button type="button" [class.active]="filter === 'dress'" (click)="filter='dress'">درخواست لباس سفارشی</button></nav>
+  <div class="custom-admin__month-filter"><label><span>ماه ثبت درخواست</span><select [(ngModel)]="monthFilter"><option value="all">همه ماه‌های شمسی</option>@for (month of monthOptions; track month.value) { <option [value]="month.value">{{ month.label }}</option> }</select></label><strong>{{ visible.length | number:'1.0-0':'fa-IR' }} نتیجه</strong></div>
+  @if (error) { <p class="custom-admin__error">{{ error }}</p> }
+  @if (loading) { <p class="custom-admin__empty">در حال دریافت درخواست‌ها…</p> } @else if (!visible.length) { <p class="custom-admin__empty">درخواستی در این بخش ثبت نشده است.</p> } @else {
+    <div class="custom-admin__grid">@for (request of visible; track request.id) {
+      <article class="custom-admin__card"><header><div><span>{{ label(request.type) }}</span><h2>{{ request.modelTitle }}</h2></div><time>{{ request.createdAt | date:'yyyy/MM/dd - HH:mm' }}</time></header>
+        <dl><div><dt>مشتری</dt><dd>{{ request.fullName }}</dd></div><div><dt>موبایل</dt><dd dir="ltr"><a [href]="'tel:' + request.phone">{{ request.phone }}</a></dd></div><div><dt>ایمیل</dt><dd dir="ltr">{{ request.email || '—' }}</dd></div><div><dt>شهر</dt><dd>{{ request.city || '—' }}</dd></div><div><dt>تاریخ مراسم</dt><dd>{{ request.ceremonyDate || '—' }}</dd></div><div><dt>زمان تماس</dt><dd>{{ contactTimeLabel(request.contactTime) }}</dd></div><div><dt>روش تماس</dt><dd>{{ contactMethodLabel(request.preferredContact) }}</dd></div><div><dt>رنگ</dt><dd>{{ request.color || '—' }}</dd></div><div><dt>جنس/پارچه</dt><dd>{{ request.fabric || '—' }}</dd></div><div><dt>{{ request.type === 'veil' ? 'طول تور' : 'سایز/اندازه' }}</dt><dd>{{ request.sizeOrLength || '—' }}</dd></div><div><dt>بودجه</dt><dd>{{ request.budget || '—' }}</dd></div></dl>
+        <p class="custom-admin__description">{{ request.description }}</p>
+        @if (request.imageUrls?.length) { <div class="custom-admin__images">@for (url of request.imageUrls!; track url) { <a [href]="url" target="_blank" rel="noopener"><img [src]="url" alt="تصویر مرجع درخواست" width="130" height="130" loading="lazy" decoding="async"></a> }</div> }
+        <div class="custom-admin__actions"><label><span>وضعیت</span><select [(ngModel)]="request.status">@for (status of statuses; track status.value) { <option [value]="status.value">{{ status.label }}</option> }</select></label><label><span>یادداشت داخلی</span><textarea [(ngModel)]="request.adminNote" rows="3" maxlength="1000"></textarea></label><button type="button" (click)="save(request)">ذخیره تغییرات</button></div>
+      </article> }
+    </div>
+  }
+</section>

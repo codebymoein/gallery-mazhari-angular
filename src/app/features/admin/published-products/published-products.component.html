@@ -1,0 +1,109 @@
+<section class="adm adm-page pub" dir="rtl">
+  <header class="adm-page__head">
+    <div>
+      <p class="adm-page__eyebrow" lang="en" dir="ltr">PUBLISHED PRODUCTS</p>
+      <h1 class="adm-page__title">کالاهای منتشر شده</h1>
+      <p class="adm-page__lead">ویرایش کامل محتوای محصول، تصاویر و ویژگی‌ها برای تمام کالاهای سایت.</p>
+    </div>
+    <div class="adm-page__actions pub__backup-actions">
+      <button class="adm-btn" type="button" (click)="exportExcel()">دریافت خروجی کامل Excel</button>
+      <button class="adm-btn adm-btn--ghost" type="button" (click)="exportBackup()">پشتیبان JSON قابل بازیابی</button>
+      <label class="adm-btn">بارگذاری فایل پشتیبان
+        <input type="file" accept=".json,application/json" hidden (change)="importBackup($event)" />
+      </label>
+    </div>
+  </header>
+
+  <div class="adm-card">
+    <div class="adm-toolbar">
+      <div class="adm-search pub__search">
+        <input class="adm-input" type="search" placeholder="جستجوی نام، کد یا دسته محصول…"
+          [ngModel]="query()" (ngModelChange)="query.set($event)" />
+      </div>
+      <strong>{{ products().length | number:'1.0-0':'fa-IR' }} کالا</strong>
+    </div>
+    <div class="pub__grid">
+      @for (product of products(); track product) {
+        <article class="pub__card">
+          <img [src]="product.image" [alt]="product.name" width="110" height="130" />
+          <div>
+            <h2>{{ product.name }}</h2>
+            <small dir="ltr">{{ product.id }}</small>
+            <p>{{ product.categorySlug }}</p>
+            <div class="pub__actions">
+              <button class="adm-btn adm-btn--sm" type="button" (click)="edit(product)">ویرایش کامل</button>
+              <a class="adm-btn adm-btn--sm adm-btn--ghost" target="_blank"
+              [routerLink]="['/product', product.id]">پیش‌نمایش</a>
+              @if (isServerPublished(product)) {
+                <button class="adm-btn adm-btn--sm pub__unpublish"
+                  type="button" [disabled]="returningId() !== null" (click)="returnToQueue(product)">
+                  {{ returningId() !== null ? 'در حال انتقال…' : 'برداشتن از سایت و بازگشت به صف' }}
+                </button>
+              }
+            </div>
+          </div>
+        </article>
+      }
+    </div>
+  </div>
+
+  @if (editingId()) {
+    <div class="pub__backdrop" role="button" tabindex="0" aria-label="بستن ویرایش محصول"
+      (click)="close()" (keydown.enter)="close()"></div>
+  }
+  @if (editingId()) {
+    <aside class="pub__editor" aria-label="ویرایش محصول">
+      <header><h2>ویرایش کامل محصول</h2><button type="button" (click)="close()">×</button></header>
+      <label>نام محصول<input class="adm-input" [(ngModel)]="draft.name" /></label>
+      <label>توضیح کوتاه<textarea class="adm-input" rows="3" [(ngModel)]="draft.description"></textarea></label>
+      <label>توضیحات تکمیلی<textarea class="adm-input" rows="6" [(ngModel)]="draft.additionalDescription"></textarea></label>
+      <div class="pub__cols">
+        <label>عنوان ویژگی اول<input class="adm-input" [(ngModel)]="draft.primaryAttributeLabel" /></label>
+        <label>مقدار ویژگی اول<input class="adm-input" [(ngModel)]="draft.primaryAttributeValue" /></label>
+        <label>عنوان ویژگی دوم<input class="adm-input" [(ngModel)]="draft.secondaryAttributeLabel" /></label>
+        <label>مقدار ویژگی دوم<input class="adm-input" [(ngModel)]="draft.secondaryAttributeValue" /></label>
+      </div>
+      <label>جزئیات محصول (هر مورد در یک خط)
+        <textarea class="adm-input" rows="5" [ngModel]="highlightText()" (ngModelChange)="updateHighlights($event)"></textarea>
+      </label>
+      <div class="pub__collections">
+        <strong>کالکشن‌ها و دسته‌های نمایش</strong>
+        <p>محصول می‌تواند هم‌زمان در بیش از یک کالکشن قرار بگیرد.</p>
+        @for (option of collectionOptions; track option) {
+          <label>
+            <input type="checkbox" [checked]="collectionChecked(option.slug)"
+              (change)="toggleCollection(option.slug, $any($event.target).checked)" />
+            {{ option.label }}
+          </label>
+        }
+      </div>
+      <div>
+        <strong>تصاویر محصول</strong>
+        <div class="pub__images">
+          @for (image of draft.gallery; track image; let i = $index) {
+            <figure>
+              <img [src]="image" alt="" width="90" height="100" />
+              @if (i === 0) {
+                <span class="pub__primary-badge">عکس اصلی</span>
+              }
+              @if (i > 0) {
+                <button class="pub__make-primary" type="button" (click)="setPrimaryImage(i)">انتخاب به‌عنوان اصلی</button>
+              }
+              <button type="button" (click)="removeImage(i)">حذف</button>
+            </figure>
+          }
+        </div>
+        <label class="adm-btn adm-btn--ghost">افزودن عکس
+          <input type="file" accept="image/*" multiple hidden (change)="addImages($event)" />
+        </label>
+      </div>
+      <footer>
+        <button class="adm-btn adm-btn--ghost" type="button" (click)="close()">انصراف</button>
+        <button class="adm-btn" type="button" (click)="save()">ذخیره و اعمال روی سایت</button>
+      </footer>
+    </aside>
+  }
+  @if (toast()) {
+    <div class="adm-toast">{{ toast() }}</div>
+  }
+</section>

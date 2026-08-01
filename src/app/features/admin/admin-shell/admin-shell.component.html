@@ -5,8 +5,11 @@
   [class.shell--drawer-open]="sidebarOpen()"
   [class.shell--mode-side]="sidenavMode() === 'side'"
   [class.shell--mode-over]="sidenavMode() === 'over'"
->
-  <div class="shell__backdrop" *ngIf="sidebarOpen()" (click)="sidebarOpen.set(false)"></div>
+  >
+  @if (sidebarOpen()) {
+    <div class="shell__backdrop" role="button" tabindex="0" aria-label="بستن منو"
+      (click)="sidebarOpen.set(false)" (keydown.enter)="sidebarOpen.set(false)"></div>
+  }
 
   <aside class="shell__sidebar" aria-label="منوی پنل مدیریت">
     <div class="shell__brand">
@@ -20,45 +23,52 @@
         class="shell__collapse"
         (click)="toggleCollapsed()"
         [attr.aria-label]="collapsed() ? 'باز کردن منو' : 'جمع کردن منو'"
-      >
+        >
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
           <path d="M4 6h16M4 12h10M4 18h16" stroke-linecap="round" />
         </svg>
       </button>
     </div>
 
-    <label class="shell__search" *ngIf="!collapsed()">
-      <span class="visually-hidden">جستجوی منو</span>
-      <input
-        type="search"
-        placeholder="جستجوی بخش…"
-        [ngModel]="navQuery()"
-        (ngModelChange)="onNavSearch($event)"
-        autocomplete="off"
-      />
-    </label>
+    @if (!collapsed()) {
+      <label class="shell__search">
+        <span class="visually-hidden">جستجوی منو</span>
+        <input
+          type="search"
+          placeholder="جستجوی بخش…"
+          [ngModel]="navQuery()"
+          (ngModelChange)="onNavSearch($event)"
+          autocomplete="off"
+          />
+      </label>
+    }
 
     <nav class="shell__nav">
-      <ng-container *ngFor="let group of navGroups()">
+      @for (group of navGroups(); track group) {
         <p class="shell__nav-label">{{ group.name }}</p>
-        <a
-          *ngFor="let item of group.items"
-          [routerLink]="item.path"
-          routerLinkActive="shell__link--active"
-          [class.shell__link--active]="item.path === '/admin/crm' && isCrmActive()"
-          class="shell__link"
-          [attr.title]="item.label"
-          (click)="sidebarOpen.set(false)"
-        >
-          <span class="shell__icon" [attr.data-icon]="item.icon" aria-hidden="true"></span>
-          <span class="shell__link-text">{{ item.label }}</span>
-          <span class="adm-badge" *ngIf="badgeCount(item.badge) as n">
-            {{ n | number:'1.0-0':'fa-IR' }}
-          </span>
-        </a>
-      </ng-container>
+        @for (item of group.items; track item) {
+          <a
+            [routerLink]="item.path"
+            routerLinkActive="shell__link--active"
+            [class.shell__link--active]="item.path === '/admin/crm' && isCrmActive()"
+            class="shell__link"
+            [attr.title]="item.label"
+            (click)="sidebarOpen.set(false)"
+            >
+            <span class="shell__icon" [attr.data-icon]="item.icon" aria-hidden="true"></span>
+            <span class="shell__link-text">{{ item.label }}</span>
+            @if (badgeCount(item.badge); as n) {
+              <span class="adm-badge">
+                {{ n | number:'1.0-0':'fa-IR' }}
+              </span>
+            }
+          </a>
+        }
+      }
 
-      <p class="shell__nav-empty" *ngIf="!navGroups().length">موردی یافت نشد</p>
+      @if (!navGroups().length) {
+        <p class="shell__nav-empty">موردی یافت نشد</p>
+      }
     </nav>
 
     <div class="shell__footer">
@@ -83,7 +93,7 @@
           class="shell__menu-btn"
           (click)="toggleSidebar()"
           aria-label="باز و بسته کردن منو"
-        >
+          >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <path d="M4 7h16M4 12h16M4 17h16" stroke-linecap="round" />
           </svg>

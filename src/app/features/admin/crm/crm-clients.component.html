@@ -28,7 +28,7 @@
           placeholder="جستجوی نام، موبایل، شهر…"
           [ngModel]="query()"
           (ngModelChange)="onSearch($event)"
-        />
+          />
       </div>
     </div>
 
@@ -47,25 +47,29 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let c of clients()">
-            <td><strong>{{ c.name }}</strong></td>
-            <td>
-              <div dir="ltr">{{ c.phone }}</div>
-              <small style="color: var(--adm-faint)">{{ c.email }}</small>
-            </td>
-            <td>{{ c.city }}</td>
-            <td>{{ c.ordersCount | number:'1.0-0':'fa-IR' }}</td>
-            <td><strong>{{ formatToman(c.ltv) }}</strong></td>
-            <td>{{ formatFaDate(c.lastVisitAt) }}</td>
-            <td>
-              <span class="crm-tag" *ngFor="let t of c.tags">{{ t }}</span>
-            </td>
-            <td>
-              <a class="adm-btn adm-btn--sm adm-btn--soft" [routerLink]="['/admin/crm', c.id]">
-                پروفایل ۳۶۰
-              </a>
-            </td>
-          </tr>
+          @for (c of clients(); track c) {
+            <tr>
+              <td><strong>{{ c.name }}</strong></td>
+              <td>
+                <div dir="ltr">{{ c.phone }}</div>
+                <small style="color: var(--adm-faint)">{{ c.email }}</small>
+              </td>
+              <td>{{ c.city }}</td>
+              <td>{{ c.ordersCount | number:'1.0-0':'fa-IR' }}</td>
+              <td><strong>{{ formatToman(c.ltv) }}</strong></td>
+              <td>{{ formatFaDate(c.lastVisitAt) }}</td>
+              <td>
+                @for (t of c.tags; track t) {
+                  <span class="crm-tag">{{ t }}</span>
+                }
+              </td>
+              <td>
+                <a class="adm-btn adm-btn--sm adm-btn--soft" [routerLink]="['/admin/crm', c.id]">
+                  پروفایل ۳۶۰
+                </a>
+              </td>
+            </tr>
+          }
         </tbody>
       </table>
     </div>

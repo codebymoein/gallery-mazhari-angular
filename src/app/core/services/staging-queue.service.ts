@@ -57,10 +57,12 @@ export class StagingQueueService {
   readonly maxPhotos = MAX_STAGING_PHOTOS;
 
   constructor() {
+    // مهاجرت قوانین عملیاتی روی داده‌های قدیمی localStorage نیز اعمال می‌شود؛
+    // بنابراین انتقال دسته‌ها وابسته به آپلود مجدد فایل نیست.
+    this.persist();
     // با ورود ادمین (یا وجود نشست قبلی) صف از سرور بارگیری می‌شود.
     effect(() => {
-      const token = this.auth.user()?.accessToken;
-      if (token) {
+      if (this.auth.isAuthenticated()) {
         void this.refreshFromServer();
       }
     });
@@ -84,6 +86,14 @@ export class StagingQueueService {
     this.itemsSignal().filter((i) => i.status === 'published')
   );
 
+  readonly rejected = computed(() =>
+    this.itemsSignal().filter((i) => i.status === 'rejected')
+  );
+
+  readonly awaitingStock = computed(() =>
+    this.itemsSignal().filter((i) => i.status === 'awaiting_stock')
+  );
+
   readonly categoryGroups = computed(() => {
     const pending = this.pendingItems();
     const counts = new Map<string, { label: string; slug: string; count: number }>();
@@ -91,19 +101,23 @@ export class StagingQueueService {
     counts.set(NEW_PRODUCT_CATEGORY_SLUG, {
       label: NEW_PRODUCT_CATEGORY_LABEL,
       slug: NEW_PRODUCT_CATEGORY_SLUG,
+      count: pending.filter(item => item.isNewImport).length
+    });
+    counts.set('unconventional', {
+      label: 'طبقات نامتعارف',
+      slug: 'unconventional',
       count: 0
     });
-
     for (const cat of CATALOG_CATEGORIES) {
       counts.set(cat.slug, { label: cat.title, slug: cat.slug, count: 0 });
     }
 
     for (const item of pending) {
-      const key = item.isNewImport
-        ? NEW_PRODUCT_CATEGORY_SLUG
-        : item.parentCategorySlug || 'uncategorized';
+      const key = !item.parentCategorySlug || item.parentCategorySlug === NEW_PRODUCT_CATEGORY_SLUG
+        ? 'unconventional'
+        : item.parentCategorySlug;
       const current = counts.get(key) || {
-        label: item.parentCategory || 'سایر',
+        label: item.parentCategory || 'طبقات نامتعارف',
         slug: key,
         count: 0
       };
@@ -111,9 +125,64 @@ export class StagingQueueService {
       counts.set(key, current);
     }
 
-    // همه دسته‌های اصلی سایت برای مدیریت آسان + محصولات جدید
+    // وضعیت‌های عملیاتی در انتهای نوار: انتظار موجودی، سپس زباله‌دان.
+    counts.set('awaiting-stock', {
+      label: 'کالاهای در انتظار موجودی',
+      slug: 'awaiting-stock',
+      count: this.awaitingStock().length
+    });
+    counts.set('trash', {
+      label: 'زباله‌دان',
+      slug: 'trash',
+      count: this.rejected().length
+    });
+
+    // همه دسته‌های اصلی سایت + وضعیت‌های عملیاتی انتهای نوار
     return [...counts.values()];
   });
+
+  async updateCatalog(
+    id: string,
+    catalog: {
+      category: string;
+      categorySlug: string;
+      parentCategory: string;
+      parentCategorySlug: string;
+      collection?: string;
+      hiddenTags?: string[];
+    }
+  ): Promise<boolean> {
+    try {
+      if (this.hasServerSession() && UUID_PATTERN.test(id)) {
+        const saved = await firstValueFrom(this.api.updateCatalog(id, catalog));
+        const next = withPrimaryPhoto(backendProductToStaging(saved));
+        this.itemsSignal.update(items => items.map(item => item.id === id ? next : item));
+      } else {
+        this.itemsSignal.update(items =>
+          items.map(item => item.id === id ? { ...item, ...catalog } : item)
+        );
+      }
+      this.persist();
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async restoreBackup(products: StagingProduct[]): Promise<number> {
+    if (this.hasServerSession()) {
+      const result = await firstValueFrom(this.api.restoreProducts(products));
+      this.itemsSignal.set(collapseDuplicateProducts(
+        result.queue.map(item => withPrimaryPhoto(backendProductToStaging(item)))
+      ));
+      this.persist();
+      this.publishedSync.refresh();
+      return result.restored;
+    }
+    this.itemsSignal.set(collapseDuplicateProducts(products.map(withPrimaryPhoto)));
+    this.persist();
+    return products.length;
+  }
 
   readonly metrics = computed((): ManagerMetrics => {
     const items = this.itemsSignal();
@@ -143,8 +212,22 @@ export class StagingQueueService {
       return false;
     }
     try {
+      const localSnapshot = this.itemsSignal();
       const queue = await firstValueFrom(this.api.getQueue());
-      this.itemsSignal.set(queue.map((p) => withPrimaryPhoto(backendProductToStaging(p))));
+      // An empty server must not erase a valid browser queue. This happens
+      // after a backend reset or when older imports only existed locally.
+      // Restore that snapshot to the server once, then use the persisted
+      // server response on all subsequent refreshes/devices.
+      if (!queue.length && localSnapshot.length) {
+        const restored = await firstValueFrom(this.api.restoreProducts(localSnapshot));
+        this.itemsSignal.set(collapseDuplicateProducts(
+          restored.queue.map((p) => withPrimaryPhoto(backendProductToStaging(p)))
+        ));
+      } else {
+        this.itemsSignal.set(collapseDuplicateProducts(
+          queue.map((p) => withPrimaryPhoto(backendProductToStaging(p)))
+        ));
+      }
       this.persist();
       this.serverSynced.set(true);
       return true;
@@ -176,15 +259,23 @@ export class StagingQueueService {
               parentCategorySlug: p.parentCategorySlug,
               categorySlug: p.categorySlug,
               stock: p.stock,
-              isNewImport: p.isNewImport
+              status: p.status,
+              price: p.price,
+              isNewImport: p.isNewImport,
+              size: p.size,
+              material: p.material,
+              heelHeight: p.heelHeight,
+              platformHeight: p.platformHeight,
+              variantKey: p.variantKey,
+              variations: p.variations
             })),
             removedOutOfStock,
             fileName: meta?.fileName
           })
         );
-        this.itemsSignal.set(
+        this.itemsSignal.set(collapseDuplicateProducts(
           res.queue.map((p) => withPrimaryPhoto(backendProductToStaging(p)))
-        );
+        ));
         this.persist();
         this.serverSynced.set(true);
         this.publishedSync.refresh();
@@ -259,6 +350,30 @@ export class StagingQueueService {
     return this.removePhotoLocal(id, index);
   }
 
+  async setPrimaryPhoto(id: string, index: number): Promise<boolean> {
+    if (this.canUseServerFor(id)) {
+      try {
+        const res = await firstValueFrom(this.api.setPrimaryPhoto(id, index));
+        this.replaceItem(withPrimaryPhoto(backendProductToStaging(res)));
+        this.publishedSync.refresh();
+        return true;
+      } catch (err) {
+        if (this.asServerRejection(err)) return false;
+        console.warn('StagingQueue: setting primary photo failed — local fallback', err);
+      }
+    }
+    let changed = false;
+    this.itemsSignal.update(items => items.map(item => {
+      if (item.id !== id || index < 0 || index >= (item.photos || []).length) return item;
+      const photos = [...item.photos];
+      const [primary] = photos.splice(index, 1);
+      changed = true;
+      return withPrimaryPhoto({ ...item, photos: [primary, ...photos] });
+    }));
+    if (changed) this.persist();
+    return changed;
+  }
+
   async publish(id: string, publishedBy: string): Promise<boolean> {
     if (this.canUseServerFor(id)) {
       try {
@@ -276,6 +391,24 @@ export class StagingQueueService {
       }
     }
     return this.publishLocal(id, publishedBy);
+  }
+
+  async unpublish(id: string, actor: string): Promise<boolean> {
+    if (this.canUseServerFor(id)) {
+      try {
+        const res = await firstValueFrom(this.api.unpublish(id, actor));
+        const updated = withPrimaryPhoto(backendProductToStaging(res));
+        this.replaceItem(updated);
+        this.publishedSync.refresh();
+        this.logOverride(updated, actor);
+        return true;
+      } catch (err) {
+        if (this.asServerRejection(err)) return false;
+        console.warn('StagingQueue: server unpublish failed', err);
+        return false;
+      }
+    }
+    return this.overrideStatusLocal(id, 'ready_for_approval', actor);
   }
 
   async overrideStatus(
@@ -305,6 +438,13 @@ export class StagingQueueService {
     return this.itemsSignal().find((i) => i.id === id);
   }
 
+  getByIdentity(idOrCode: string): StagingProduct | undefined {
+    const key = idOrCode.trim().toUpperCase();
+    return this.itemsSignal().find(
+      (item) => item.id === idOrCode || item.code.trim().toUpperCase() === key
+    );
+  }
+
   // ------------------------------------------------------------------
   // منطق محلی (fallback بدون سرور) — همان رفتار قبلی localStorage
   // ------------------------------------------------------------------
@@ -314,13 +454,25 @@ export class StagingQueueService {
     removedOutOfStock: string[],
     meta?: { fileName?: string }
   ): { added: number; removed: number } {
-    const removeSet = new Set(removedOutOfStock.map((c) => c.toUpperCase()));
+    const positiveCodes = new Set(products.map((p) => p.code.toUpperCase()));
+    const removeSet = new Set(
+      removedOutOfStock
+        .map((c) => c.toUpperCase())
+        .filter((code) => !positiveCodes.has(code))
+    );
     let removed = 0;
     let added = 0;
 
     this.itemsSignal.update((list) => {
-      const kept = list.filter((item) => {
+      const uniqueList = collapseDuplicateProducts(list);
+      const kept = uniqueList.filter((item) => {
         if (removeSet.has(item.code.toUpperCase())) {
+          if (item.status === 'published' || item.status === 'awaiting_stock') {
+            return true;
+          }
+          if (item.status === 'rejected') {
+            return true;
+          }
           removed += 1;
           return false;
         }
@@ -335,9 +487,20 @@ export class StagingQueueService {
 
       const incoming = new Map(products.map((p) => [p.code.toUpperCase(), p]));
       const merged = kept.map((item) => {
+        if (item.status === 'rejected') return item;
         const next = incoming.get(item.code.toUpperCase());
-        if (!next) return item;
-        return withPrimaryPhoto({
+        if (!next) {
+          return removeSet.has(item.code.toUpperCase()) &&
+            (item.status === 'published' || item.status === 'awaiting_stock')
+            ? withPrimaryPhoto({
+                ...item,
+                stock: 0,
+                status: 'awaiting_stock',
+                isNewImport: false
+              })
+            : item;
+        }
+        return withPrimaryPhoto(migrateOperationalCategory({
           ...item,
           name: next.name,
           stock: next.stock,
@@ -345,8 +508,15 @@ export class StagingQueueService {
           parentCategory: next.parentCategory,
           parentCategorySlug: next.parentCategorySlug,
           categorySlug: next.categorySlug,
-          isNewImport: next.isNewImport
-        });
+          variations: next.variations,
+          isNewImport: next.isNewImport,
+          status:
+            next.status === 'rejected'
+              ? 'rejected'
+              : item.status === 'awaiting_stock' && next.stock > 0
+                ? 'published'
+                : item.status
+        }));
       });
 
       return [...fresh, ...merged];
@@ -389,10 +559,7 @@ export class StagingQueueService {
         const updated = withPrimaryPhoto({
           ...item,
           photos,
-          status:
-            photos.length > 0
-              ? ('ready_for_approval' as StagingStatus)
-              : item.status,
+          status: 'waiting_photo' as StagingStatus,
           processedAt: new Date().toISOString(),
           processedBy
         });
@@ -425,14 +592,14 @@ export class StagingQueueService {
         if (index < 0 || index >= photos.length) return item;
         photos.splice(index, 1);
         ok = true;
-        return withPrimaryPhoto({
+        return withPrimaryPhoto(migrateOperationalCategory({
           ...item,
           photos,
           status:
             photos.length === 0
               ? ('waiting_photo' as StagingStatus)
               : item.status
-        });
+        }));
       })
     );
     if (ok) this.persist();
@@ -472,6 +639,12 @@ export class StagingQueueService {
         const next: StagingProduct = {
           ...item,
           status,
+          trashedFromStatus:
+            status === 'rejected' && item.status !== 'rejected'
+              ? item.status
+              : item.status === 'rejected' && status !== 'rejected'
+                ? undefined
+                : item.trashedFromStatus,
           notes: `وضعیت توسط ${actor} تغییر کرد`
         };
         if (status === 'published') {
@@ -481,11 +654,6 @@ export class StagingQueueService {
         if (status === 'ready_for_approval') {
           next.processedAt = new Date().toISOString();
           next.processedBy = actor;
-        }
-        if (status === 'waiting_photo') {
-          next.photos = [];
-          next.photoUrl = undefined;
-          next.photoFileName = undefined;
         }
         updated = withPrimaryPhoto(next);
         return updated;
@@ -503,7 +671,7 @@ export class StagingQueueService {
   // ------------------------------------------------------------------
 
   private hasServerSession(): boolean {
-    return !!this.auth.user()?.accessToken;
+    return this.auth.isAuthenticated();
   }
 
   /** فقط رکوردهایی که واقعاً از سرور آمده‌اند (id از نوع UUID) */
@@ -582,7 +750,7 @@ export class StagingQueueService {
         return [];
       }
       // مهاجرت داده‌های قدیمی بدون photos / parentCategory
-      return parsed.map((item) => {
+      return collapseDuplicateProducts(parsed.map((item) => {
         const photos =
           item.photos?.length
             ? item.photos
@@ -596,7 +764,7 @@ export class StagingQueueService {
                 ]
               : [];
         const tag = tagExcelCategory(item.category, !!item.isNewImport);
-        return withPrimaryPhoto({
+        return withPrimaryPhoto(migrateOperationalCategory({
           ...item,
           photos,
           stock: item.stock ?? 1,
@@ -610,8 +778,8 @@ export class StagingQueueService {
             item.categorySlug ||
             (tag.matched ? tag.categorySlug : 'uncategorized'),
           isNewImport: item.isNewImport
-        });
-      });
+        }));
+      }));
     } catch {
       return [];
     }
@@ -629,4 +797,77 @@ export class StagingQueueService {
       console.warn('StagingQueue: persist failed (localStorage quota?)', err);
     }
   }
+}
+
+function migrateOperationalCategory(item: StagingProduct): StagingProduct {
+  const rawCategory = (item.category || '')
+    .trim()
+    .replace(/ي/g, 'ی')
+    .replace(/ك/g, 'ک')
+    .replace(/\s*\/\s*/g, '/');
+
+  if (
+    rawCategory === 'تولیدی' ||
+    rawCategory.startsWith('تولیدی/') ||
+    rawCategory === 'خدمات' ||
+    rawCategory.startsWith('خدمات/')
+  ) {
+    return {
+      ...item,
+      status: 'rejected',
+      trashedFromStatus:
+        item.status !== 'rejected' ? item.status : item.trashedFromStatus
+    };
+  }
+
+  const shouldReclassify =
+    rawCategory.startsWith('حاج بهروز') ||
+    rawCategory.includes('لباس زیر') ||
+    item.parentCategorySlug === NEW_PRODUCT_CATEGORY_SLUG ||
+    item.parentCategorySlug === 'unconventional';
+  if (!shouldReclassify) return item;
+
+  const tag = tagExcelCategory(rawCategory, !!item.isNewImport);
+  if (!tag.matched || tag.parentCategorySlug === 'unconventional') return item;
+  return {
+    ...item,
+    category: tag.category,
+    categorySlug: tag.categorySlug,
+    parentCategory: tag.parentCategory,
+    parentCategorySlug: tag.parentCategorySlug
+  };
+}
+
+function collapseDuplicateProducts(items: StagingProduct[]): StagingProduct[] {
+  const byCode = new Map<string, StagingProduct>();
+  const statusRank: Record<StagingStatus, number> = {
+    published: 5,
+    awaiting_stock: 4,
+    ready_for_approval: 3,
+    waiting_photo: 2,
+    rejected: 1
+  };
+  for (const item of items) {
+    const key = item.code.trim().toUpperCase();
+    const current = byCode.get(key);
+    if (!current) {
+      byCode.set(key, item);
+      continue;
+    }
+    const preferred =
+      statusRank[item.status] > statusRank[current.status] ||
+      (item.photos?.length || 0) > (current.photos?.length || 0)
+        ? item
+        : current;
+    const uniquePhotos = [...(current.photos || []), ...(item.photos || [])].filter(
+      (photo, index, photos) =>
+        photos.findIndex(candidate => candidate.url === photo.url) === index
+    );
+    byCode.set(key, withPrimaryPhoto({
+      ...preferred,
+      stock: Math.max(current.stock, item.stock),
+      photos: uniquePhotos
+    }));
+  }
+  return [...byCode.values()];
 }

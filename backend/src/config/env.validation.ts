@@ -1,4 +1,11 @@
-import { IsEnum, IsNumberString, IsOptional, IsString } from 'class-validator';
+import {
+  IsEmail,
+  IsEnum,
+  IsNumberString,
+  IsOptional,
+  IsString,
+  IsUrl,
+} from 'class-validator';
 
 class EnvironmentVariables {
   @IsOptional()
@@ -40,6 +47,21 @@ class EnvironmentVariables {
   @IsOptional()
   @IsString()
   ADMIN_SETUP_KEY: string;
+
+  @IsOptional() @IsEmail() ADMIN_RECOVERY_EMAIL: string;
+  @IsOptional() @IsString() SMTP_HOST: string;
+  @IsOptional() @IsNumberString() SMTP_PORT: string;
+  @IsOptional() @IsString() SMTP_USER: string;
+  @IsOptional() @IsString() SMTP_PASSWORD: string;
+  @IsOptional() @IsString() SMTP_FROM: string;
+
+  @IsOptional()
+  @IsUrl({ require_tld: false })
+  BACKEND_PUBLIC_URL: string;
+
+  @IsOptional()
+  @IsEnum(['true', 'false'])
+  TRUST_PROXY: 'true' | 'false';
 
   @IsOptional()
   @IsEnum(['development', 'production', 'test'])

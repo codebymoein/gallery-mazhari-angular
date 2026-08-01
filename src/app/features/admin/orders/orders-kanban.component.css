@@ -326,3 +326,4 @@
     animation: none;
   }
 }
+.kanban-month{display:flex;align-items:end;justify-content:space-between;gap:1rem;margin-bottom:1rem;padding:.85rem 1rem}.kanban-month label{display:grid;gap:.3rem;font-size:.72rem;font-weight:750}.kanban-month select{min-width:15rem;padding:.65rem;border:1px solid #d9d1c5;border-radius:.6rem;background:#fff;font:inherit}.kanban-month>div{display:flex;align-items:center;gap:.5rem}.kanban-month>div strong{font-size:1.35rem;color:#8c6924}.kanban-month>div span{font-size:.72rem;color:#756d63}@media(max-width:600px){.kanban-month{align-items:stretch;flex-direction:column}.kanban-month select{width:100%;min-width:0}}

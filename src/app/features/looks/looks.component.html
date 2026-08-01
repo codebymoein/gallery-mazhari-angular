@@ -1,0 +1,14 @@
+<main class="styles-page" dir="rtl">
+  <header><span>MAZHARI LOOKBOOK</span><h1>استایل‌های کامل عروس</h1><p>هر استایل ترکیبی هماهنگ از محصولات منتشرشده گالری است.</p></header>
+  <div class="styles-grid">
+    @for (look of looks; track look) {
+      <a [routerLink]="['/look', look.slug || look.id]">
+        <img [src]="cover(look)" [alt]="look.name">
+        <div><small>{{ look.style }}</small><h2>{{ look.name }}</h2><p>{{ look.subtitle || look.story }}</p><strong>مشاهده کامل استایل</strong></div>
+      </a>
+    }
+  </div>
+  @if (!loading && !looks.length) {
+    <p class="empty">هنوز استایل منتشرشده‌ای وجود ندارد.</p>
+  }
+</main>

@@ -1,0 +1,38 @@
+@if (look; as item) {
+  <main class="look" dir="rtl">
+    <a routerLink="/looks" class="back">بازگشت به استایل‌ها</a>
+    <section class="hero">
+      <div class="gallery">
+        <div class="stage">
+          <img class="main" [src]="activeImage" [alt]="item.name">
+          @for (point of activeHotspots; track point) {
+            <button type="button" class="hotspot"
+              [class.open]="activeHotspot === hotspotKey(point)"
+              [style.left.%]="point.x" [style.top.%]="point.y"
+              (click)="activateHotspot(point)" [attr.aria-label]="point.label">
+              <i></i><span>{{ point.label }}<small>لمس دوباره برای مشاهده محصول</small></span>
+            </button>
+          }
+        </div>
+        <div class="thumbs">@for (image of images; track image) {
+          <button (click)="selectImage(image)" [class.active]="activeImage===image"><img [src]="image" alt=""></button>
+        }</div>
+      </div>
+      <div class="copy"><small>{{ item.style }}</small><h1>{{ item.name }}</h1><h2>{{ item.subtitle }}</h2><p>{{ item.story }}</p><dl>@if (item.mood) {
+      <div><dt>حال‌وهوا</dt><dd>{{ item.mood }}</dd></div>
+      }@if (item.ceremony) {
+      <div><dt>مناسب</dt><dd>{{ item.ceremony }}</dd></div>
+    }</dl></div>
+  </section>
+  <section class="products"><header><span>اجزای این استایل</span><h2>محصولات قابل انتخاب</h2></header><div class="product-grid">
+  @for (product of item.products; track product) {
+    <a [routerLink]="['/product', product.code]"><img [src]="productImage(product)" [alt]="product.name"><small>{{ product.category }}</small><h3>{{ product.name }}</h3><span>مشاهده محصول</span></a>
+  }
+</div>@if (!item.products.length) {
+<p>برای این استایل هنوز محصول منتشرشده‌ای انتخاب نشده است.</p>
+}</section>
+</main>
+}
+@if (error) {
+  <p class="error">{{ error }}</p>
+}

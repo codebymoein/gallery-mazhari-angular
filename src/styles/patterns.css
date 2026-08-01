@@ -38,7 +38,7 @@
 /* Section title on dark */
 .ds-title--on-dark {
   margin: 0;
-  color: var(--color-white);
+  color: var(--color-text-cream);
   font-family: var(--font-display);
   font-weight: var(--font-weight-medium);
   line-height: 1.25;
@@ -133,7 +133,7 @@
 
 .ds-btn-ghost:hover {
   background: var(--color-gold-a12);
-  color: var(--color-white);
+  color: var(--color-text-cream);
   border-color: var(--color-gold-a55);
   transform: translateY(-1px);
 }

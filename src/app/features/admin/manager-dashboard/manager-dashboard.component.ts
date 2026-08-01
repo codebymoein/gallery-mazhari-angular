@@ -43,6 +43,9 @@ export class ManagerDashboardComponent {
     this.cdr.markForCheck();
 
     const ok = await this.queue.publish(item.id, actor);
+    if (ok) {
+      await this.queue.refreshFromServer();
+    }
     this.publishingId.set(null);
     this.toastOk.set(ok);
     this.showToast(
@@ -60,6 +63,9 @@ export class ManagerDashboardComponent {
     let count = 0;
     for (const item of items) {
       if (await this.queue.publish(item.id, actor)) count += 1;
+    }
+    if (count > 0) {
+      await this.queue.refreshFromServer();
     }
     this.toastOk.set(true);
     this.showToast(`${count} محصول تایید و منتشر شد.`);

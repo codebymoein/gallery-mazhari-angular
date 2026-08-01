@@ -6,7 +6,7 @@ import {
   OnInit,
   inject
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
@@ -26,7 +26,7 @@ interface CatalogSlot {
 @Component({
   selector: 'app-catalog-builder',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink],
   templateUrl: './catalog-builder.component.html',
   styleUrls: ['./catalog-builder.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush

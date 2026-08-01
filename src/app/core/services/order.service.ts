@@ -1,6 +1,8 @@
-import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
+import { BehaviorSubject, Observable, tap, throwError } from 'rxjs';
 import { CartItem } from '@shared/models';
+import { environment } from '@env/environment';
 
 export type LocalOrderStatus =
   | 'pending-payment'
@@ -30,6 +32,7 @@ export interface LocalOrder {
     postalCode: string;
   };
   note?: string;
+  trackingToken?: string;
 }
 
 export interface CheckoutDraft {
@@ -56,6 +59,7 @@ const STATUS_LABELS: Record<LocalOrderStatus, string> = {
 
 @Injectable({ providedIn: 'root' })
 export class OrderService {
+  private readonly http = inject(HttpClient);
   private readonly storageKey = 'mazhari_orders_v1';
   private readonly draftKey = 'mazhari_checkout_draft_v1';
   private readonly ordersSubject = new BehaviorSubject<LocalOrder[]>(this.readOrders());
@@ -77,11 +81,13 @@ export class OrderService {
   createOrderFromCheckout(
     draft: CheckoutDraft,
     items: CartItem[],
-    totals: { subtotal: number; shipping: number; total: number }
+    totals: { subtotal: number; shipping: number; total: number },
+    orderNumber?: string,
+    trackingToken?: string
   ): LocalOrder {
     const order: LocalOrder = {
       id: crypto.randomUUID(),
-      number: this.nextOrderNumber(),
+      number: orderNumber || this.nextOrderNumber(),
       createdAt: new Date().toISOString(),
       status: 'pending-payment',
       items: items.map(i => ({ ...i })),
@@ -100,6 +106,8 @@ export class OrderService {
         postalCode: draft.postalCode.trim()
       },
       note: draft.note.trim() || undefined
+      ,
+      trackingToken
     };
 
     const next = [order, ...this.getOrders()].slice(0, 50);
@@ -113,6 +121,31 @@ export class OrderService {
       o.id === orderId ? { ...o, status } : o
     );
     this.persist(next);
+  }
+
+  refreshOrder(order: LocalOrder): Observable<BackendOrder> {
+    if (!order.trackingToken) {
+      return throwError(() => new Error('order_tracking_token_missing'));
+    }
+    return this.http.get<BackendOrder>(
+      `${environment.backendApiBaseUrl}/orders/track/${encodeURIComponent(order.number)}`,
+      { headers: new HttpHeaders({ 'X-Order-Token': order.trackingToken }) }
+    ).pipe(
+      tap(remote => {
+        const next = this.getOrders().map(item =>
+          item.id === order.id
+            ? {
+                ...item,
+                status: this.mapRemoteStatus(remote.status),
+                total: Number(remote.total),
+                subtotal: Number(remote.subtotal),
+                shipping: Number(remote.shipping)
+              }
+            : item
+        );
+        this.persist(next);
+      })
+    );
   }
 
   saveDraft(draft: CheckoutDraft): void {
@@ -162,22 +195,22 @@ export class OrderService {
   shippingCost(method: CheckoutDraft['shippingMethod']): number {
     switch (method) {
       case 'express':
-        return 350_000;
+        return 0;
       case 'pickup':
         return 0;
       default:
-        return 180_000;
+        return 2_500_000;
     }
   }
 
   shippingLabel(method: CheckoutDraft['shippingMethod']): string {
     switch (method) {
       case 'express':
-        return 'ارسال سریع (۱–۲ روز کاری)';
+        return 'تیپاکس — پس‌کرایه';
       case 'pickup':
-        return 'تحویل حضوری از شعبه';
+        return 'پیک سریع — هزینه با مشتری';
       default:
-        return 'ارسال عادی (۳–۵ روز کاری)';
+        return 'پست پیشتاز — ۲٬۵۰۰٬۰۰۰ ریال';
     }
   }
 
@@ -205,4 +238,31 @@ export class OrderService {
       // ignore
     }
   }
+
+  private mapRemoteStatus(status: BackendOrder['status']): LocalOrderStatus {
+    switch (status) {
+      case 'processing':
+      case 'preparing':
+      case 'ready':
+        return 'processing';
+      case 'shipped':
+        return 'shipped';
+      case 'completed':
+        return 'completed';
+      case 'cancelled':
+        return 'cancelled';
+      default:
+        return 'pending-payment';
+    }
+  }
+}
+
+export interface BackendOrder {
+  id: string;
+  number: string;
+  status: 'pending-payment' | 'processing' | 'preparing' | 'ready' | 'shipped' | 'completed' | 'cancelled';
+  paymentStatus: 'pending' | 'paid' | 'failed' | 'cancelled' | 'refunded';
+  subtotal: number | string;
+  shipping: number | string;
+  total: number | string;
 }

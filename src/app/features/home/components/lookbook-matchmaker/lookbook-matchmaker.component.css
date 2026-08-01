@@ -54,7 +54,7 @@
 
 .lookbook__eyebrow {
   margin: 0;
-  color: var(--color-champagne-gold);
+  color: #ffe2a3;
   font-family: var(--font-english);
   font-size: 0.55rem;
   font-weight: 600;
@@ -78,7 +78,7 @@
   flex-direction: column;
   gap: 0.1rem;
   max-width: 18rem;
-  color: var(--color-text-on-dark-soft);
+  color: #ffffff;
   font-size: clamp(0.72rem, 2vw, 0.92rem);
   line-height: 1.6;
 }
@@ -147,6 +147,9 @@
   overflow: hidden;
   box-shadow: var(--shadow-card-dark);
   transition: border-color 0.3s ease, transform 0.3s ease;
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
 }
 .look-card:hover {
   border-color: var(--color-gold-a55);
@@ -218,7 +221,7 @@
 
 .look-card__style {
   margin: 0;
-  color: var(--color-champagne-gold);
+  color: #ffffff;
   font-family: var(--font-serif-en);
   font-size: 0.55rem;
   letter-spacing: 0.14em;
@@ -238,7 +241,7 @@
   margin: 0;
   display: -webkit-box;
   overflow: hidden;
-  color: var(--color-text-on-dark-soft);
+  color: #ffffff;
   font-size: 0.72rem;
   line-height: 1.65;
   -webkit-box-orient: vertical;
@@ -272,7 +275,7 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 0.25rem;
-  color: var(--color-text-on-dark-faint);
+  color: #ffffff;
   font-size: 0.62rem;
   line-height: 1.4;
 }
@@ -280,30 +283,36 @@
 
 .look-card__cta {
   margin-top: auto;
-  padding-top: 0.65rem;
-  min-height: 2.35rem;
+  padding: 0 1rem;
+  min-height: 2.5rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.4rem;
-  color: var(--color-matte-black);
-  background: var(--color-champagne-gold);
-  border: 1px solid var(--color-champagne-gold);
-  border-radius: var(--mds-radius-round);
+  color: var(--color-white);
+  background: #656561;
+  border: 1px solid var(--color-white-a80);
+  border-radius: 0.4rem;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   font-size: 0.78rem;
   font-weight: 600;
+  line-height: 1;
+  text-align: center;
   text-decoration: none;
-  transition: background 0.25s ease, transform 0.25s ease, color 0.25s ease;
+  transition: opacity 0.3s ease, transform 0.3s ease, background 0.3s ease;
   touch-action: manipulation;
 }
 .look-card__cta svg {
   width: 0.85rem;
   height: 0.85rem;
+  flex: 0 0 auto;
 }
 .look-card__cta:hover {
-  background: transparent;
-  color: var(--color-champagne-gold);
-  transform: translateY(-1px);
+  color: var(--color-white);
+  background: var(--color-white-a14);
+  opacity: 0.88;
+  transform: translateY(-2px);
 }
 .look-card__cta:active { transform: scale(0.98); }
 .look-card__cta:focus-visible {

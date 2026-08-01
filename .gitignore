@@ -35,9 +35,25 @@ yarn-error.log
 .sass-cache/
 /connect.lock
 /coverage
+/backend/coverage
+/test-results/
+/playwright-report/
+/blob-report/
 /libpeerconnection.log
 testem.js
 /typings
+*.log
+/.runlogs/
+
+# Local runtime data (back up operational data before removing tracked copies)
+/backend/data/*.sqlite
+/backend/data/*.sqlite-*
+/backend/uploads/
+
+# Local visual-regression captures
+/desktop-*.png
+/tablet-*.png
+/mobile-*.png
 
 # System files
 .DS_Store
@@ -47,7 +63,12 @@ Thumbs.db
 .env
 .env.local
 .env.*.local
+*.pem
+*.key
+*.p12
+*.pfx
+credentials.json
+secrets.json
 
 # Angular local state
 /.angular/
-

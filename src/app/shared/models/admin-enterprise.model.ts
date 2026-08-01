@@ -26,7 +26,7 @@ export interface BridalShippingAddress {
 
 /** آدرس ثابت فرستنده برای لیبل ارسال گالری مظهری */
 export const GALLERY_SENDER_ADDRESS =
-  'تهران ، چهارراه مخبرالدوله ، کوچه رفاهی ، پلاک ۱۶ - کد پستی ۱۱۴۴۷۴۵۱۱۹ - شماره تماس ۰۹۳۸۹۰۰۲۹۸۶';
+  'تهران، چهارراه مخبرالدوله، کوچه رفاهی، پلاک ۱۶ — کد پستی 1144745119 — شماره تماس 09352181200';
 
 export interface BridalOrder {
   id: string;
@@ -138,8 +138,6 @@ export const ORDER_STAGE_LABELS: Record<BridalOrderStage, string> = {
 
 export const ORDER_STAGES: BridalOrderStage[] = [
   'new',
-  'fitting',
-  'tailoring',
   'ready',
   'delivered'
 ];

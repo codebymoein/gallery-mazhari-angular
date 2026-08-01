@@ -142,7 +142,7 @@ export class AccountComponent implements OnInit {
   }
 
   formatPrice(amount: number): string {
-    return new Intl.NumberFormat('fa-IR').format(Math.round(amount)) + ' تومان';
+    return new Intl.NumberFormat('fa-IR').format(Math.round(amount)) + ' ریال';
   }
 
   async copyReferral(): Promise<void> {

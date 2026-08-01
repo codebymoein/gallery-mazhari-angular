@@ -31,7 +31,7 @@ function div(a: number, b: number): number {
 
 export function gregorianToJalali(gy: number, gm: number, gd: number): JalaliDate {
   const gdm = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334];
-  let gy2 = gm > 2 ? gy + 1 : gy;
+  const gy2 = gm > 2 ? gy + 1 : gy;
   let days =
     355666 +
     365 * gy +
@@ -54,7 +54,7 @@ export function gregorianToJalali(gy: number, gm: number, gd: number): JalaliDat
 }
 
 export function jalaliToGregorian(jy: number, jm: number, jd: number): { gy: number; gm: number; gd: number } {
-  let jy2 = jy + 1595;
+  const jy2 = jy + 1595;
   let days =
     -355668 +
     365 * jy2 +

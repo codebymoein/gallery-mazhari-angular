@@ -37,6 +37,62 @@ select {
   font: inherit;
 }
 
+/* Shared glass treatment for text buttons and CTA links */
+:where(
+  button[class*='__btn'],
+  button[class*='__button'],
+  button[class*='__cta'],
+  a[class*='__btn'],
+  a[class*='__button'],
+  a[class*='__cta'],
+  .mds-btn,
+  .guide-faq__chip
+) {
+  color: #272725 !important;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.38)) !important;
+  border: 1px solid rgba(255, 255, 255, 0.9) !important;
+  border-radius: 0.65rem !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.3),
+    0 5px 16px rgba(28, 28, 27, 0.14) !important;
+  backdrop-filter: blur(10px) saturate(1.08);
+  -webkit-backdrop-filter: blur(10px) saturate(1.08);
+  text-align: center !important;
+  text-shadow: none !important;
+}
+
+:where(
+  button[class*='__btn'],
+  button[class*='__button'],
+  button[class*='__cta'],
+  a[class*='__btn'],
+  a[class*='__button'],
+  a[class*='__cta'],
+  .mds-btn,
+  .guide-faq__chip
+):hover {
+  color: #181817 !important;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.55)) !important;
+  border-color: #ffffff !important;
+  box-shadow:
+    inset 0 1px 0 #ffffff,
+    0 7px 20px rgba(28, 28, 27, 0.2) !important;
+}
+
+:where(.guide-faq__chip--active, [class*='__btn'].is-active, [class*='__button'].is-active) {
+  color: #151514 !important;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(230, 226, 216, 0.76)) !important;
+  border-color: var(--color-champagne-gold) !important;
+  box-shadow:
+    inset 0 1px 0 #ffffff,
+    0 0 0 1px var(--color-gold-a28),
+    0 6px 18px rgba(28, 28, 27, 0.18) !important;
+}
+
 /* Layout */
 html,
 body {
@@ -304,4 +360,265 @@ input:focus-visible {
 
 .opacity-100 {
   opacity: 1;
+}
+/* Shared breadcrumb behavior — every public/admin route stays on one draggable line. */
+nav[aria-label="مسیر صفحه"] {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  align-items: center;
+  overflow-x: auto !important;
+  overflow-y: hidden;
+  white-space: nowrap;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-inline: contain;
+}
+
+nav[aria-label="مسیر صفحه"]::-webkit-scrollbar {
+  display: none;
+}
+
+nav[aria-label="مسیر صفحه"] > * {
+  flex: 0 0 auto;
+}
+
+/* One restrained product typography system across lists, search, cart and orders. */
+:is(
+  .cat-products__name,
+  .collection-page__name,
+  .bridal-catalog__rail-name,
+  .generic-catalog__card strong,
+  .search-catalog__card strong,
+  .cart__item-name,
+  .checkout__item-name,
+  .orders__item-name
+) {
+  font-family: var(--font-persian), sans-serif !important;
+  font-size: clamp(.7rem, 2.5vw, .8rem) !important;
+  font-weight: 600 !important;
+  line-height: 1.55 !important;
+}
+
+:is(
+  .bridal-product__price,
+  .cat-products__price,
+  .generic-catalog__card small,
+  .search-catalog__card small,
+  .checkout__item-price,
+  .checkout__shipping-price,
+  .orders__item-price
+) {
+  color: #57514b !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  font-family: var(--font-persian), sans-serif !important;
+  font-size: clamp(.64rem, 2.2vw, .76rem) !important;
+  font-weight: 500 !important;
+  letter-spacing: 0 !important;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Product-card captions are centered consistently across every storefront view. */
+:is(
+  .cat-products__body,
+  .collection-page__body,
+  .bridal-catalog__rail-body,
+  .generic-catalog__card,
+  .search-catalog__card
+) {
+  justify-items: center !important;
+  text-align: center !important;
+}
+
+:is(
+  .cat-products__name,
+  .cat-products__price,
+  .collection-page__name,
+  .bridal-catalog__rail-name,
+  .generic-catalog__card strong,
+  .generic-catalog__card small,
+  .search-catalog__card strong,
+  .search-catalog__card small
+) {
+  width: 100%;
+  margin-inline: auto !important;
+  text-align: center !important;
+}
+
+.collection-page__cta,
+.bridal-catalog__rail-cta {
+  align-self: center !important;
+  margin-inline: auto !important;
+}
+
+/* Shared capsule heading for every category, collection and product page. */
+:is(
+  .cat-hub__heading,
+  .cat-products__intro,
+  .collection-page__intro,
+  .generic-catalog__intro,
+  .bridal-catalog__intro,
+  .search-catalog__intro
+) {
+  display: flex !important;
+  flex-direction: column;
+  align-items: center !important;
+  justify-items: center !important;
+  gap: .28rem !important;
+  padding-block: .45rem !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  text-align: center !important;
+}
+
+:is(
+  .cat-hub__heading,
+  .cat-products__intro,
+  .collection-page__intro
+) {
+  width: min(100% - 1.5rem, var(--container-max, 72rem));
+  margin-inline: auto;
+}
+
+:is(
+  .cat-hub__eyebrow,
+  .cat-products__eyebrow,
+  .collection-page__eyebrow,
+  .generic-catalog__eyebrow,
+  .bridal-catalog__eyebrow,
+  .search-catalog__eyebrow,
+  .bridal-product__eyebrow
+) {
+  display: block;
+  width: fit-content;
+  margin: 0 auto !important;
+  color: #765826 !important;
+  font-size: .56rem !important;
+  font-weight: 700 !important;
+  letter-spacing: .16em !important;
+  line-height: 1.3;
+  text-align: center !important;
+}
+
+:is(
+  .cat-hub__title,
+  .cat-products__title,
+  .collection-page__title,
+  .generic-catalog__title,
+  .bridal-catalog__title,
+  .search-catalog__title,
+  .bridal-product__title
+) {
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 auto !important;
+  padding: .38rem 1.15rem;
+  color: #28231f !important;
+  border: 1px solid #dfcfad;
+  border-radius: 999px;
+  background: #fffdf9;
+  box-shadow: 0 3px 12px rgba(52, 39, 22, .045);
+  font-family: var(--font-persian), sans-serif !important;
+  font-size: clamp(.9rem, 3vw, 1.15rem) !important;
+  font-weight: 650 !important;
+  line-height: 1.5 !important;
+  text-align: center !important;
+}
+
+.cat-hub__heading {
+  margin-block: .35rem .85rem;
+}
+
+@media (max-width: 560px) {
+  :is(
+    .cat-hub__title,
+    .cat-products__title,
+    .collection-page__title,
+    .generic-catalog__title,
+    .bridal-catalog__title,
+    .search-catalog__title,
+    .bridal-product__title
+  ) {
+    padding: .3rem .85rem;
+    font-size: .88rem !important;
+  }
+}
+
+/* Shared storefront image frame and equal-height card rhythm. */
+:is(
+  .cat-products__media,
+  .collection-page__media,
+  .bridal-catalog__rail-media,
+  .generic-catalog__media,
+  .search-catalog__media
+) {
+  width: 100% !important;
+  aspect-ratio: 3 / 4 !important;
+  overflow: hidden !important;
+}
+
+:is(
+  .cat-products__gallery,
+  .collection-page__gallery,
+  .bridal-catalog__rail-gallery,
+  .generic-catalog__gallery
+) {
+  touch-action: pan-x pan-y;
+  cursor: grab;
+}
+
+:is(
+  .cat-products__gallery,
+  .collection-page__gallery,
+  .bridal-catalog__rail-gallery,
+  .generic-catalog__gallery
+) > img {
+  flex: 0 0 100% !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: center top !important;
+  scroll-snap-align: start;
+}
+
+:is(
+  .cat-products__card,
+  .collection-page__card,
+  .bridal-catalog__rail-card,
+  .generic-catalog__card,
+  .search-catalog__card
+) {
+  height: 100%;
+}
+
+:is(
+  .cat-products__name,
+  .collection-page__name,
+  .bridal-catalog__rail-name,
+  .generic-catalog__card strong,
+  .search-catalog__card strong
+) {
+  min-height: 3.1em;
+  display: -webkit-box !important;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.product-gallery-hint {
+  position: absolute;
+  inset-inline-end: .45rem;
+  inset-block-end: .45rem;
+  z-index: 3;
+  padding: .12rem .4rem;
+  color: #fff;
+  border-radius: 999px;
+  background: rgba(20, 16, 13, .58);
+  font-size: .6rem;
+  line-height: 1.4;
+  letter-spacing: .12em;
+  pointer-events: none;
 }

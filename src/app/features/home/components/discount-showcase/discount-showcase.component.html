@@ -1,0 +1,33 @@
+@if (!loading && products.length) {
+  <section class="sale" dir="rtl">
+    <header>
+      <div><span>SELECTED OFFERS</span><h2>پیشنهادهای ویژه</h2><p>محصولات منتخب با تخفیف محدود</p></div>
+      <div class="controls">
+        <button type="button" (click)="scroll(-1)" aria-label="محصول قبلی">→</button>
+        <button type="button" (click)="scroll(1)" aria-label="محصول بعدی">←</button>
+        <a routerLink="/discounts">مشاهده همه</a>
+      </div>
+    </header>
+    <div class="rail" #rail>
+      @for (product of products; track product) {
+        <a class="card" [routerLink]="['/product', product.code]">
+          <div class="media">
+            <img [src]="image(product)" [appResponsiveProductImage]="image(product)" [alt]="product.name" loading="lazy" />
+            <b>{{ product.discountBadge || (product.discountPercent + '٪ تخفیف') }}</b>
+          </div>
+          <div class="body"><small>{{ product.category }}</small><h3>{{ product.name }}</h3>
+          <div class="price"><del>{{ product.originalPrice | number:'1.0-0':'fa-IR' }}</del><strong>{{ product.salePrice | number:'1.0-0':'fa-IR' }} ریال</strong></div>
+          @if (remaining(product); as time) {
+            <div class="countdown">
+              <span><b>{{ time.days | number:'2.0-0':'fa-IR' }}</b><small>روز</small></span>
+              <span><b>{{ time.hours | number:'2.0-0':'fa-IR' }}</b><small>ساعت</small></span>
+              <span><b>{{ time.minutes | number:'2.0-0':'fa-IR' }}</b><small>دقیقه</small></span>
+              <span><b>{{ time.seconds | number:'2.0-0':'fa-IR' }}</b><small>ثانیه</small></span>
+            </div>
+          }
+        </div>
+      </a>
+    }
+  </div>
+</section>
+}

@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 
 interface TrustCard {
   id: string;
@@ -11,7 +11,7 @@ interface TrustCard {
 @Component({
   selector: 'app-trust-guarantees',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   templateUrl: './trust-guarantees.component.html',
   styleUrls: ['./trust-guarantees.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush

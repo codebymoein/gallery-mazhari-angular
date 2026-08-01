@@ -9,7 +9,13 @@ export class PublishProductDto {
 }
 
 export class OverrideStatusDto {
-  @IsIn(['waiting_photo', 'ready_for_approval', 'published', 'rejected'])
+  @IsIn([
+    'waiting_photo',
+    'ready_for_approval',
+    'published',
+    'awaiting_stock',
+    'rejected',
+  ])
   status: ProductStatus;
 
   @IsOptional()

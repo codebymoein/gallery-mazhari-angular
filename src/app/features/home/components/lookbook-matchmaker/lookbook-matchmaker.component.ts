@@ -1,12 +1,16 @@
 import {
   Component,
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
   ElementRef,
   ViewChild,
+  OnInit,
+  inject,
   signal
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { RouterLink } from '@angular/router';
+import { StylesApiService } from '@core/services/styles-api.service';
 
 export interface LookPackagePiece {
   label: string;
@@ -27,19 +31,22 @@ export interface LookPackage {
 @Component({
   selector: 'app-lookbook-matchmaker',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [RouterLink],
   templateUrl: './lookbook-matchmaker.component.html',
   styleUrls: ['./lookbook-matchmaker.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class LookbookMatchmakerComponent {
+export class LookbookMatchmakerComponent implements OnInit {
+  private readonly stylesApi = inject(StylesApiService);
+  private readonly cdr = inject(ChangeDetectorRef);
   @ViewChild('track', { static: true }) trackRef!: ElementRef<HTMLElement>;
 
   readonly canScrollStart = signal(false);
   readonly canScrollEnd = signal(true);
 
   /** Curated bridal packages — Dress + accessories bundled as complete looks. */
-  readonly looks: LookPackage[] = [
+  looks: LookPackage[] = [];
+  private readonly legacyLooks: LookPackage[] = [
     {
       id: '1',
       slug: 'ivory-reverie',
@@ -105,6 +112,36 @@ export class LookbookMatchmakerComponent {
       ]
     }
   ];
+
+  ngOnInit(): void {
+    // Kept only as a migration reference; never rendered on the storefront.
+    void this.legacyLooks;
+    this.stylesApi.list().subscribe({
+      next: rows => {
+        if (!rows.length) {
+          this.looks = [];
+          this.cdr.markForCheck();
+          return;
+        }
+        this.looks = rows.map(row => ({
+          id: row.id,
+          slug: row.slug || row.id,
+          title: row.name,
+          style: row.style || '',
+          mood: row.mood || '',
+          ceremony: row.ceremony || '',
+          excerpt: row.subtitle || row.story || '',
+          image: row.images?.[0] || row.coverImageUrl || 'assets/images/home-hero-bride.webp',
+          pieces: row.products.map(product => ({ label: product.category }))
+        }));
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.looks = [];
+        this.cdr.markForCheck();
+      }
+    });
+  }
 
   hideBrokenImage(event: Event): void {
     (event.currentTarget as HTMLImageElement).hidden = true;

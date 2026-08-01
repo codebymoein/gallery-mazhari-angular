@@ -668,3 +668,79 @@
   color: #0a0a0a;
   font-size: 1.05rem;
 }
+
+/* Compact checkout system */
+.checkout__header {
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:.25rem;
+  margin-block-end:.85rem;
+  text-align:center !important;
+}
+.checkout__eyebrow {
+  order:0;
+  margin:0;
+  font-size:.54rem;
+}
+.checkout__title {
+  order:1;
+  margin:0;
+  font-family:var(--font-persian);
+  font-size:1.05rem;
+}
+.checkout { padding-block:1rem 1.5rem; }
+.checkout__layout { gap:.7rem; }
+.checkout__steps {
+  padding:.45rem .35rem;
+  border-radius:10px;
+  box-shadow:none;
+}
+.checkout__step { gap:.12rem; padding:.15rem .45rem; }
+.checkout__step-num { width:1.55rem; height:1.55rem; font-size:.68rem; }
+.checkout__step-label { font-size:.64rem; }
+.checkout__panel,.checkout__sidebar {
+  padding:.75rem;
+  border-radius:11px;
+  box-shadow:0 5px 18px rgba(38,30,21,.05);
+}
+.checkout__panel-title,.checkout__sidebar-title {
+  margin-bottom:.55rem;
+  padding-bottom:.35rem;
+  font-family:var(--font-persian);
+  font-size:.82rem;
+}
+.checkout__form,.checkout__field-row { gap:.5rem; }
+.checkout__field { gap:.18rem; }
+.checkout__field label { font-size:.7rem; }
+.checkout__field input,.checkout__field textarea {
+  min-height:2.35rem;
+  padding:.42rem .6rem;
+  border-radius:8px;
+  font-size:.75rem;
+}
+.checkout__field textarea { min-height:3.5rem; }
+.checkout__shipping-list { gap:.4rem; margin-bottom:.6rem; }
+.checkout__shipping-card {
+  gap:.45rem;
+  padding:.55rem .6rem;
+  border-radius:8px;
+}
+.checkout__shipping-title { font-size:.75rem; }
+.checkout__shipping-desc,.checkout__shipping-price { font-size:.64rem; }
+.checkout__review-block { padding:.55rem .65rem; margin-bottom:.45rem; }
+.checkout__review-heading { font-size:.72rem; }
+.checkout__review-text { font-size:.7rem; line-height:1.5; }
+.checkout__items { margin-bottom:.55rem; gap:.3rem; }
+.checkout__item { padding:.35rem 0; gap:.45rem; grid-template-columns:2.6rem 1fr auto; }
+.checkout__item-image-wrap { width:2.6rem; height:2.6rem; }
+.checkout__coupon { margin-bottom:.55rem; padding-bottom:.55rem; }
+.checkout__sidebar-row { padding-block:.25rem; font-size:.72rem; }
+.checkout__sidebar-note { margin-top:.45rem; font-size:.64rem; }
+.checkout__btn { min-height:2.45rem; padding-inline:.75rem; font-size:.72rem; }
+
+@media(max-width:767px){
+  .checkout__layout { width:calc(100% - 1rem); }
+  .checkout__field-row { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .checkout__panel-actions { gap:.4rem; }
+}

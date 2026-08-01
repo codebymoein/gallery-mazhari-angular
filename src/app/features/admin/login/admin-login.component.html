@@ -31,8 +31,8 @@
             autocomplete="username"
             [(ngModel)]="username"
             required
-            placeholder="staff یا manager"
-          />
+            placeholder="admin یا manager"
+            />
         </div>
 
         <div class="adm-field">
@@ -47,28 +47,58 @@
               [(ngModel)]="password"
               required
               placeholder="رمز عبور"
-            />
+              />
             <button
               type="button"
               class="login__eye"
               (click)="showPassword = !showPassword"
               [attr.aria-label]="showPassword ? 'مخفی کردن رمز' : 'نمایش رمز'"
-            >
+              >
               {{ showPassword ? 'مخفی' : 'نمایش' }}
             </button>
           </div>
         </div>
 
-        <p class="adm-alert" *ngIf="error" role="alert">{{ error }}</p>
+        @if (error) {
+          <p class="adm-alert" role="alert">{{ error }}</p>
+        }
 
         <button
           class="adm-btn adm-btn--gold adm-btn--block"
           type="submit"
           [disabled]="submitting || !username || !password"
-        >
+          >
           {{ submitting ? 'در حال ورود…' : 'ورود به پنل' }}
         </button>
       </form>
+
+      <button type="button" class="adm-btn adm-btn--soft adm-btn--block" (click)="recoveryOpen = !recoveryOpen">
+        رمز عبور را فراموش کرده‌ام
+      </button>
+      @if (recoveryOpen) {
+        <form class="login__form" (ngSubmit)="requestRecovery()">
+          <div class="adm-field">
+            <label class="adm-label" for="recovery-email">ایمیل حساب ادمین</label>
+            <input id="recovery-email" class="adm-input" name="recoveryEmail" type="email" autocomplete="email" [(ngModel)]="recoveryEmail" required dir="ltr">
+          </div>
+          <button class="adm-btn adm-btn--gold adm-btn--block" type="submit" [disabled]="recoverySubmitting || !recoveryEmail">
+            {{ recoverySubmitting ? 'در حال ارسال…' : 'ارسال لینک بازیابی' }}
+          </button>
+          @if (recoveryMessage) { <p class="adm-alert" role="status">{{ recoveryMessage }}</p> }
+        </form>
+      }
+
+      <div class="login__demos">
+        <p>ورود سریع آزمایشی</p>
+        <div class="login__demo-row">
+          <button type="button" class="adm-btn adm-btn--soft adm-btn--sm" (click)="fillDemo('admin')">
+            ادمین
+          </button>
+          <button type="button" class="adm-btn adm-btn--soft adm-btn--sm" (click)="fillDemo('manager')">
+            مدیر
+          </button>
+        </div>
+      </div>
 
       <a class="login__back" routerLink="/">بازگشت به فروشگاه</a>
     </div>

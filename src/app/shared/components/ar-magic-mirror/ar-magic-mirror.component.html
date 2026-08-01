@@ -1,107 +1,105 @@
-<div
-  *ngIf="isOpen"
-  class="ar-mirror"
-  dir="rtl"
-  [class.ar-mirror--entering]="isEntering"
-  [class.ar-mirror--leaving]="isLeaving"
-  role="dialog"
-  aria-modal="true"
-  aria-labelledby="ar-mirror-title">
-
-  <!-- Camera viewfinder -->
-  <div class="ar-mirror__stage">
-    <video
-      #videoEl
-      class="ar-mirror__video"
-      playsinline
-      muted
-      autoplay
+@if (isOpen) {
+  <div
+    class="ar-mirror"
+    dir="rtl"
+    [class.ar-mirror--entering]="isEntering"
+    [class.ar-mirror--leaving]="isLeaving"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="ar-mirror-title">
+    <!-- Camera viewfinder -->
+    <div class="ar-mirror__stage">
+      <video
+        #videoEl
+        class="ar-mirror__video"
+        playsinline
+        muted
+        autoplay
       [attr.aria-hidden]="!cameraReady"></video>
-
-    <canvas #canvasEl class="ar-mirror__canvas" aria-hidden="true"></canvas>
-
-    <!-- Mock accessory overlay -->
-    <div
-      class="ar-mirror__try-on"
-      [attr.data-kind]="selected.kind"
-      aria-hidden="true">
-      <span class="ar-mirror__try-on-glow"></span>
-      <span class="ar-mirror__try-on-label">{{ selected.label }}</span>
+      <canvas #canvasEl class="ar-mirror__canvas" aria-hidden="true"></canvas>
+      <!-- Mock accessory overlay -->
+      <div
+        class="ar-mirror__try-on"
+        [attr.data-kind]="selected.kind"
+        aria-hidden="true">
+        <span class="ar-mirror__try-on-glow"></span>
+        <span class="ar-mirror__try-on-label">{{ selected.label }}</span>
+      </div>
+      @if (captureFlash) {
+        <div class="ar-mirror__flash" aria-hidden="true"></div>
+      }
+      @if (!cameraReady && !cameraError) {
+        <div class="ar-mirror__loading">
+          <span class="ar-mirror__spinner" aria-hidden="true"></span>
+          <p>در حال فعال‌سازی دوربین…</p>
+        </div>
+      }
+      @if (cameraError) {
+        <div class="ar-mirror__error" role="alert">
+          <p>{{ cameraError }}</p>
+        </div>
+      }
     </div>
-
-    <div *ngIf="captureFlash" class="ar-mirror__flash" aria-hidden="true"></div>
-
-    <div *ngIf="!cameraReady && !cameraError" class="ar-mirror__loading">
-      <span class="ar-mirror__spinner" aria-hidden="true"></span>
-      <p>در حال فعال‌سازی دوربین…</p>
-    </div>
-
-    <div *ngIf="cameraError" class="ar-mirror__error" role="alert">
-      <p>{{ cameraError }}</p>
-    </div>
+    <!-- Top chrome -->
+    <header class="ar-mirror__top">
+      <div class="ar-mirror__brand">
+        <p class="ar-mirror__eyebrow" lang="en" dir="ltr">AR MAGIC MIRROR</p>
+        <h2 class="ar-mirror__title" id="ar-mirror-title">آینه جادویی</h2>
+      </div>
+      <button
+        type="button"
+        class="ar-mirror__close"
+        aria-label="بستن آینه جادویی"
+        (click)="requestClose()">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.6"
+            stroke-linecap="round"
+            d="M6 6l12 12M18 6 6 18"/>
+        </svg>
+      </button>
+    </header>
+    @if (statusMessage) {
+      <p class="ar-mirror__status" role="status" aria-live="polite">
+        {{ statusMessage }}
+      </p>
+    }
+    <!-- Glassmorphic bottom dock -->
+    <footer class="ar-mirror__dock">
+      <div class="ar-mirror__dock-glass">
+        <p class="ar-mirror__dock-hint">اکسسوری را انتخاب کنید</p>
+        <div class="ar-mirror__carousel" role="listbox" aria-label="اکسسوری‌های قابل امتحان">
+          @for (item of accessories; track item) {
+            <button
+              type="button"
+              class="ar-mirror__thumb"
+              role="option"
+              [class.ar-mirror__thumb--active]="item.id === selectedId"
+              [attr.aria-selected]="item.id === selectedId"
+              [attr.aria-label]="item.label"
+              (click)="selectAccessory(item.id)">
+              <span class="ar-mirror__thumb-visual" [attr.data-kind]="item.kind" aria-hidden="true"></span>
+              <span class="ar-mirror__thumb-label">{{ item.label }}</span>
+            </button>
+          }
+        </div>
+        <div class="ar-mirror__capture-row">
+          <button
+            type="button"
+            class="ar-mirror__capture"
+            [disabled]="!cameraReady || capturing"
+            [attr.aria-busy]="capturing"
+            aria-label="شات گرفتن"
+            (click)="capture()">
+            <span class="ar-mirror__capture-ring" aria-hidden="true">
+              <span class="ar-mirror__capture-core"></span>
+            </span>
+            <span class="ar-mirror__capture-text">شات گرفتن</span>
+          </button>
+        </div>
+      </div>
+    </footer>
   </div>
-
-  <!-- Top chrome -->
-  <header class="ar-mirror__top">
-    <div class="ar-mirror__brand">
-      <p class="ar-mirror__eyebrow" lang="en" dir="ltr">AR MAGIC MIRROR</p>
-      <h2 class="ar-mirror__title" id="ar-mirror-title">آینه جادویی</h2>
-    </div>
-
-    <button
-      type="button"
-      class="ar-mirror__close"
-      aria-label="بستن آینه جادویی"
-      (click)="requestClose()">
-      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-        <path
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.6"
-          stroke-linecap="round"
-          d="M6 6l12 12M18 6 6 18"/>
-      </svg>
-    </button>
-  </header>
-
-  <p *ngIf="statusMessage" class="ar-mirror__status" role="status" aria-live="polite">
-    {{ statusMessage }}
-  </p>
-
-  <!-- Glassmorphic bottom dock -->
-  <footer class="ar-mirror__dock">
-    <div class="ar-mirror__dock-glass">
-      <p class="ar-mirror__dock-hint">اکسسوری را انتخاب کنید</p>
-
-      <div class="ar-mirror__carousel" role="listbox" aria-label="اکسسوری‌های قابل امتحان">
-        <button
-          *ngFor="let item of accessories"
-          type="button"
-          class="ar-mirror__thumb"
-          role="option"
-          [class.ar-mirror__thumb--active]="item.id === selectedId"
-          [attr.aria-selected]="item.id === selectedId"
-          [attr.aria-label]="item.label"
-          (click)="selectAccessory(item.id)">
-          <span class="ar-mirror__thumb-visual" [attr.data-kind]="item.kind" aria-hidden="true"></span>
-          <span class="ar-mirror__thumb-label">{{ item.label }}</span>
-        </button>
-      </div>
-
-      <div class="ar-mirror__capture-row">
-        <button
-          type="button"
-          class="ar-mirror__capture"
-          [disabled]="!cameraReady || capturing"
-          [attr.aria-busy]="capturing"
-          aria-label="شات گرفتن"
-          (click)="capture()">
-          <span class="ar-mirror__capture-ring" aria-hidden="true">
-            <span class="ar-mirror__capture-core"></span>
-          </span>
-          <span class="ar-mirror__capture-text">شات گرفتن</span>
-        </button>
-      </div>
-    </div>
-  </footer>
-</div>
+}

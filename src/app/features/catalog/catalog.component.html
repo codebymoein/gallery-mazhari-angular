@@ -1,243 +1,238 @@
 <!-- ═══ Smart Search Results ═══ -->
-<ng-container *ngIf="isSearchMode() && searchResult as result; else catalogViews">
+@if (isSearchMode() && searchResult; as result) {
   <div class="search-catalog" dir="rtl">
     <header class="search-catalog__intro">
       <p class="search-catalog__eyebrow" lang="en" dir="ltr">SMART SEARCH</p>
       <h1 class="search-catalog__title">نتایج جستجو</h1>
       <p class="search-catalog__query">«{{ result.query }}»</p>
     </header>
-
-    <section class="search-catalog__section" *ngIf="result.exactProducts.length" aria-labelledby="exact-title">
-      <h2 class="search-catalog__section-title" id="exact-title">نتایج مرتبط</h2>
-      <div class="search-catalog__grid">
-        <a
-          class="search-catalog__card"
-          *ngFor="let product of result.exactProducts"
-          [routerLink]="['/product', product.id]"
-        >
-          <span class="search-catalog__media">
-            <img [src]="product.image" [alt]="product.name" loading="lazy" decoding="async" (error)="hideBrokenImage($event)" />
-            <span class="search-catalog__tag">{{ product.tag }}</span>
-          </span>
-          <strong>{{ product.name }}</strong>
-          <small>{{ formatPrice(product) }}</small>
-        </a>
-      </div>
-    </section>
-
-    <section class="search-catalog__section" *ngIf="result.relatedProducts.length" aria-labelledby="related-title">
-      <h2 class="search-catalog__section-title" id="related-title">پیشنهادها / محصولات مرتبط</h2>
-      <div class="search-catalog__grid">
-        <a
-          class="search-catalog__card"
-          *ngFor="let product of result.relatedProducts"
-          [routerLink]="['/product', product.id]"
-        >
-          <span class="search-catalog__media">
-            <img [src]="product.image" [alt]="product.name" loading="lazy" decoding="async" (error)="hideBrokenImage($event)" />
-            <span class="search-catalog__tag">{{ product.tag }}</span>
-          </span>
-          <strong>{{ product.name }}</strong>
-          <small>{{ formatPrice(product) }}</small>
-        </a>
-      </div>
-    </section>
-
-    <section class="search-catalog__section" *ngIf="result.categories.length" aria-labelledby="cats-title">
-      <h2 class="search-catalog__section-title" id="cats-title">دسته‌بندی‌های مرتبط</h2>
-      <div class="search-catalog__chips">
-        <a
-          class="search-catalog__chip"
-          *ngFor="let cat of result.categories"
-          [routerLink]="categoryChipLink(cat)"
-          [queryParams]="categoryChipQueryParams(cat)"
-        >
-          {{ cat.title }}
-        </a>
-      </div>
-    </section>
-
-    <section class="search-catalog__section" *ngIf="result.bestsellers.length" aria-labelledby="best-title">
-      <h2 class="search-catalog__section-title" id="best-title">پرفروش‌ها</h2>
-      <div class="search-catalog__grid">
-        <a
-          class="search-catalog__card"
-          *ngFor="let product of result.bestsellers"
-          [routerLink]="['/product', product.id]"
-        >
-          <span class="search-catalog__media">
-            <img [src]="product.image" [alt]="product.name" loading="lazy" decoding="async" (error)="hideBrokenImage($event)" />
-            <span class="search-catalog__tag">{{ product.tag }}</span>
-          </span>
-          <strong>{{ product.name }}</strong>
-          <small>{{ formatPrice(product) }}</small>
-        </a>
-      </div>
-    </section>
+    @if (result.exactProducts.length) {
+      <section class="search-catalog__section" aria-labelledby="exact-title">
+        <h2 class="search-catalog__section-title" id="exact-title">نتایج مرتبط</h2>
+        <div class="search-catalog__grid">
+          @for (product of result.exactProducts; track product) {
+            <a
+              class="search-catalog__card"
+              [routerLink]="['/product', product.id]"
+              >
+              <span class="search-catalog__media">
+                <img [src]="product.image" [appResponsiveProductImage]="product.image" [alt]="product.name" loading="lazy" decoding="async" (error)="hideBrokenImage($event)" />
+                @if (isDressProduct(product)) {
+                  <span class="search-catalog__tag">{{ product.tag }}</span>
+                }
+              </span>
+              <strong>{{ product.name }}</strong>
+              @if (showPrice(product)) {
+                <small>{{ formatPrice(product) }}</small>
+              }
+            </a>
+          }
+        </div>
+      </section>
+    }
+    @if (result.relatedProducts.length) {
+      <section class="search-catalog__section" aria-labelledby="related-title">
+        <h2 class="search-catalog__section-title" id="related-title">پیشنهادها / محصولات مرتبط</h2>
+        <div class="search-catalog__grid">
+          @for (product of result.relatedProducts; track product) {
+            <a
+              class="search-catalog__card"
+              [routerLink]="['/product', product.id]"
+              >
+              <span class="search-catalog__media">
+                <img [src]="product.image" [appResponsiveProductImage]="product.image" [alt]="product.name" loading="lazy" decoding="async" (error)="hideBrokenImage($event)" />
+                @if (isDressProduct(product)) {
+                  <span class="search-catalog__tag">{{ product.tag }}</span>
+                }
+              </span>
+              <strong>{{ product.name }}</strong>
+              @if (showPrice(product)) {
+                <small>{{ formatPrice(product) }}</small>
+              }
+            </a>
+          }
+        </div>
+      </section>
+    }
+    @if (result.categories.length) {
+      <section class="search-catalog__section" aria-labelledby="cats-title">
+        <h2 class="search-catalog__section-title" id="cats-title">دسته‌بندی‌های مرتبط</h2>
+        <div class="search-catalog__chips">
+          @for (cat of result.categories; track cat) {
+            <a
+              class="search-catalog__chip"
+              [routerLink]="categoryChipLink(cat)"
+              [queryParams]="categoryChipQueryParams(cat)"
+              >
+              {{ cat.title }}
+            </a>
+          }
+        </div>
+      </section>
+    }
+    @if (result.bestsellers.length) {
+      <section class="search-catalog__section" aria-labelledby="best-title">
+        <h2 class="search-catalog__section-title" id="best-title">پرفروش‌ها</h2>
+        <div class="search-catalog__grid">
+          @for (product of result.bestsellers; track product) {
+            <a
+              class="search-catalog__card"
+              [routerLink]="['/product', product.id]"
+              >
+              <span class="search-catalog__media">
+                <img [src]="product.image" [appResponsiveProductImage]="product.image" [alt]="product.name" loading="lazy" decoding="async" (error)="hideBrokenImage($event)" />
+                @if (isDressProduct(product)) {
+                  <span class="search-catalog__tag">{{ product.tag }}</span>
+                }
+              </span>
+              <strong>{{ product.name }}</strong>
+              @if (showPrice(product)) {
+                <small>{{ formatPrice(product) }}</small>
+              }
+            </a>
+          }
+        </div>
+      </section>
+    }
   </div>
-</ng-container>
-
-<ng-template #catalogViews>
-<!-- ═══ Bridal Collection Page ═══ -->
-<ng-container *ngIf="isBridalView; else genericCatalog">
-
-  <div class="bridal-catalog" dir="rtl">
-
-    <section class="bridal-catalog__intro" aria-labelledby="bridal-catalog-title">
-      <p class="bridal-catalog__eyebrow" lang="en" dir="ltr">THE BRIDAL COLLECTION</p>
-      <h1 class="bridal-catalog__title" id="bridal-catalog-title">کالکشن لباس عروس</h1>
-      <p class="bridal-catalog__lead">
-        تجربه‌ای اختصاصی برای انتخاب و پرو لباس عروس — بر اساس سلیقه و استایل خود، کالکشن مورد علاقه‌تان را انتخاب کنید
-      </p>
-    </section>
-
-    <!-- Category Navigation -->
-    <nav class="bridal-catalog__nav" aria-label="دسته‌بندی لباس عروس">
-      <p class="bridal-catalog__nav-eyebrow" lang="en" dir="ltr">COLLECTIONS</p>
-
-      <!-- Mobile: in-page irregular cards -->
-      <div class="bridal-catalog__nav-scroll" role="list">
-        <a
-          *ngFor="let cat of categories; let i = index"
-          class="bridal-catalog__chip"
-          [class.bridal-catalog__chip--wide]="i % 4 === 0 || i % 4 === 3"
-          [class.bridal-catalog__chip--tall]="i % 4 === 1"
-          role="listitem"
-          [routerLink]="categoryLink(cat.slug)"
-          [queryParams]="categoryQueryParams(cat.slug)"
-          [class.bridal-catalog__chip--active]="isActive(cat)"
-          [attr.aria-current]="isActive(cat) ? 'page' : null"
-          [attr.aria-label]="cat.title">
-
-          <span class="bridal-catalog__chip-media">
-            <img
-              class="bridal-catalog__chip-img"
-              [src]="cat.image"
-              [alt]="cat.title"
-              loading="lazy"
-              decoding="async"
-              width="64"
-              height="64"
-              (error)="hideBrokenImage($event)"
-            />
-            <span class="bridal-catalog__chip-fallback" aria-hidden="true"></span>
-          </span>
-          <span class="bridal-catalog__chip-label">{{ cat.title }}</span>
-        </a>
-      </div>
-
-      <!-- Desktop: card grid -->
-      <div class="bridal-catalog__nav-grid">
-        <a
-          *ngFor="let cat of categories"
-          class="bridal-catalog__nav-card"
-          [class.bridal-catalog__nav-card--active]="isActive(cat)"
-          [class.bridal-catalog__nav-card--featured]="cat.featured"
-          [routerLink]="categoryLink(cat.slug)"
-          [queryParams]="categoryQueryParams(cat.slug)"
-          [attr.aria-current]="isActive(cat) ? 'page' : null"
-          [attr.aria-label]="cat.title">
-
-          <img
-            class="bridal-catalog__nav-card-img"
-            [src]="cat.image"
-            [alt]="cat.title"
-            loading="lazy"
-            decoding="async"
-            width="320"
-            height="380"
-            (error)="hideBrokenImage($event)"
-          />
-          <span class="bridal-catalog__nav-card-overlay" aria-hidden="true"></span>
-
-          <span class="bridal-catalog__nav-card-content">
-            <span class="bridal-catalog__nav-card-eyebrow" lang="en" dir="ltr">{{ cat.subtitle }}</span>
-            <span class="bridal-catalog__nav-card-title">{{ cat.title }}</span>
-          </span>
-
-          <span class="bridal-catalog__nav-active-badge" *ngIf="isActive(cat)" aria-hidden="true">✦</span>
-        </a>
-      </div>
-    </nav>
-
-    <section class="bridal-catalog__rails" aria-label="کالکشن‌های لباس عروس">
-      <article class="bridal-catalog__rail" *ngFor="let rail of collectionRails; let isLast = last">
-        <header class="bridal-catalog__rail-header">
-          <h2 class="bridal-catalog__rail-title">{{ rail.category.title }}</h2>
-          <p class="bridal-catalog__rail-subtitle" lang="en" dir="ltr">{{ rail.category.subtitle }}</p>
-        </header>
-
-        <div class="bridal-catalog__rail-track" role="list">
-          <article class="bridal-catalog__rail-card" role="listitem" *ngFor="let product of rail.products">
-            <a class="bridal-catalog__rail-link" [routerLink]="['/product', product.id]">
-              <div class="bridal-catalog__rail-media">
+} @else {
+  <!-- ═══ Bridal Collection Page ═══ -->
+  @if (isBridalView) {
+    <div class="bridal-catalog" dir="rtl">
+      <section class="bridal-catalog__intro" aria-labelledby="bridal-catalog-title">
+        <p class="bridal-catalog__eyebrow" lang="en" dir="ltr">THE BRIDAL COLLECTION</p>
+        <h1 class="bridal-catalog__title" id="bridal-catalog-title">کالکشن لباس عروس</h1>
+        <p class="bridal-catalog__lead">
+          کالکشن مورد علاقه‌تان را بر اساس سلیقه و استایل خود انتخاب کنید
+        </p>
+      </section>
+      <!-- Category Navigation -->
+      <nav class="bridal-catalog__nav" aria-label="دسته‌بندی لباس عروس">
+        <p class="bridal-catalog__nav-eyebrow" lang="en" dir="ltr">COLLECTIONS</p>
+        <!-- Mobile: in-page irregular cards -->
+        <div class="bridal-catalog__nav-scroll" role="list">
+          @for (cat of categories; track cat; let i = $index) {
+            <a
+              class="bridal-catalog__chip"
+              [class.bridal-catalog__chip--wide]="i % 4 === 0 || i % 4 === 3"
+              [class.bridal-catalog__chip--tall]="i % 4 === 1"
+              role="listitem"
+              [routerLink]="categoryLink(cat.slug)"
+              [queryParams]="categoryQueryParams(cat.slug)"
+              [class.bridal-catalog__chip--active]="isActive(cat)"
+              [attr.aria-current]="isActive(cat) ? 'page' : null"
+              [attr.aria-label]="cat.title">
+              <span class="bridal-catalog__chip-media">
                 <img
-                  class="bridal-catalog__rail-img"
-                  [src]="product.image"
-                  [alt]="product.name"
+                  class="bridal-catalog__chip-img"
+                  [src]="cat.image"
+                  [alt]="cat.title"
                   loading="lazy"
                   decoding="async"
-                  width="320"
-                  height="420"
+                  width="64"
+                  height="64"
                   (error)="hideBrokenImage($event)"
-                />
-                <span class="bridal-catalog__rail-tag">{{ product.tag }}</span>
-              </div>
-              <div class="bridal-catalog__rail-body">
-                <h3 class="bridal-catalog__rail-name">{{ product.name }}</h3>
-                <span class="bridal-catalog__rail-cta">مشاهده جزئیات</span>
-              </div>
+                  />
+                <span class="bridal-catalog__chip-fallback" aria-hidden="true"></span>
+              </span>
+              <span class="bridal-catalog__chip-label">{{ cat.title }}</span>
             </a>
-          </article>
+          }
         </div>
-
-        <div class="bridal-catalog__rail-divider" *ngIf="!isLast" aria-hidden="true"></div>
-      </article>
-    </section>
-
-  </div>
-
-</ng-container>
-
-<!-- ═══ Generic Catalog (non-bridal categories) ═══ -->
-<ng-template #genericCatalog>
-  <div class="generic-catalog" dir="rtl">
-    <header class="generic-catalog__intro">
-      <p class="generic-catalog__eyebrow" lang="en" dir="ltr">SHOP</p>
-      <h1 class="generic-catalog__title">{{ activeTitle }}</h1>
-    </header>
-
-    <ng-container *ngIf="products.length; else emptyGeneric">
-      <div class="generic-catalog__grid">
-        <a
-          class="generic-catalog__card"
-          *ngFor="let product of products"
-          [routerLink]="['/product', product.id]"
-        >
-          <span class="generic-catalog__media">
-            <img
-              [src]="product.image"
-              [alt]="product.name"
-              loading="lazy"
-              decoding="async"
-              width="320"
-              height="420"
-              (error)="hideBrokenImage($event)"
-            />
-            <span class="generic-catalog__tag">{{ product.tag }}</span>
-          </span>
-          <strong>{{ product.name }}</strong>
-          <small>{{ productPrice(product) }}</small>
-        </a>
-      </div>
-    </ng-container>
-
-    <ng-template #emptyGeneric>
-      <p class="generic-catalog__lead">محصولی در این دسته‌بندی یافت نشد.</p>
-      <a class="generic-catalog__link" routerLink="/">
-        بازگشت به صفحه اصلی
+        <!-- Desktop: card grid -->
+        <div class="bridal-catalog__nav-grid">
+          @for (cat of categories; track cat) {
+            <a
+              class="bridal-catalog__nav-card"
+              [class.bridal-catalog__nav-card--active]="isActive(cat)"
+              [class.bridal-catalog__nav-card--featured]="cat.featured"
+              [routerLink]="categoryLink(cat.slug)"
+              [queryParams]="categoryQueryParams(cat.slug)"
+              [attr.aria-current]="isActive(cat) ? 'page' : null"
+              [attr.aria-label]="cat.title">
+              <img
+                class="bridal-catalog__nav-card-img"
+                [src]="cat.image"
+                [alt]="cat.title"
+                loading="lazy"
+                decoding="async"
+                width="320"
+                height="380"
+                (error)="hideBrokenImage($event)"
+                />
+              <span class="bridal-catalog__nav-card-overlay" aria-hidden="true"></span>
+              <span class="bridal-catalog__nav-card-content">{{ cat.title }}</span>
+              @if (isActive(cat)) {
+                <span class="bridal-catalog__nav-active-badge" aria-hidden="true">✦</span>
+              }
+            </a>
+          }
+        </div>
+      </nav>
+      <a class="bridal-catalog__custom-request" routerLink="/custom-request/dress">
+        <span><strong>درخواست لباس سفارشی</strong><small>مدل دلخواه یا تصویر مرجع خود را برای طراحی و برآورد هزینه ارسال کنید</small></span>
+        <b>ثبت درخواست</b>
       </a>
-    </ng-template>
-  </div>
-</ng-template>
-</ng-template>
+      <section class="bridal-catalog__atelier" aria-labelledby="atelier-title">
+        <span class="bridal-catalog__atelier-mark" aria-hidden="true">✦</span>
+        <h2 class="bridal-catalog__atelier-title" id="atelier-title">
+          ظرافتی که برای شما دوخته می‌شود
+        </h2>
+        <p class="bridal-catalog__atelier-text">
+          گالری مظهری با به‌روزترین متدهای طراحی و دوخت، انتخاب پارچه‌های ممتاز و اجرای دقیق جزئیات،
+          لباس عروس را متناسب با فرم بدن و سلیقه شما خلق می‌کند. از نخستین مشاوره تا آخرین پرو،
+          کنار شما هستیم تا لباسی بی‌نقص، ماندگار و منحصربه‌فرد برای مهم‌ترین شب زندگی‌تان داشته باشید.
+        </p>
+      </section>
+    </div>
+  } @else {
+    <div class="generic-catalog" dir="rtl">
+      <header class="generic-catalog__intro">
+        <p class="generic-catalog__eyebrow" lang="en" dir="ltr">SHOP</p>
+        <h1 class="generic-catalog__title">{{ activeTitle }}</h1>
+      </header>
+      @if (products.length) {
+        <div class="generic-catalog__grid">
+          @for (product of products; track product) {
+            <a
+              class="generic-catalog__card"
+              [routerLink]="['/product', product.id]"
+              >
+              <span class="generic-catalog__media">
+                <span class="generic-catalog__gallery">
+                  @for (image of galleryImages(product); track image; let first = $first) {
+                    <img
+                      [src]="image"
+                      [alt]="first ? product.name : ''"
+                      loading="lazy"
+                      decoding="async"
+                      width="320"
+                      height="420"
+                      (error)="hideBrokenImage($event)"
+                      />
+                  }
+                </span>
+                @if (galleryImages(product).length > 1) {
+                  <span class="product-gallery-hint" aria-hidden="true">‹ ›</span>
+                }
+                @if (isDressProduct(product)) {
+                  <span class="generic-catalog__tag">{{ product.tag }}</span>
+                }
+              </span>
+              <strong>{{ product.name }}</strong>
+              @if (showPrice(product)) {
+                <small>{{ productPrice(product) }}</small>
+              }
+            </a>
+          }
+        </div>
+      } @else {
+        <p class="generic-catalog__lead">محصولات در حال تکمیل می‌باشند.</p>
+        <a class="generic-catalog__link" routerLink="/">
+          بازگشت به صفحه اصلی
+        </a>
+      }
+    </div>
+  }
+  <!-- ═══ Generic Catalog (non-bridal categories) ═══ -->
+}

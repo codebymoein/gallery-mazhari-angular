@@ -1,10 +1,9 @@
-import { Component, OnInit, ViewChild, inject, signal } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, OnInit, ViewChild, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { HeaderComponent } from './layout/header/header.component';
 import { FooterComponent } from './layout/footer/footer.component';
-import { LoadingScreenComponent } from './shared/components/loading-screen/loading-screen.component';
 import { DreamCanvasWidgetComponent } from './shared/components/dream-canvas-widget/dream-canvas-widget.component';
 import { WeddingTimelineWidgetComponent } from './shared/components/wedding-timeline-widget/wedding-timeline-widget.component';
 import { ConsultationToastComponent } from './shared/components/consultation-toast/consultation-toast.component';
@@ -20,7 +19,6 @@ import { PublishedCatalogSyncService } from './core/services/published-catalog-s
     RouterOutlet,
     HeaderComponent,
     FooterComponent,
-    LoadingScreenComponent,
     DreamCanvasWidgetComponent,
     WeddingTimelineWidgetComponent,
     ConsultationToastComponent,
@@ -29,7 +27,7 @@ import { PublishedCatalogSyncService } from './core/services/published-catalog-s
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, AfterViewInit {
   title = 'گالری مظهری';
 
   @ViewChild('header') headerRef?: HeaderComponent;
@@ -37,9 +35,11 @@ export class AppComponent implements OnInit {
   private readonly seoService = inject(SeoService);
   private readonly router = inject(Router);
   private readonly publishedSync = inject(PublishedCatalogSyncService);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   /** Hide storefront chrome on /admin routes for a focused ops UI. */
   readonly isAdminShell = signal(false);
+  readonly isFocusedForm = signal(false);
 
   ngOnInit(): void {
     this.seoService.init();
@@ -64,7 +64,15 @@ export class AppComponent implements OnInit {
     }
   }
 
+  ngAfterViewInit(): void {
+    // The drawer template comes from the conditionally rendered header.
+    // Run one stable pass after the ViewChild query has resolved.
+    this.cdr.detectChanges();
+  }
+
   private syncAdminShell(url: string): void {
-    this.isAdminShell.set(url.split('?')[0].startsWith('/admin'));
+    const path = url.split('?')[0];
+    this.isAdminShell.set(path.startsWith('/admin'));
+    this.isFocusedForm.set(path.startsWith('/custom-request/'));
   }
 }

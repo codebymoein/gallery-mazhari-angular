@@ -32,6 +32,7 @@ interface NavItem {
   badge?: 'pending' | 'approval' | 'orders' | 'carts' | 'low';
   group?: string;
   keywords?: string;
+  permission?: string;
 }
 
 @Component({
@@ -59,7 +60,7 @@ export class AdminShellComponent implements OnInit, OnDestroy {
   readonly collapsed = signal(false);
   /** side = desktop push layout; over = mobile overlay drawer */
   readonly sidenavMode = signal<'side' | 'over'>(
-    typeof window !== 'undefined' && window.innerWidth <= 992 ? 'over' : 'side'
+    typeof window !== 'undefined' && window.innerWidth <= 1200 ? 'over' : 'side'
   );
   readonly pageTitle = signal('مرکز فرماندهی');
   readonly breadcrumb = signal('تحلیل');
@@ -73,6 +74,7 @@ export class AdminShellComponent implements OnInit, OnDestroy {
       icon: 'home',
       group: 'تحلیل',
       keywords: 'dashboard analytics داشبورد'
+      ,permission: 'dashboard.view'
     },
     {
       label: 'کانبان سفارش‌ها',
@@ -81,6 +83,7 @@ export class AdminShellComponent implements OnInit, OnDestroy {
       badge: 'orders',
       group: 'فروش',
       keywords: 'orders kanban سفارش پرو'
+      ,permission: 'orders.manage'
     },
     {
       label: 'مشتریان CRM',
@@ -88,6 +91,7 @@ export class AdminShellComponent implements OnInit, OnDestroy {
       icon: 'users',
       group: 'فروش',
       keywords: 'crm مشتری ltv'
+      ,permission: 'crm.manage'
     },
     {
       label: 'هاب انبار',
@@ -96,13 +100,31 @@ export class AdminShellComponent implements OnInit, OnDestroy {
       badge: 'low',
       group: 'انبار',
       keywords: 'inventory انبار موجودی'
+      ,permission: 'inventory.manage'
     },
     {
-      label: 'تگ‌گذاری اکسل',
+      label: 'بارگذاری فایل موجودی',
       path: '/admin/import',
       icon: 'upload',
       group: 'انبار',
       keywords: 'excel import تگ انبار موجودی'
+      ,permission: 'inventory.manage'
+    },
+    {
+      label: 'پلتفرم هوشمند',
+      path: '/admin/platform',
+      icon: 'spark',
+      group: 'انبار',
+      keywords: 'platform dry-run media rules merchandising واردات تصویر پیشنهاد'
+      ,permission: 'inventory.manage'
+    },
+    {
+      label: 'کالاهای منتشر شده',
+      path: '/admin/published-products',
+      icon: 'box',
+      group: 'انبار',
+      keywords: 'محصول کالا جستجو ویرایش published products'
+      ,permission: 'publishing.published.manage'
     },
     {
       label: 'صف انتشار',
@@ -111,6 +133,7 @@ export class AdminShellComponent implements OnInit, OnDestroy {
       badge: 'pending',
       group: 'انبار',
       keywords: 'staging عکس دسته بندی انتشار'
+      ,permission: 'publishing.queue.manage'
     },
     {
       label: 'تایید نهایی',
@@ -128,6 +151,23 @@ export class AdminShellComponent implements OnInit, OnDestroy {
       badge: 'carts',
       group: 'رشد',
       keywords: 'marketing promo تخفیف سبد'
+      ,permission: 'marketing.manage'
+    },
+    {
+      label: 'مرکز مدیریت سایت',
+      path: '/admin/appearance',
+      icon: 'camera',
+      group: 'رشد',
+      keywords: 'appearance banner hero category image payment notification style مدیریت سایت ظاهر بنر تصویر پرداخت اعلان استایل',
+      permission: 'marketing.manage'
+    },
+    {
+      label: 'مدیریت کاربران',
+      path: '/admin/users',
+      icon: 'users',
+      managerOnly: true,
+      group: 'نظارت',
+      keywords: 'user manager client access permission کاربر کلاینت دسترسی'
     },
     {
       label: 'لاگ حسابرسی',
@@ -138,11 +178,20 @@ export class AdminShellComponent implements OnInit, OnDestroy {
       keywords: 'audit log فعالیت'
     },
     {
-      label: 'بینش مشاوره',
+      label: 'درخواست‌های مشاوره',
       path: '/admin/client-insights',
-      icon: 'spark',
-      group: 'نظارت',
-      keywords: 'consultation dream بوم مشاوره'
+      icon: 'users',
+      group: 'فروش',
+      keywords: 'consultation requests درخواست مشاوره تماس تلفنی'
+      ,permission: 'consultation.manage'
+    }
+    ,{
+      label: 'درخواست‌های سفارشی',
+      path: '/admin/custom-requests',
+      icon: 'camera',
+      group: 'فروش',
+      keywords: 'custom veil dress درخواست تور سفارشی لباس سفارشی',
+      permission: 'consultation.manage'
     }
   ];
 
@@ -150,6 +199,8 @@ export class AdminShellComponent implements OnInit, OnDestroy {
     const q = this.navQuery().trim().toLowerCase();
     return this.navItems.filter((i) => {
       if (i.managerOnly && !this.isManager()) return false;
+      const session = this.user();
+      if (session?.role === 'staff' && i.permission && !(session.permissions || []).includes(i.permission)) return false;
       if (!q) return true;
       const hay = `${i.label} ${i.path} ${i.keywords || ''}`.toLowerCase();
       return hay.includes(q);
@@ -189,7 +240,7 @@ export class AdminShellComponent implements OnInit, OnDestroy {
   }
 
   private updateSidenavMode(): void {
-    const next = window.innerWidth <= 992 ? 'over' : 'side';
+    const next = window.innerWidth <= 1200 ? 'over' : 'side';
     if (this.sidenavMode() !== next) {
       this.sidenavMode.set(next);
       if (next === 'side') this.sidebarOpen.set(false);
@@ -255,12 +306,15 @@ export class AdminShellComponent implements OnInit, OnDestroy {
       '/admin/crm': { title: 'هوشمندی مشتریان', crumb: 'CRM' },
       '/admin/inventory': { title: 'هاب انبار و دسته‌بندی', crumb: 'انبار' },
       '/admin/inventory/category': { title: 'محصولات دسته', crumb: 'انبار' },
-      '/admin/import': { title: 'تگ‌گذاری اکسل انبار', crumb: 'انبار' },
+      '/admin/import': { title: 'بارگذاری فایل موجودی انبار', crumb: 'انبار' },
+      '/admin/platform': { title: 'پلتفرم هوشمند واردات', crumb: 'انبار' },
       '/admin/staging': { title: 'صف انتشار — دسته‌بندی سایت', crumb: 'انبار' },
       '/admin/manager': { title: 'تایید نهایی مدیر', crumb: 'انبار' },
       '/admin/marketing': { title: 'بازاریابی و بازگشت', crumb: 'رشد' },
+      '/admin/appearance': { title: 'مرکز مدیریت سایت', crumb: 'رشد' },
       '/admin/activity': { title: 'لاگ حسابرسی', crumb: 'نظارت' },
-      '/admin/client-insights': { title: 'بینش مشاوره', crumb: 'نظارت' }
+      '/admin/client-insights': { title: 'درخواست‌های مشاوره', crumb: 'فروش' },
+      '/admin/users': { title: 'مدیریت کاربران و کلاینت‌ها', crumb: 'نظارت' }
     };
     const hit = Object.entries(map)
       .sort((a, b) => b[0].length - a[0].length)

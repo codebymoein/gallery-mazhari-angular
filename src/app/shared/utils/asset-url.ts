@@ -1,6 +1,8 @@
 /**
  * Shared asset URL helper — ensures category/product images resolve under any base href.
  */
+import { environment } from '@env/environment';
+
 export function assetUrl(path: string | undefined | null): string {
   if (!path) return '';
   const trimmed = path.trim();
@@ -9,12 +11,18 @@ export function assetUrl(path: string | undefined | null): string {
     trimmed.startsWith('http://') ||
     trimmed.startsWith('https://') ||
     trimmed.startsWith('data:') ||
-    trimmed.startsWith('blob:') ||
-    trimmed.startsWith('/')
+    trimmed.startsWith('blob:')
   ) {
     return trimmed;
   }
-  return `/${trimmed.replace(/^\.\//, '')}`;
+  const localPath = `/${trimmed.replace(/^\.?\//, '')}`;
+  // Bundled application assets are served by the frontend host. Only uploaded
+  // media belongs to the optional media host.
+  const isUpload = localPath.startsWith('/uploads/');
+  const mediaBase = isUpload
+    ? environment.mediaBaseUrl?.replace(/\/+$/, '') || ''
+    : '';
+  return mediaBase ? `${mediaBase}${localPath}` : localPath;
 }
 
 /** Fallback gradient poster when an image fails to load (inline SVG). */

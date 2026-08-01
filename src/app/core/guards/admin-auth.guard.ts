@@ -55,6 +55,15 @@ export function adminRoleGuard(roles: AdminRole[]): CanActivateFn {
   };
 }
 
+export function adminPermissionGuard(permission: string): CanActivateFn {
+  return () => {
+    const auth = inject(AdminAuthService);
+    const router = inject(Router);
+    if (!auth.isAuthenticated()) return router.createUrlTree(['/admin/login']);
+    return auth.hasPermission(permission) ? true : router.createUrlTree(['/']);
+  };
+}
+
 /**
  * Redirects already-authenticated users away from the login page.
  */

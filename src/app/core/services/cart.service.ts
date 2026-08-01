@@ -6,7 +6,7 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { map, Observable, take } from 'rxjs';
-import { CartItem } from '@shared/models';
+import { CartItem, EngravingRequest } from '@shared/models';
 import * as CartActions from '../store/cart/cart.actions';
 import * as CartSelectors from '../store/cart/cart.selectors';
 
@@ -14,6 +14,7 @@ import * as CartSelectors from '../store/cart/cart.selectors';
   providedIn: 'root'
 })
 export class CartService {
+  private readonly cartTtlMs = 24 * 60 * 60 * 1000;
   // Selectors
   cartItems$ = this.store.select(CartSelectors.selectCartItems);
   cartItemCount$ = this.store.select(CartSelectors.selectCartItemCount);
@@ -27,6 +28,30 @@ export class CartService {
   constructor(private store: Store) {
     // Load cart from localStorage on init
     this.loadCart();
+    setInterval(() => this.expireStaleCart(), 60 * 1000);
+  }
+
+  restoreItems(items: CartItem[]): void {
+    this.clearCart();
+    for (const item of items) {
+      this.addToCart({ ...item, added_at: new Date().toISOString() });
+    }
+  }
+
+  private expireStaleCart(): void {
+    try {
+      const raw = localStorage.getItem('mazhari_cart');
+      if (!raw) return;
+      const stored = JSON.parse(raw);
+      const expiresAt = Array.isArray(stored)
+        ? Math.max(0, ...stored.map((item: CartItem) => Date.parse(item.added_at || ''))) + this.cartTtlMs
+        : Number(stored?.expiresAt || 0);
+      if (expiresAt > 0 && expiresAt <= Date.now()) {
+        this.clearCart();
+      }
+    } catch {
+      this.clearCart();
+    }
   }
 
   /**
@@ -45,7 +70,12 @@ export class CartService {
     price: number = 0,
     productName?: string,
     productImage?: string,
-    options?: { categorySlug?: string; sourceId?: string }
+    options?: {
+      categorySlug?: string;
+      sourceId?: string;
+      attributes?: Array<{ name: string; value: string }>;
+      engraving?: EngravingRequest;
+    }
   ): void {
     const item: CartItem = {
       product_id: productId,
@@ -55,6 +85,8 @@ export class CartService {
       product_image: productImage,
       category_slug: options?.categorySlug,
       source_id: options?.sourceId,
+      attributes: options?.attributes,
+      engraving: options?.engraving,
       added_at: new Date().toISOString()
     };
     this.addToCart(item);

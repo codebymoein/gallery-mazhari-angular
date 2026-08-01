@@ -5,17 +5,17 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, Router } from '@angular/router';
+import { NavigationStart } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CartService } from '@core/services/cart.service';
 import { DrawerService } from '@core/services/drawer.service';
 import {
   ACCESSORY_STORE_CATEGORIES,
   BRIDAL_CLOTHING_CATEGORY,
-  CATALOG_CATEGORIES,
   CatalogCategory,
   findCategoryForSubSlug
 } from '@shared/data/catalog-categories';
-import { Observable } from 'rxjs';
+import { Observable, Subscription, filter } from 'rxjs';
 
 @Component({
   selector: 'app-header',
@@ -41,6 +41,7 @@ export class HeaderComponent implements OnDestroy {
   isSearchOpen = false;
   searchQuery  = '';
   cartCount$: Observable<number>;
+  private readonly routerEventsSubscription: Subscription;
 
   @ViewChild('drawerTpl') drawerTpl!: TemplateRef<unknown>;
 
@@ -50,28 +51,27 @@ export class HeaderComponent implements OnDestroy {
   /** Desktop mega-menu + mobile: accessory store groups with full subcategories. */
   accessoryCategories: CatalogCategory[] = ACCESSORY_STORE_CATEGORIES;
 
-  /** Mobile drawer: flat list of main categories → /shop/:slug */
-  allCategories: CatalogCategory[] = CATALOG_CATEGORIES;
-
   constructor() {
     this.cartCount$ = inject(CartService).getItemCount();
+    this.routerEventsSubscription = this.router.events
+      .pipe(filter((event): event is NavigationStart => event instanceof NavigationStart))
+      .subscribe(() => this.closeMenus());
   }
 
-  ngOnDestroy(): void { this.drawer.close(); }
+  ngOnDestroy(): void {
+    this.routerEventsSubscription.unsubscribe();
+    this.drawer.close();
+  }
 
   toggleSearch(): void {
-    // Mobile: keep only the search icon — go straight to smart catalog search.
-    if (typeof window !== 'undefined' && window.matchMedia('(max-width: 768px)').matches) {
-      this.isSearchOpen = false;
-      this.drawer.close();
-      void this.router.navigate(['/catalog'], {
-        queryParams: this.searchQuery.trim() ? { s: this.searchQuery.trim() } : {}
-      });
-      return;
-    }
-
     this.isSearchOpen = !this.isSearchOpen;
     if (this.drawer.isOpen()) this.drawer.close();
+    if (this.isSearchOpen) {
+      window.setTimeout(() => {
+        const input = this.host.nativeElement.querySelector('#nav-search-input') as HTMLInputElement | null;
+        input?.focus();
+      });
+    }
   }
 
   onSearch(): void {
@@ -176,6 +176,11 @@ export class HeaderComponent implements OnDestroy {
 
   @HostListener('document:keydown.escape')
   onEscape(): void {
+    this.closeMenus();
+  }
+
+  @HostListener('window:popstate')
+  onBrowserHistoryChange(): void {
     this.closeMenus();
   }
 

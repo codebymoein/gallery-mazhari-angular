@@ -2,12 +2,12 @@ import {
   Component, OnInit, ChangeDetectionStrategy,
   ChangeDetectorRef, inject
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 
 @Component({
   selector: 'app-loading-screen',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   templateUrl: './loading-screen.component.html',
   styleUrls: ['./loading-screen.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush

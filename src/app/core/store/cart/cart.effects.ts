@@ -10,11 +10,18 @@ import { map, switchMap, tap, withLatestFrom } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
 import { AdminMarketingService } from '@core/services/admin-marketing.service';
 import { environment } from '@env/environment';
+import { CartItem } from '@shared/models';
 
 import * as CartActions from './cart.actions';
 import * as CartSelectors from './cart.selectors';
 
 const CART_STORAGE_KEY = environment.storageKeys.cart;
+const CART_TTL_MS = 24 * 60 * 60 * 1000;
+
+interface StoredCart {
+  items: CartItem[];
+  expiresAt: number;
+}
 
 @Injectable()
 export class CartEffects {
@@ -64,9 +71,24 @@ export class CartEffects {
         try {
           const savedCart = localStorage.getItem(CART_STORAGE_KEY);
           if (savedCart) {
-            const items = JSON.parse(savedCart);
-            if (Array.isArray(items)) {
-              return of(CartActions.loadCartSuccess({ items }));
+            const stored = JSON.parse(savedCart) as StoredCart | CartItem[];
+            if (Array.isArray(stored)) {
+              const newestAddedAt = stored.reduce<number>((latest, item) => {
+                const timestamp = Date.parse(item?.added_at || '');
+                return Number.isFinite(timestamp) ? Math.max(latest, timestamp) : latest;
+              }, 0);
+              if (newestAddedAt && newestAddedAt + CART_TTL_MS <= Date.now()) {
+                localStorage.removeItem(CART_STORAGE_KEY);
+                return of(CartActions.loadCartSuccess({ items: [] }));
+              }
+              return of(CartActions.loadCartSuccess({ items: stored }));
+            }
+            if (stored && Array.isArray(stored.items)) {
+              if (stored.expiresAt <= Date.now()) {
+                localStorage.removeItem(CART_STORAGE_KEY);
+                return of(CartActions.loadCartSuccess({ items: [] }));
+              }
+              return of(CartActions.loadCartSuccess({ items: stored.items }));
             }
           }
         } catch {
@@ -127,7 +149,7 @@ export class CartEffects {
     this.actions$.pipe(
       ofType(CartActions.calculateTotals),
       withLatestFrom(this.store.select(CartSelectors.selectCartItems)),
-      map(([_, items]) => {
+      map(([, items]) => {
         const subtotal = items.reduce(
           (sum, item) => sum + item.price * item.quantity,
           0
@@ -177,7 +199,11 @@ export class CartEffects {
         withLatestFrom(this.store.select(CartSelectors.selectCartItems)),
         tap(([, items]) => {
           try {
-            localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
+            const stored: StoredCart = {
+              items,
+              expiresAt: Date.now() + CART_TTL_MS
+            };
+            localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(stored));
           } catch {
             // Storage unavailable — cart stays in memory for the session.
           }

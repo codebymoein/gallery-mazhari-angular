@@ -10,7 +10,7 @@
       (click)="drawer.toggle()">
       <svg viewBox="0 0 24 24" aria-hidden="true">
         <path d="M4 7h16M4 12h16M4 17h16"
-              stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+          stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"/>
       </svg>
     </button>
 
@@ -21,29 +21,23 @@
         <summary>
           پوشاک عروس
           <svg viewBox="0 0 16 16" aria-hidden="true" fill="none"
-               stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+            stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
             <path d="m4 6 4 4 4-4"/>
           </svg>
         </summary>
         <div class="luxury-nav__mega-menu">
           <section class="luxury-nav__mega-group">
-            <p>{{ bridalCategory.title }}</p>
+            <p><a [routerLink]="['/shop', bridalCategory.slug]" (click)="closeMenus()">{{ bridalCategory.title }}</a></p>
             <ul>
-              <li *ngFor="let item of bridalCategory.subcategories">
-                <a [routerLink]="bridalItemLink(item.slug)" [queryParams]="bridalItemQueryParams(item.slug)" (click)="closeMenus()">
-                  {{ item.label }}
-                </a>
-              </li>
+              @for (item of bridalCategory.subcategories; track item) {
+                <li>
+                  <a [routerLink]="bridalItemLink(item.slug)" [queryParams]="bridalItemQueryParams(item.slug)" (click)="closeMenus()">
+                    {{ item.label }}
+                  </a>
+                </li>
+              }
             </ul>
           </section>
-          <a
-            class="luxury-nav__mega-feature luxury-nav__mega-feature--compact"
-            routerLink="/consultation"
-            (click)="closeMenus()"
-          >
-            <span>گالری مظهری</span>
-            <strong>درخواست مشاوره</strong>
-          </a>
         </div>
       </details>
 
@@ -51,22 +45,26 @@
         <summary>
           فروشگاه اکسسوری
           <svg viewBox="0 0 16 16" aria-hidden="true" fill="none"
-               stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+            stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
             <path d="m4 6 4 4 4-4"/>
           </svg>
         </summary>
         <div class="luxury-nav__mega-menu luxury-nav__mega-menu--wide">
-          <section class="luxury-nav__mega-group" *ngFor="let group of accessoryCategories">
-            <p>{{ group.title }}</p>
-            <ul>
-              <li *ngFor="let item of group.subcategories">
-                <a [routerLink]="accessoryItemLink(group.slug, item.slug)" (click)="closeMenus()">
-                  {{ item.label }}
-                </a>
-              </li>
-            </ul>
-          </section>
-          <a class="luxury-nav__mega-all" routerLink="/catalog" (click)="closeMenus()">
+          @for (group of accessoryCategories; track group) {
+            <section class="luxury-nav__mega-group">
+              <p><a [routerLink]="['/shop', group.slug]" (click)="closeMenus()">{{ group.title }}</a></p>
+              <ul>
+                @for (item of group.subcategories; track item) {
+                  <li>
+                    <a [routerLink]="accessoryItemLink(group.slug, item.slug)" (click)="closeMenus()">
+                      {{ item.label }}
+                    </a>
+                  </li>
+                }
+              </ul>
+            </section>
+          }
+          <a class="luxury-nav__mega-all" routerLink="/accessories" (click)="closeMenus()">
             مشاهده تمام محصولات <span aria-hidden="true">←</span>
           </a>
         </div>
@@ -82,50 +80,48 @@
 
     <!-- ═══ Brand ═══ -->
     <a class="luxury-nav__brand" routerLink="/" aria-label="صفحه اصلی گالری مظهری">
-      <span>گالری مظهری</span>
-      <small lang="en" dir="ltr">GALLERY MAZHARI</small>
+      <span lang="en" dir="ltr">GALLERY MAZHARI</span>
+      <small lang="en" dir="ltr">TEHRAN · EST. 1337</small>
     </a>
 
     <!-- ═══ Actions ═══ -->
     <div class="luxury-nav__actions">
       <button class="luxury-nav__icon-button luxury-nav__search-toggle"
-              type="button" aria-label="جست‌وجو"
-              [attr.aria-expanded]="isSearchOpen"
-              (click)="toggleSearch()">
+        type="button" aria-label="جست‌وجو"
+        [attr.aria-expanded]="isSearchOpen"
+        (click)="toggleSearch()">
         <svg viewBox="0 0 24 24" aria-hidden="true" fill="none"
-             stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+          stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
           <circle cx="11" cy="11" r="6.5"/>
           <path d="m16 16 4 4"/>
         </svg>
       </button>
 
       <a class="luxury-nav__icon-button luxury-nav__account"
-         routerLink="/account" aria-label="حساب کاربری">
+        routerLink="/account" aria-label="حساب کاربری">
         <svg viewBox="0 0 24 24" aria-hidden="true" fill="none"
-             stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+          stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
           <circle cx="12" cy="8" r="3.5"/>
           <path d="M5 20c.6-4 3.1-6 7-6s6.4 2 7 6"/>
         </svg>
       </a>
 
       <a class="luxury-nav__icon-button luxury-nav__cart"
-         routerLink="/cart" aria-label="سبد خرید">
+        routerLink="/cart" aria-label="سبد خرید">
         <svg viewBox="0 0 24 24" aria-hidden="true" fill="none"
-             stroke="currentColor" stroke-width="1.5"
-             stroke-linecap="round" stroke-linejoin="round">
+          stroke="currentColor" stroke-width="1.5"
+          stroke-linecap="round" stroke-linejoin="round">
           <path d="M3.5 5.5h2l1.45 9.05a2 2 0 0 0 1.98 1.68h7.76a2 2 0 0 0 1.96-1.59l1.1-5.39H6.1"/>
           <circle cx="9.5" cy="20" r="1" fill="currentColor"/>
           <circle cx="17.5" cy="20" r="1" fill="currentColor"/>
         </svg>
-        <span class="luxury-nav__cart-count"
-              *ngIf="(cartCount$ | async) as count"
-              [hidden]="count === 0"
-              aria-live="polite">{{ count }}</span>
+        @if ((cartCount$ | async); as count) {
+          <span class="luxury-nav__cart-count"
+            [hidden]="count === 0"
+          aria-live="polite">{{ count }}</span>
+        }
       </a>
 
-      <a class="luxury-nav__vip" routerLink="/consultation">
-        درخواست مشاوره
-      </a>
     </div>
   </div>
 
@@ -135,13 +131,13 @@
       <label for="nav-search-input">جست‌وجو در گالری مظهری</label>
       <div class="luxury-nav__search-field">
         <svg viewBox="0 0 24 24" aria-hidden="true" fill="none"
-             stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+          stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
           <circle cx="11" cy="11" r="6.5"/>
           <path d="m16 16 4 4"/>
         </svg>
         <input id="nav-search-input" type="search" name="s"
-               placeholder="نام محصول، دسته‌بندی یا استایل..."
-               autocomplete="off" [(ngModel)]="searchQuery"/>
+          placeholder="نام محصول، دسته‌بندی یا استایل..."
+          autocomplete="off" [(ngModel)]="searchQuery"/>
         <button type="submit">جست‌وجو</button>
       </div>
     </form>
@@ -152,25 +148,24 @@
 <ng-template #drawerTpl>
 
   <div class="luxury-nav__drawer-backdrop"
-       [class.luxury-nav__drawer-backdrop--open]="drawer.isOpen()"
-       (click)="drawer.close()"
-       aria-hidden="true"></div>
+    [class.luxury-nav__drawer-backdrop--open]="drawer.isOpen()"
+    (click)="drawer.close()"
+  aria-hidden="true"></div>
 
   <div class="luxury-nav__drawer"
-       [class.luxury-nav__drawer--open]="drawer.isOpen()"
-       [attr.inert]="!drawer.isOpen() ? '' : null"
-       [attr.aria-hidden]="!drawer.isOpen()"
-       role="dialog" aria-modal="true" aria-label="منوی گالری" dir="rtl">
+    [class.luxury-nav__drawer--open]="drawer.isOpen()"
+    [attr.inert]="!drawer.isOpen() ? '' : null"
+    [attr.aria-hidden]="!drawer.isOpen()"
+    role="dialog" aria-modal="true" aria-label="منوی گالری" dir="rtl">
 
     <div class="luxury-nav__drawer-header">
       <div>
         <span>منوی گالری</span>
-        <small lang="en" dir="ltr">GALLERY MAZHARI</small>
       </div>
       <button class="luxury-nav__icon-button" type="button"
-              aria-label="بستن منو" (click)="drawer.close()">
+        aria-label="بستن منو" (click)="drawer.close()">
         <svg viewBox="0 0 24 24" aria-hidden="true" fill="none"
-             stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+          stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
           <path d="m5 5 14 14M19 5 5 19"/>
         </svg>
       </button>
@@ -180,11 +175,11 @@
       <label for="drawer-search">جست‌وجوی محصولات</label>
       <div>
         <input id="drawer-search" type="search" name="s"
-               placeholder="جست‌وجو در محصولات..."
-               [(ngModel)]="searchQuery" autocomplete="off"/>
+          placeholder="جست‌وجو در محصولات..."
+          [(ngModel)]="searchQuery" autocomplete="off"/>
         <button type="submit" aria-label="جستجو">
           <svg viewBox="0 0 24 24" aria-hidden="true" fill="none"
-               stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+            stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
             <circle cx="11" cy="11" r="6.5"/>
             <path d="m16 16 4 4"/>
           </svg>
@@ -194,17 +189,66 @@
 
     <nav class="luxury-nav__drawer-nav" aria-label="منوی موبایل">
 
-      <!-- Main categories → dedicated hub pages (no accordion expand) -->
-      <a
-        *ngFor="let cat of allCategories"
-        [routerLink]="['/shop', cat.slug]"
-        (click)="closeMenus()"
-      >{{ cat.title }}</a>
+      <!-- دو مجموعه اصلی: پوشاک و اکسسوری با زیرمجموعه‌های بازشو -->
+      <details class="luxury-nav__drawer-group">
+        <summary>
+          پوشاک
+          <span aria-hidden="true">+</span>
+        </summary>
+        <div class="luxury-nav__drawer-submenu">
+          <a
+            class="luxury-nav__drawer-submenu-link"
+            [routerLink]="['/shop', bridalCategory.slug]"
+            (click)="closeMenus()"
+          >همه پوشاک عروس</a>
+          <div class="luxury-nav__drawer-submenu-links luxury-nav__drawer-submenu-links--stack">
+            @for (item of bridalCategory.subcategories; track item) {
+              <a
+                class="luxury-nav__drawer-submenu-link"
+                [routerLink]="bridalItemLink(item.slug)"
+                (click)="closeMenus()"
+              >{{ item.label }}</a>
+            }
+          </div>
+        </div>
+      </details>
+
+      <details class="luxury-nav__drawer-group">
+        <summary>
+          اکسسوری
+          <span aria-hidden="true">+</span>
+        </summary>
+        <div class="luxury-nav__drawer-submenu">
+          @for (group of accessoryCategories; track group) {
+            <details
+              class="luxury-nav__drawer-nested"
+              >
+              <summary>
+                {{ group.title }}
+                <span aria-hidden="true">+</span>
+              </summary>
+              <div class="luxury-nav__drawer-submenu-links">
+                <a
+                  class="luxury-nav__drawer-submenu-link"
+                  [routerLink]="['/shop', group.slug]"
+                  (click)="closeMenus()"
+                >همه {{ group.title }}</a>
+                @for (item of group.subcategories; track item) {
+                  <a
+                    class="luxury-nav__drawer-submenu-link"
+                    [routerLink]="accessoryItemLink(group.slug, item.slug)"
+                    (click)="closeMenus()"
+                  >{{ item.label }}</a>
+                }
+              </div>
+            </details>
+          }
+        </div>
+      </details>
 
       <a href="#appointment" (click)="goToConsultation($event)">رزرو مشاوره حرفه‌ای</a>
-      <a routerLink="/consultation" (click)="closeMenus()">درخواست مشاوره</a>
       <a routerLink="/contact" (click)="closeMenus()">ارتباط با ما</a>
-      <a href="tel:09352181200" (click)="closeMenus()">تماس با پشتیبانی</a>
+      <a routerLink="/contact" (click)="closeMenus()">تماس با پشتیبانی</a>
       <a routerLink="/account" (click)="closeMenus()">حساب کاربری من</a>
       <a routerLink="/orders" (click)="closeMenus()">پیگیری سفارش‌ها</a>
     </nav>

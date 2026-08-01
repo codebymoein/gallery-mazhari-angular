@@ -8,7 +8,7 @@
   isolation: isolate;
   overflow: hidden;
   padding-block: 2rem 2.25rem;
-  background: #0a0a0a;
+  background: #656561;
   background-image:
     radial-gradient(ellipse 70% 50% at 80% 0%, rgba(212, 175, 55, 0.12), transparent 55%),
     radial-gradient(ellipse 50% 40% at 10% 100%, rgba(212, 175, 55, 0.06), transparent 50%);

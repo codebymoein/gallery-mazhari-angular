@@ -9,7 +9,7 @@
   min-block-size: 70vh;
   padding-block: 1.75rem 2.5rem;
   color: #f8f5f2;
-  background: #0a0a0a;
+  background: #656561;
   background-image:
     radial-gradient(ellipse 70% 45% at 85% 0%, rgba(212, 175, 55, 0.12), transparent 55%),
     radial-gradient(ellipse 50% 40% at 5% 100%, rgba(212, 175, 55, 0.06), transparent 50%);
@@ -180,7 +180,7 @@
   aspect-ratio: 4 / 5;
   border: 1px solid rgba(212, 175, 55, 0.2);
   border-radius: 0.45rem;
-  background: #111;
+  background: #5d5d59;
 }
 
 .catalog-builder__media > img {

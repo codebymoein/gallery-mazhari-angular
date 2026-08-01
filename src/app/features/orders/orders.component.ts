@@ -1,8 +1,10 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { LocalOrder, LocalOrderStatus, OrderService } from '@core/services/order.service';
 import { ShoppingContextService } from '@core/services/shopping-context.service';
+import { CartService } from '@core/services/cart.service';
 import { CartItem } from '@shared/models';
 
 @Component({
@@ -17,6 +19,8 @@ export class OrdersComponent {
   private readonly orders = inject(OrderService);
   private readonly shoppingContext = inject(ShoppingContextService);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly cart = inject(CartService);
+  private readonly router = inject(Router);
 
   readonly orders$ = this.orders.orders$;
   expandedOrderId: string | null = null;
@@ -30,7 +34,7 @@ export class OrdersComponent {
   }
 
   formatPrice(amount: number): string {
-    return new Intl.NumberFormat('fa-IR').format(Math.round(amount)) + ' تومان';
+    return new Intl.NumberFormat('fa-IR').format(Math.round(amount)) + ' ریال';
   }
 
   formatDate(iso: string): string {
@@ -71,6 +75,19 @@ export class OrdersComponent {
 
   isExpanded(order: LocalOrder): boolean {
     return this.expandedOrderId === order.id;
+  }
+
+  payOrder(order: LocalOrder): void {
+    if (order.status !== 'pending-payment') return;
+    this.cart.restoreItems(order.items);
+    void this.router.navigate(['/checkout'], { queryParams: { order: order.id } });
+  }
+
+  refreshOrder(order: LocalOrder): void {
+    this.orders.refreshOrder(order).subscribe({
+      next: () => this.cdr.markForCheck(),
+      error: () => this.cdr.markForCheck()
+    });
   }
 
   lineTotal(item: CartItem): number {

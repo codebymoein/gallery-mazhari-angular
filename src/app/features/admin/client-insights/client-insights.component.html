@@ -1,86 +1,127 @@
-<section class="adm adm-page insights" dir="rtl">
+<section class="adm adm-page consultation-requests" dir="rtl">
   <header class="adm-page__head">
     <div>
-      <p class="adm-page__eyebrow" lang="en" dir="ltr">CONSULTATION INSIGHTS</p>
-      <h1 class="adm-page__title">بینش مشاوره</h1>
+      <p class="adm-page__eyebrow" lang="en" dir="ltr">CONSULTATION REQUESTS</p>
+      <h1 class="adm-page__title">درخواست‌های مشاوره</h1>
       <p class="adm-page__lead">
-        درخواست‌های مشاوره و بوم رویایی — پس از تماس، برچسب پیگیری را روی کارت ثبت کنید.
+        درخواست‌ها را تکی یا بر اساس وضعیت انتخاب کنید و یک برگه مرتب برای تماس تلفنی چاپ یا PDF کنید.
       </p>
     </div>
     <div class="adm-page__actions">
-      <span class="kanban-total">
-        {{ requests.length | number:'1.0-0':'fa-IR' }} درخواست
-      </span>
+      <span class="request-total">{{ requests.length | number:'1.0-0':'fa-IR' }} درخواست</span>
+      <button type="button" class="adm-btn adm-btn--gold" (click)="exportSelectedPdf()">
+        خروجی PDF / چاپ
+      </button>
     </div>
   </header>
 
-  <div class="insights-grid" *ngIf="requests.length; else empty">
-    <article class="insight-card" *ngFor="let req of requests" [attr.data-tag]="req.followUpTag || 'none'">
-      <header class="insight-card__head">
-        <div>
-          <strong>{{ req.last_name }}</strong>
-          <a class="insight-card__phone" [href]="'tel:' + req.phone" dir="ltr">{{ req.phone }}</a>
-        </div>
-        <span class="insight-card__tag" [attr.data-tag]="req.followUpTag || 'none'">
-          {{ tagLabel(req.followUpTag) }}
-        </span>
-      </header>
-
-      <dl class="insight-card__meta">
-        <div>
-          <dt>تاریخ مراسم</dt>
-          <dd>{{ formatCeremonyDate(req.ceremony_date) }}</dd>
-        </div>
-        <div>
-          <dt>زمان تماس</dt>
-          <dd>{{ contactTimeLabel(req.contact_time) }}</dd>
-        </div>
-        <div>
-          <dt>مدل/محصول</dt>
-          <dd>{{ req.product_name || '—' }}</dd>
-        </div>
-        <div>
-          <dt>ثبت</dt>
-          <dd>{{ formatDate(req.created_at) }}</dd>
-        </div>
-      </dl>
-
-      <p class="insight-card__msg" *ngIf="req.message">{{ req.message }}</p>
-
-      <div class="insight-card__dream" *ngIf="dreamPreview() as dreams">
-        <h3>بوم رویایی</h3>
-        <div class="insight-card__dream-row" *ngIf="dreams.length; else noDream">
-          <figure *ngFor="let d of dreams">
-            <img [src]="d.image" [alt]="d.name" width="56" height="56" (error)="onImgError($event)" />
-            <figcaption>{{ d.name }}</figcaption>
-          </figure>
-        </div>
-        <ng-template #noDream>
-          <p class="insight-card__muted">آیتم بوم رویایی ثبت نشده است.</p>
-        </ng-template>
-      </div>
-
-      <div class="insight-card__actions" role="group" aria-label="برچسب پیگیری">
-        <span class="insight-card__actions-label">وضعیت پیگیری</span>
-        <button
-          type="button"
-          class="insight-tag-btn"
-          *ngFor="let opt of followUpOptions"
-          [class.insight-tag-btn--active]="req.followUpTag === opt.value"
-          (click)="setTag(req, opt.value)"
-        >
-          {{ opt.label }}
-        </button>
-      </div>
-    </article>
-  </div>
-
-  <ng-template #empty>
-    <div class="adm-empty">
-      <strong>درخواستی ثبت نشده</strong>
-      <p>فرم مشاوره فروشگاه را مشتریان پر می‌کنند؛ اینجا ظاهر می‌شود.</p>
+  <section class="request-toolbar adm-card" aria-label="فیلتر و انتخاب درخواست‌ها">
+    <label>
+      <span>وضعیت پیگیری</span>
+      <select class="adm-input" [(ngModel)]="statusFilter">
+        <option value="all">همه وضعیت‌ها</option>
+        <option value="none">بدون وضعیت</option>
+        @for (option of followUpOptions; track option) {
+          <option [value]="option.value">{{ option.label }}</option>
+        }
+      </select>
+    </label>
+    <label>
+      <span>ماه ثبت</span>
+      <select class="adm-input" [(ngModel)]="monthFilter">
+        <option value="all">همه ماه‌ها</option>
+        @for (month of monthOptions; track month) {
+          <option [value]="month.value">{{ month.label }}</option>
+        }
+      </select>
+    </label>
+    <div class="request-toolbar__summary">
+      <strong>{{ filteredRequests.length | number:'1.0-0':'fa-IR' }}</strong>
+      <span>نتیجه فیلتر</span>
     </div>
-  </ng-template>
+    <button type="button" class="adm-btn adm-btn--soft adm-btn--sm" (click)="selectFiltered()">
+      انتخاب همه نتایج
+    </button>
+    <button type="button" class="adm-btn adm-btn--ghost adm-btn--sm"
+      (click)="clearSelection()" [disabled]="!selectedIds.size">
+      لغو انتخاب
+    </button>
+  </section>
 
-  <div class="adm-toast" *ngIf="toast" role="status">{{ toast }}</div>
+  @if (selectedIds.size) {
+    <div class="request-selection">
+      <strong>{{ selectedIds.size | number:'1.0-0':'fa-IR' }} درخواست انتخاب شده</strong>
+      <span>فقط همین موارد در خروجی چاپ می‌شوند.</span>
+      <button type="button" class="adm-btn adm-btn--gold adm-btn--sm" (click)="exportSelectedPdf()">
+        آماده‌سازی PDF
+      </button>
+      <button type="button" class="adm-btn adm-btn--sm request-delete" (click)="deleteSelected()">
+        حذف انتخاب‌شده‌ها
+      </button>
+    </div>
+  }
+
+  @if (filteredRequests.length) {
+    <div class="request-grid">
+      @for (req of filteredRequests; track req) {
+        <article class="request-card"
+          [class.request-card--selected]="isSelected(req.id)">
+          <header class="request-card__head">
+            <label class="request-check">
+              <input type="checkbox" [checked]="isSelected(req.id)"
+                (change)="toggleSelected(req.id, $any($event.target).checked)"
+                [attr.aria-label]="'انتخاب درخواست ' + req.last_name" />
+              <span>انتخاب</span>
+            </label>
+            <span class="request-status" [attr.data-tag]="req.followUpTag || 'none'">
+              {{ tagLabel(req.followUpTag) }}
+            </span>
+            <button type="button" class="request-card__delete" (click)="deleteOne(req)"
+            [attr.aria-label]="'حذف درخواست ' + req.last_name">حذف</button>
+          </header>
+          <div class="request-card__identity">
+            <strong>{{ req.last_name }}</strong>
+            <a [href]="'tel:' + req.phone" dir="ltr">{{ req.phone }}</a>
+          </div>
+          <dl class="request-meta">
+            <div><dt>تاریخ مراسم</dt><dd>{{ formatCeremonyDate(req.ceremony_date) }}</dd></div>
+            <div><dt>زمان تماس</dt><dd>{{ contactTimeLabel(req.contact_time) }}</dd></div>
+            <div><dt>مدل/محصول</dt><dd>{{ req.product_name || '—' }}</dd></div>
+            <div><dt>زمان ثبت</dt><dd>{{ formatDate(req.created_at) }}</dd></div>
+          </dl>
+          @if (req.message) {
+            <p class="request-message">{{ req.message }}</p>
+          }
+          <div class="request-actions" role="group" aria-label="تغییر وضعیت پیگیری">
+            <span>وضعیت پیگیری</span>
+            @for (option of followUpOptions; track option) {
+              <button type="button"
+                [class.active]="req.followUpTag === option.value"
+                (click)="setTag(req, option.value)">
+                {{ option.label }}
+              </button>
+            }
+          </div>
+          <div class="request-note">
+            <label>
+              <span>نتیجه تماس / توضیح کوتاه مسئول</span>
+              <textarea class="adm-input" rows="3" [(ngModel)]="req.adminNote"
+              maxlength="300" placeholder="نتیجه تماس یا نکته کوتاه پیگیری…"></textarea>
+            </label>
+            <button type="button" class="adm-btn adm-btn--sm" (click)="saveNote(req)">ذخیره نتیجه تماس</button>
+          </div>
+        </article>
+      }
+    </div>
+  } @else {
+    <div class="adm-empty">
+      <strong>درخواستی مطابق فیلتر پیدا نشد</strong>
+      <p>فیلتر وضعیت یا ماه ثبت را تغییر دهید.</p>
+    </div>
+  }
+
+
+  @if (toast) {
+    <div class="adm-toast" role="status">{{ toast }}</div>
+  }
 </section>

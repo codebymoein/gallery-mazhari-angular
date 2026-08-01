@@ -20,7 +20,10 @@ export class GalleryService {
 
     const [items, total] = await this.galleryRepository.findAndCount({
       where: search
-        ? [{ title: ILike(`%${search}%`) }, { description: ILike(`%${search}%`) }]
+        ? [
+            { title: ILike(`%${search}%`) },
+            { description: ILike(`%${search}%`) },
+          ]
         : undefined,
       order: { createdAt: 'DESC' },
       skip: (page - 1) * limit,

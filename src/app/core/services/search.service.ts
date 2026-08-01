@@ -55,7 +55,7 @@ export function mockPriceForProduct(id: string): number {
 }
 
 export function formatIrr(amount: number): string {
-  return new Intl.NumberFormat('fa-IR').format(Math.round(amount)) + ' تومان';
+  return new Intl.NumberFormat('fa-IR').format(Math.round(amount)) + ' ریال';
 }
 
 @Injectable({ providedIn: 'root' })
@@ -69,7 +69,7 @@ export class SearchService {
     const query = rawQuery.trim();
     const tokens = this.tokenize(query);
 
-    const scoredProducts = getAllCatalogProducts().map(p => ({
+    const scoredProducts = this.collapseSizeVariations(getAllCatalogProducts()).map(p => ({
       hit: this.toProductHit(p, 0),
       score: this.scoreProduct(p, tokens, query)
     }))
@@ -112,10 +112,25 @@ export class SearchService {
   }
 
   getBestsellers(limit = 8): SearchProductHit[] {
-    return [...getAllCatalogProducts()]
+    return this.collapseSizeVariations(getAllCatalogProducts())
       .sort((a, b) => productIdToNumber(a.id) - productIdToNumber(b.id))
       .slice(0, limit)
       .map((p, i) => this.toProductHit(p, 100 - i));
+  }
+
+  /**
+   * سایزها یک محصول قابل انتخاب در صفحه محصول هستند و نباید نتیجه جدا بسازند.
+   * متغیرهای رنگ چون تصویر/ظاهر مستقل دارند عمداً جدا باقی می‌مانند.
+   */
+  private collapseSizeVariations(products: BridalSampleProduct[]): BridalSampleProduct[] {
+    const seenSizes = new Set<string>();
+    return products.filter(product => {
+      if (!product.size) return true;
+      const key = product.variantKey || `${product.categorySlug}::${product.name}`;
+      if (seenSizes.has(key)) return false;
+      seenSizes.add(key);
+      return true;
+    });
   }
 
   private toProductHit(p: BridalSampleProduct, score: number): SearchProductHit {
@@ -125,7 +140,7 @@ export class SearchService {
       image: p.image,
       tag: p.tag,
       categorySlug: p.categorySlug,
-      price: mockPriceForProduct(p.id),
+      price: p.price ?? 0,
       score
     };
   }
@@ -213,7 +228,7 @@ export class SearchService {
   private tokenize(query: string): string[] {
     return query
       .toLowerCase()
-      .split(/[\s،,._\-]+/)
+      .split(/[\s،,._-]+/)
       .map(t => t.trim())
       .filter(t => t.length >= 2);
   }

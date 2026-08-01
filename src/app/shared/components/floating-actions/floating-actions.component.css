@@ -40,7 +40,7 @@
   min-block-size: 48px;
   padding: 0;
   color: var(--color-champagne-gold);
-  background: rgba(10, 10, 10, 0.88);
+  background: rgba(110, 110, 107, 0.94);
   border: 1px solid rgba(212, 175, 55, 0.35);
   border-radius: 50%;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
@@ -101,7 +101,7 @@
   min-block-size: 48px;
   padding: 0.65rem 1.1rem;
   color: #f8f5f2;
-  background: rgba(10, 10, 10, 0.88);
+  background: rgba(110, 110, 107, 0.94);
   border: 1px solid rgba(212, 175, 55, 0.4);
   border-radius: 999px;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
@@ -120,7 +120,7 @@
 .floating-actions__pill:focus-visible {
   transform: translateY(-2px);
   border-color: var(--color-champagne-gold);
-  background: rgba(17, 17, 17, 0.95);
+  background: rgba(92, 92, 89, 0.95);
 }
 
 .floating-actions__pill:focus-visible {
@@ -137,7 +137,7 @@
   inline-size: min(17.5rem, calc(100vw - 2rem));
   padding: 1rem 1rem 1.1rem;
   color: #f8f5f2;
-  background: rgba(17, 17, 17, 0.82);
+  background: rgba(92, 92, 89, 0.88);
   border: 1px solid rgba(212, 175, 55, 0.3);
   border-radius: 0.85rem;
   box-shadow:

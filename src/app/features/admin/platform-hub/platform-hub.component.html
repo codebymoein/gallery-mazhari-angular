@@ -1,0 +1,479 @@
+<section class="platform-hub" dir="rtl">
+  <header class="ph-header">
+    <div>
+      <p class="ph-eyebrow">Gallery Mazhari Platform</p>
+      <h1>مرکز واردات، رسانه و مرچندایزینگ</h1>
+      <p class="ph-sub">
+        Dry Run اکسل، آپلود گروهی تصویر، تایید پیش‌نویس، قوانین پیشنهاد و حسابرسی —
+        بدون انتشار خودکار.
+      </p>
+    </div>
+    <a routerLink="/admin/import" class="ph-link">واردات کلاسیک ←</a>
+  </header>
+
+  @if (error) {
+    <div class="ph-alert ph-alert-error">{{ error }}</div>
+  }
+  @if (message) {
+    <div class="ph-alert ph-alert-ok">{{ message }}</div>
+  }
+
+  <nav class="ph-tabs" aria-label="بخش‌های پلتفرم">
+    @for (t of [
+      { id: 'import', label: 'واردات اکسل' },
+      { id: 'media', label: 'رسانه' },
+      { id: 'workflow', label: 'گردش تایید' },
+      { id: 'rules', label: 'قوانین پیشنهاد' },
+      { id: 'tags', label: 'تگ‌ها' },
+      { id: 'looks', label: 'نگاه‌ها' },
+      { id: 'jobs', label: 'جاب‌ها' },
+      { id: 'audit', label: 'حسابرسی' }
+      ]; track t.id) {
+      <button
+        type="button"
+        class="ph-tab"
+        [class.active]="tab() === t.id"
+        (click)="setTab($any(t.id))"
+        >
+        {{ t.label }}
+      </button>
+    }
+  </nav>
+
+  @if (tab() === 'import') {
+    <div class="ph-panel">
+      <h2>Dry Run هوشمند</h2>
+      <p>هیچ داده‌ای تا تایید صریح commit نمی‌شود. واردات تکراری idempotent است.</p>
+
+      <label class="ph-file">
+        <span>انتخاب فایل اکسل/CSV</span>
+        <input type="file" accept=".xlsx,.xls,.csv" (change)="onExcelPick($event)" [disabled]="busy" />
+      </label>
+
+      <label class="ph-check">
+        <input type="checkbox" [(ngModel)]="confirmMapping" />
+        تایید نگاشت نامطمئن ستون‌ها
+      </label>
+
+      <label class="ph-field">
+        نگاشت سفارشی (JSON اختیاری)
+        <textarea rows="3" [(ngModel)]="mappingJson" placeholder='{"productCode":"کد کالا",...}'></textarea>
+      </label>
+
+      <label class="ph-field">
+        استراتژی موجودی
+        <select [(ngModel)]="inventoryStrategy">
+          <option value="full_replace">جایگزینی کامل</option>
+          <option value="incremental">افزایشی</option>
+        </select>
+      </label>
+
+      <div class="ph-actions">
+        <button
+          type="button"
+          class="ph-btn primary"
+          (click)="confirmImport()"
+          [disabled]="busy || !importId || dryRunReport?.['canCommit'] === false"
+          >
+          تایید واردات (Background Job)
+        </button>
+        <button type="button" class="ph-btn" (click)="saveTemplate()" [disabled]="!dryRunReport">ذخیره قالب نگاشت</button>
+        <button type="button" class="ph-btn danger" (click)="rollbackImport()" [disabled]="!importId">Rollback</button>
+      </div>
+
+      @if (dryRunReport) {
+        @if (dryRunReport['canCommit'] === false) {
+          <div class="ph-alert ph-alert-error">
+            واردات مسدود است —
+            {{ dryRunReport['blockingErrorCount'] || 0 }} خطای مسدودکننده.
+            ابتدا گزارش اعتبارسنجی را برطرف کنید.
+          </div>
+        } @else {
+          <div class="ph-alert ph-alert-ok">اعتبارسنجی قبول — آماده تایید.</div>
+        }
+        <div class="ph-stats">
+          <div><strong>{{ dryRunReport['totalRows'] }}</strong><span>کل ردیف</span></div>
+          <div><strong>{{ dryRunReport['validRows'] }}</strong><span>معتبر</span></div>
+          <div><strong>{{ dryRunReport['excludedOutOfStockRows'] || 0 }}</strong><span>ناموجود و خارج از چرخه</span></div>
+          <div><strong>{{ asArray(dryRunReport['suppressedProductCodes']).length }}</strong><span>حذف‌شده توسط ادمین</span></div>
+          <div><strong>{{ dryRunReport['invalidRows'] }}</strong><span>نامعتبر</span></div>
+          <div><strong>{{ dryRunReport['newProducts'] }}</strong><span>جدید</span></div>
+          <div><strong>{{ dryRunReport['updatedProducts'] }}</strong><span>به‌روز</span></div>
+          <div><strong>{{ dryRunReport['unchangedProducts'] }}</strong><span>بدون تغییر</span></div>
+          <div><strong>{{ dryRunReport['parentProducts'] }}</strong><span>والد</span></div>
+          <div><strong>{{ dryRunReport['variations'] }}</strong><span>تنوع</span></div>
+          <div><strong>{{ asArray(dryRunReport['duplicateProductCodes']).length }}</strong><span>کد تکراری</span></div>
+          <div><strong>{{ asArray(dryRunReport['duplicateBarcodes']).length }}</strong><span>بارکد تکراری</span></div>
+          <div><strong>{{ dryRunReport['missingProductCodes'] }}</strong><span>کد خالی</span></div>
+          <div><strong>{{ dryRunReport['missingPrices'] }}</strong><span>قیمت خالی</span></div>
+          <div><strong>{{ dryRunReport['blockingErrorCount'] }}</strong><span>خطای مسدود</span></div>
+          <div><strong>{{ asArray(dryRunReport['rowsRequiringReview']).length }}</strong><span>نیاز به بررسی</span></div>
+          <div><strong>{{ dryRunReport['mappingConfidence'] }}</strong><span>اطمینان نگاشت</span></div>
+        </div>
+        @if (asArray(dryRunReport['issues']).length) {
+          <h3>گزارش اعتبارسنجی</h3>
+          <ul class="ph-list">
+            @for (issue of asArray(dryRunReport['issues']).slice(0, 40); track $index) {
+              <li>
+                [{{ asRecord(issue)['severity'] }}]
+                ردیف {{ asRecord(issue)['rowIndex'] }}
+                — {{ asRecord(issue)['code'] }}
+                — {{ asRecord(issue)['message'] }}
+              </li>
+            }
+          </ul>
+        }
+      }
+
+      <h3>تاریخچه واردات</h3>
+      <ul class="ph-list">
+        @for (run of runs; track idOf(run)) {
+          <li>
+            <code>{{ asRecord(run)['id'] }}</code>
+            — {{ asRecord(run)['fileName'] }}
+            — {{ asRecord(run)['status'] }}
+            — {{ asRecord(run)['mode'] }}
+          </li>
+        }
+      </ul>
+    </div>
+  }
+
+  @if (tab() === 'media') {
+    <div class="ph-panel">
+      <div class="media-head">
+        <div>
+          <p class="ph-eyebrow">SMART MEDIA MATCHER</p>
+          <h2>تطبیق هوشمند تصاویر با محصولات</h2>
+          <p>فایل ZIP را انتخاب کنید. نام‌های <code>10010029.jpg</code> تا <code>10010029-4.jpg</code> یک گروه محسوب می‌شوند.</p>
+        </div>
+        <span class="media-safety">بدون انتشار خودکار</span>
+      </div>
+
+      <div class="media-steps">
+        <div class="media-step" [class.done]="zipInspection"><b>۱</b><span>انتخاب ZIP</span></div>
+        <div class="media-step" [class.done]="zipInspection"><b>۲</b><span>بررسی تطبیق</span></div>
+        <div class="media-step" [class.done]="uploadResult"><b>۳</b><span>تأیید و اتصال</span></div>
+      </div>
+
+      <div class="media-drop">
+        <strong>{{ zipFile?.name || 'فایل ZIP تصاویر را اینجا انتخاب کنید' }}</strong>
+        <small>حداکثر ۲۰۰ مگابایت؛ JPG، PNG، WebP و AVIF</small>
+        <label class="ph-btn primary">
+          {{ busy ? 'در حال بررسی…' : 'انتخاب فایل ZIP' }}
+          <input type="file" accept=".zip,application/zip" hidden (change)="onZipPick($event)" [disabled]="busy" />
+        </label>
+      </div>
+
+      @if (zipInspection) {
+        <div class="media-summary">
+          <div><strong>{{ zipInspection.totalFiles }}</strong><span>کل فایل‌ها</span></div>
+          <div><strong>{{ zipInspection.validImages }}</strong><span>تصویر معتبر</span></div>
+          <div class="ok"><strong>{{ zipGroups('queue').length }}</strong><span>محصول در صف</span></div>
+          <div class="warn"><strong>{{ zipGroups('published').length }}</strong><span>محصول منتشرشده</span></div>
+          <div class="bad"><strong>{{ zipGroups('missing').length }}</strong><span>کد پیدا نشده</span></div>
+        </div>
+
+        <div class="media-groups">
+          @for (group of zipInspection.groups; track group.productCode) {
+            <article class="media-group" [class.published]="group.match === 'published'" [class.missing]="group.match === 'missing'">
+              <div class="media-group__main">
+                <span class="media-code" dir="ltr">{{ group.productCode }}</span>
+                <div>
+                  <strong>{{ group.productName || 'محصول پیدا نشد' }}</strong>
+                  <small>{{ group.category || 'بدون دسته' }} · {{ group.files.length }} تصویر</small>
+                </div>
+                <span class="media-match">
+                  {{ group.match === 'queue' ? 'صف انتشار' : group.match === 'published' ? 'منتشرشده' : 'بدون تطبیق' }}
+                </span>
+              </div>
+              <div class="media-files" dir="ltr">
+                @for (file of group.files; track file) { <code>{{ file }}</code> }
+              </div>
+              @if (group.match === 'published') {
+                <label class="media-confirm">
+                  <input type="checkbox"
+                    [checked]="confirmedPublishedCodes.has(group.productCode)"
+                    (change)="togglePublishedConfirmation(group.productCode, $any($event.target).checked)" />
+                    تأیید می‌کنم تصاویر به محصول منتشرشده «{{ group.productName }}» اضافه شوند.
+                  </label>
+                }
+                @if (group.match === 'queue') {
+                  <p class="media-note">پس از اتصال، محصول در دسته خودش به مرحله «آماده تأیید» منتقل می‌شود.</p>
+                }
+              </article>
+            }
+          </div>
+
+          @if (zipInspection.invalidFiles.length) {
+            <div class="ph-alert ph-alert-error">
+              {{ zipInspection.invalidFiles.length }} فایل نامعتبر است:
+              {{ zipInspection.invalidFiles.join('، ') }}
+            </div>
+          }
+
+          <div class="media-commit">
+            <button type="button" class="ph-btn" (click)="resetZip()" [disabled]="busy">انصراف</button>
+            <button type="button" class="ph-btn primary" (click)="commitZip()" [disabled]="!canCommitZip()">
+              {{ busy ? 'در حال ذخیره تصاویر…' : 'تأیید و اتصال تصاویر' }}
+            </button>
+            @if (zipGroups('published').length && !canCommitZip()) {
+              <small>برای ادامه، افزودن عکس به همه محصولات منتشرشده را تأیید کنید.</small>
+            }
+          </div>
+        }
+
+        @if (uploadResult) {
+          <div class="media-result">
+            <strong>عملیات با موفقیت انجام شد</strong>
+            <span>{{ uploadResult.attached }} تصویر متصل شد</span>
+            <span>{{ uploadResult.orphans }} تصویر بدون محصول</span>
+            <span>{{ uploadResult.quarantined }} تصویر قرنطینه</span>
+          </div>
+        }
+
+        <details class="media-tools">
+          <summary>ابزارهای تکمیلی و گزارش سلامت رسانه</summary>
+          <div class="ph-actions">
+            <label class="ph-file">
+              <span>آپلود مستقیم چند تصویر</span>
+              <input type="file" accept="image/*" multiple (change)="onMediaPick($event)" [disabled]="busy" />
+            </label>
+            <button type="button" class="ph-btn" (click)="reattach()">اتصال مجدد یتیم‌ها</button>
+          </div>
+        </details>
+
+        @if (mediaReport || inventorySummary) {
+          <div class="ph-stats">
+            @if (mediaReport) {
+              <div><strong>{{ mediaReport['attached'] }}</strong><span>متصل</span></div>
+              <div><strong>{{ mediaReport['orphans'] }}</strong><span>یتیم</span></div>
+              <div><strong>{{ mediaReport['quarantine'] }}</strong><span>قرنطینه</span></div>
+              <div><strong>{{ mediaReport['productsMissingImages'] }}</strong><span>بدون تصویر</span></div>
+              <div><strong>{{ mediaReport['assetsWithDerivatives'] }}</strong><span>با مشتق</span></div>
+            }
+            @if (inventorySummary) {
+              <div><strong>{{ inventorySummary['totalSkus'] }}</strong><span>SKU</span></div>
+              <div><strong>{{ inventorySummary['totalUnits'] }}</strong><span>واحد موجودی</span></div>
+              <div><strong>{{ inventorySummary['outOfStock'] }}</strong><span>ناموجود</span></div>
+              <div><strong>{{ inventorySummary['lowStock'] }}</strong><span>کم‌موجود</span></div>
+              <div><strong>{{ inventorySummary['mediaCoveragePercent'] }}%</strong><span>پوشش تصویر</span></div>
+            }
+          </div>
+        }
+
+        <div class="ph-grid2">
+          <div>
+            <h3>صف یتیم ({{ orphans.length }})</h3>
+            <ul class="ph-list">
+              @for (o of orphans; track idOf(o)) {
+                <li>{{ asRecord(o)['originalFileName'] }} → {{ asRecord(o)['productCode'] }}</li>
+              }
+            </ul>
+          </div>
+          <div>
+            <h3>قرنطینه ({{ quarantine.length }})</h3>
+            <ul class="ph-list">
+              @for (q of quarantine; track idOf(q)) {
+                <li>{{ asRecord(q)['originalFileName'] }} — {{ asRecord(q)['quarantineReason'] }}</li>
+              }
+            </ul>
+          </div>
+        </div>
+
+        <h3>محصولات بدون تصویر ({{ missingImages.length }})</h3>
+        <ul class="ph-list">
+          @for (m of missingImages; track asRecord(m)['code']) {
+            <li>
+              {{ asRecord(m)['code'] }} — {{ asRecord(m)['name'] }}
+              — {{ asRecord(m)['status'] }} — موجودی {{ asRecord(m)['stock'] }}
+            </li>
+          }
+        </ul>
+      </div>
+    }
+
+    @if (tab() === 'workflow') {
+      <div class="ph-panel">
+        <h2>صف تایید / انتشار</h2>
+        <p>محصولات وارداتی تا تایید مدیر منتشر نمی‌شوند.</p>
+        <div class="ph-actions">
+          <button type="button" class="ph-btn primary" (click)="approveSelected(false)" [disabled]="busy">تایید</button>
+          <button type="button" class="ph-btn primary" (click)="approveSelected(true)" [disabled]="busy">تایید + انتشار</button>
+          <input class="ph-inline" [(ngModel)]="rejectReason" placeholder="دلیل رد" />
+          <button type="button" class="ph-btn danger" (click)="rejectSelected()" [disabled]="busy">رد</button>
+        </div>
+        <ul class="ph-list selectable">
+          @for (p of queue; track idOf(p)) {
+            <li>
+              <label>
+                <input
+                  type="checkbox"
+                  [checked]="selectedIds.has(idOf(p))"
+                  (change)="toggleSelect(idOf(p))"
+                  />
+                  <strong>{{ asRecord(p)['code'] }}</strong>
+                  — {{ asRecord(p)['name'] }}
+                  — <em>{{ asRecord(p)['status'] }}</em>
+                  — موجودی {{ asRecord(p)['stock'] }}
+                </label>
+              </li>
+            }
+          </ul>
+        </div>
+      }
+
+      @if (tab() === 'rules') {
+        <div class="ph-panel">
+          <h2>موتور قوانین بدون کد</h2>
+          <div class="ph-grid2">
+            <div>
+              <label class="ph-field">نام<input [(ngModel)]="ruleDraft.name" /></label>
+              <label class="ph-field">اولویت<input type="number" [(ngModel)]="ruleDraft.priority" /></label>
+              <label class="ph-field">وزن<input type="number" [(ngModel)]="ruleDraft.weight" /></label>
+              <label class="ph-field">شرایط JSON<textarea rows="4" [(ngModel)]="ruleDraft.conditionsJson"></textarea></label>
+              <label class="ph-field">اقدامات JSON<textarea rows="4" [(ngModel)]="ruleDraft.actionsJson"></textarea></label>
+              <button type="button" class="ph-btn primary" (click)="saveRule()">ذخیره قانون</button>
+            </div>
+            <div>
+              <h3>شبیه‌ساز</h3>
+              <label class="ph-field">
+                کد محصول مبدأ
+                <input [(ngModel)]="simulateCode" placeholder="D1" />
+              </label>
+              <button type="button" class="ph-btn" (click)="runSimulate()">اجرای شبیه‌سازی</button>
+              @if (simulation) {
+                <pre class="ph-pre">{{ simulation | json }}</pre>
+              }
+              @if (analytics) {
+                <h3>آنالیتیکس</h3>
+                <pre class="ph-pre">{{ analytics | json }}</pre>
+              }
+            </div>
+          </div>
+          <h3>قوانین فعال</h3>
+          <ul class="ph-list">
+            @for (r of rules; track idOf(r)) {
+              <li>
+                #{{ asRecord(r)['priority'] }} {{ asRecord(r)['name'] }}
+                — {{ asRecord(r)['enabled'] ? 'فعال' : 'غیرفعال' }}
+                — v{{ asRecord(r)['version'] }}
+              </li>
+            }
+          </ul>
+        </div>
+      }
+
+      @if (tab() === 'tags') {
+        <div class="ph-panel">
+          <h2>تگ‌های پنهان در انتظار بررسی</h2>
+          <ul class="ph-list">
+            @for (t of pendingTags; track idOf(t)) {
+              <li>
+                {{ asRecord(t)['tagValue'] }}
+                — اطمینان {{ asRecord(t)['confidence'] }}
+                — {{ asRecord(t)['approvalState'] }}
+                <button type="button" class="ph-btn tiny" (click)="approveTag(idOf(t))">تایید</button>
+              </li>
+            }
+          </ul>
+        </div>
+      }
+
+      @if (tab() === 'looks') {
+        <div class="ph-panel">
+          <h2>مدیریت استایل‌ها</h2>
+          <p>اطلاعات، حداکثر ۵ عکس و محصولات منتشرشده هر استایل را مدیریت کنید.</p>
+          <div class="ph-grid2">
+            <label class="ph-field">نام استایل<input [(ngModel)]="lookDraft.name" /></label>
+            <label class="ph-field">نشانی صفحه<input [(ngModel)]="lookDraft.slug" placeholder="مثال: ivory-dream" /></label>
+            <label class="ph-field">عنوان کوتاه<input [(ngModel)]="lookDraft.subtitle" /></label>
+            <label class="ph-field">نوع استایل<input [(ngModel)]="lookDraft.style" /></label>
+            <label class="ph-field">حال‌وهوا<input [(ngModel)]="lookDraft.mood" /></label>
+            <label class="ph-field">مناسب مراسم<input [(ngModel)]="lookDraft.ceremony" /></label>
+            <label class="ph-field">وضعیت<select [(ngModel)]="lookDraft.status"><option value="draft">پیش‌نویس</option><option value="published">منتشرشده</option></select></label>
+            <label class="ph-field">اولویت نمایش<input type="number" [(ngModel)]="lookDraft.displayPriority" /></label>
+          </div>
+          <label class="ph-field">توضیحات کامل<textarea rows="4" [(ngModel)]="lookDraft.story"></textarea></label>
+          <label class="ph-field">تصاویر استایل (حداکثر ۵ عکس)<input type="file" accept="image/jpeg,image/png,image/webp,image/avif" multiple (change)="chooseLookImages($event)" /></label>
+          @if (hotspotProductCode) {
+            <p class="hotspot-help">محصول انتخاب شد؛ روی محل آن در یکی از عکس‌ها کلیک کنید.</p>
+          }
+          <div class="look-images">
+            @for (image of lookDraft.images; track image; let i = $index) {
+              <figure role="button" tabindex="0" aria-label="ثبت نقطه محصول روی تصویر"
+                (click)="placeHotspot($event,i)" (keydown.enter)="placeHotspot($event,i)">
+                <img [src]="image" alt="">
+                @for (point of lookDraft.hotspots; track point) {
+                  <i class="look-marker"
+                    [hidden]="point.imageIndex !== i"
+                    [style.left.%]="point.x" [style.top.%]="point.y"
+                  [title]="point.label"></i>
+                }
+                <button type="button" (click)="$event.stopPropagation(); removeLookImage(i)">حذف</button>
+              </figure>
+            }
+          </div>
+          <h3>انتخاب از محصولات منتشرشده</h3>
+          <div class="look-products">
+            @for (product of publishedStyleProducts; track product) {
+              <label>
+                <input type="checkbox" [checked]="lookHasProduct(product.code)" (change)="toggleLookProduct(product.code,$any($event.target).checked)">
+                @if (product.photoUrl) {
+                  <img [src]="product.photoUrl" alt="">
+                }
+                <span>{{ product.name }}<small>{{ product.category }} — {{ product.code }}</small></span>
+                <button type="button" class="ph-btn tiny" (click)="startHotspot(product.code)">نقطه روی عکس</button>
+              </label>
+            }
+          </div>
+          @if (lookDraft.hotspots.length) {
+            <div class="hotspot-list">
+              <strong>نقاط ثبت‌شده روی تصاویر</strong>
+              @for (point of lookDraft.hotspots; track point; let i = $index) {
+                <button type="button" (click)="removeHotspot(i)">
+                  تصویر {{ point.imageIndex + 1 }} — {{ point.label }} ×
+                </button>
+              }
+            </div>
+          }
+          <button type="button" class="ph-btn primary" (click)="saveLook()">ذخیره استایل</button>
+          <ul class="ph-list">
+            @for (l of looks; track idOf(l)) {
+              <li><button type="button" class="ph-btn tiny" (click)="editLook(l)">ویرایش</button> {{ asRecord(l)['name'] }} — {{ asRecord(l)['status'] }}</li>
+            }
+          </ul>
+        </div>
+      }
+
+      @if (tab() === 'jobs') {
+        <div class="ph-panel">
+          <h2>جاب‌های پس‌زمینه</h2>
+          <ul class="ph-list">
+            @for (j of jobs; track idOf(j)) {
+              <li>
+                {{ asRecord(j)['type'] }} — {{ asRecord(j)['status'] }}
+                — {{ asRecord(j)['progressPercent'] }}%
+                — {{ asRecord(j)['currentStep'] }}
+              </li>
+            }
+          </ul>
+        </div>
+      }
+
+      @if (tab() === 'audit') {
+        <div class="ph-panel">
+          <h2>ردپای حسابرسی (فقط‌خواندنی)</h2>
+          <ul class="ph-list">
+            @for (a of auditRows; track idOf(a)) {
+              <li>
+                {{ asRecord(a)['action'] }}
+                — {{ asRecord(a)['actor'] || '—' }}
+                — {{ asRecord(a)['entityType'] }}
+                — {{ asRecord(a)['importId'] || '' }}
+              </li>
+            }
+          </ul>
+        </div>
+      }
+    </section>

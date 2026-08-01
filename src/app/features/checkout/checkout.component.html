@@ -5,364 +5,417 @@
     <h1 id="checkout-title" class="checkout__title">تسویه حساب</h1>
   </header>
 
-  <!-- Empty cart -->
-  <div class="checkout__empty" *ngIf="emptyCart$ | async; else checkoutFlow">
-    <div class="checkout__empty-icon" aria-hidden="true">
-      <svg viewBox="0 0 24 24" focusable="false">
-        <path fill="currentColor" d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0 0 20 4H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/>
-      </svg>
+  @if (paymentResult; as result) {
+    <div class="checkout__gateway" role="status">
+      <h2 class="checkout__gateway-title">
+        {{ result.status === 'paid' ? 'پرداخت با موفقیت انجام شد' : result.status === 'cancelled' ? 'پرداخت لغو شد' : 'پرداخت ناموفق بود' }}
+      </h2>
+      @if (result.order) {
+        <p class="checkout__gateway-order">شماره سفارش: <strong>{{ result.order }}</strong></p>
+      }
+      @if (result.ref) {
+        <p class="checkout__gateway-order">شماره پیگیری: <strong>{{ result.ref }}</strong></p>
+      }
+      <a routerLink="/orders" class="checkout__btn checkout__btn--primary">پیگیری سفارش</a>
     </div>
-    <p class="checkout__empty-text">سبد خرید شما خالی است. برای ادامه، محصولی انتخاب کنید.</p>
-    <a
-      class="checkout__btn checkout__btn--primary"
-      [routerLink]="(continueShoppingLink$ | async) || ['/']"
-    >مشاهده فروشگاه</a>
-  </div>
+  }
 
-  <ng-template #checkoutFlow>
-
-    <!-- Gateway confirmation -->
-    <div class="checkout__gateway" *ngIf="gatewayReady && createdOrder; else stepsPanel" role="status">
-      <div class="checkout__gateway-icon" aria-hidden="true">
+  <!-- Empty cart -->
+  @if ((emptyCart$ | async) && !gatewayReady) {
+    <div class="checkout__empty">
+      <div class="checkout__empty-icon" aria-hidden="true">
         <svg viewBox="0 0 24 24" focusable="false">
-          <path fill="currentColor" d="M12 1 3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-1 14.5-3.5-3.5 1.41-1.41L11 12.67l4.59-4.58L17 9.5 11 15.5z"/>
+          <path fill="currentColor" d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0 0 20 4H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/>
         </svg>
       </div>
-      <h2 class="checkout__gateway-title">سفارش ثبت شد</h2>
-      <p class="checkout__gateway-lead">
-        در حال انتقال به درگاه بانکی…
-      </p>
-      <p class="checkout__gateway-order">
-        شماره سفارش:
-        <strong>{{ createdOrder.number }}</strong>
-      </p>
-      <p class="checkout__gateway-note">
-        این صفحه نمایشی است؛ اتصال واقعی به درگاه بانکی انجام نمی‌شود.
-      </p>
-      <div class="checkout__gateway-actions">
-        <a routerLink="/orders" class="checkout__btn checkout__btn--primary">پیگیری سفارش</a>
-        <a class="checkout__btn checkout__btn--outline" [routerLink]="postOrderContinueLink">ادامه خرید</a>
-      </div>
+      <p class="checkout__empty-text">سبد خرید شما خالی است. برای ادامه، محصولی انتخاب کنید.</p>
+      <a
+        class="checkout__btn checkout__btn--primary"
+        [routerLink]="(continueShoppingLink$ | async) || ['/']"
+      >مشاهده فروشگاه</a>
     </div>
-
-    <ng-template #stepsPanel>
-      <div class="checkout__layout" *ngIf="cartItems$ | async as items">
-
-        <!-- Step indicator -->
-        <nav class="checkout__steps" aria-label="مراحل تسویه حساب">
-          <button
-            type="button"
-            class="checkout__step"
-            [class.checkout__step--active]="step === 1"
-            [class.checkout__step--done]="step > 1"
-            (click)="step > 1 ? goToStep(1) : null"
-            [attr.aria-current]="step === 1 ? 'step' : null"
-          >
-            <span class="checkout__step-num">۱</span>
-            <span class="checkout__step-label">آدرس</span>
-          </button>
-          <span class="checkout__step-line" aria-hidden="true"></span>
-          <button
-            type="button"
-            class="checkout__step"
-            [class.checkout__step--active]="step === 2"
-            [class.checkout__step--done]="step > 2"
-            (click)="step > 2 ? goToStep(2) : null"
-            [attr.aria-current]="step === 2 ? 'step' : null"
-            [disabled]="step < 2"
-          >
-            <span class="checkout__step-num">۲</span>
-            <span class="checkout__step-label">ارسال</span>
-          </button>
-          <span class="checkout__step-line" aria-hidden="true"></span>
-          <button
-            type="button"
-            class="checkout__step"
-            [class.checkout__step--active]="step === 3"
-            [attr.aria-current]="step === 3 ? 'step' : null"
-            [disabled]="step < 3"
-          >
-            <span class="checkout__step-num">۳</span>
-            <span class="checkout__step-label">بررسی</span>
-          </button>
-        </nav>
-
-        <div class="checkout__main">
-
-          <!-- Step 1: Address -->
-          <section class="checkout__panel" *ngIf="step === 1" aria-labelledby="step-address-title">
-            <h2 id="step-address-title" class="checkout__panel-title">اطلاعات تحویل</h2>
-            <form class="checkout__form" (ngSubmit)="goToStep(2)">
-              <div class="checkout__field-row">
-                <div class="checkout__field">
-                  <label for="firstName">نام</label>
-                  <input
-                    id="firstName"
-                    name="firstName"
-                    type="text"
-                    autocomplete="given-name"
-                    [(ngModel)]="draft.firstName"
-                    (ngModelChange)="onDraftChange()"
-                    [class.checkout__input--error]="addressErrors['firstName']"
-                  />
-                  <span class="checkout__error" *ngIf="addressErrors['firstName']">{{ addressErrors['firstName'] }}</span>
-                </div>
-                <div class="checkout__field">
-                  <label for="lastName">نام خانوادگی</label>
-                  <input
-                    id="lastName"
-                    name="lastName"
-                    type="text"
-                    autocomplete="family-name"
-                    [(ngModel)]="draft.lastName"
-                    (ngModelChange)="onDraftChange()"
-                    [class.checkout__input--error]="addressErrors['lastName']"
-                  />
-                  <span class="checkout__error" *ngIf="addressErrors['lastName']">{{ addressErrors['lastName'] }}</span>
-                </div>
-              </div>
-
-              <div class="checkout__field-row">
-                <div class="checkout__field">
-                  <label for="phone">موبایل</label>
-                  <input
-                    id="phone"
-                    name="phone"
-                    type="tel"
-                    inputmode="tel"
-                    autocomplete="tel"
-                    placeholder="۰۹۱۲۳۴۵۶۷۸۹"
-                    [(ngModel)]="draft.phone"
-                    (ngModelChange)="onDraftChange()"
-                    [class.checkout__input--error]="addressErrors['phone']"
-                  />
-                  <span class="checkout__error" *ngIf="addressErrors['phone']">{{ addressErrors['phone'] }}</span>
-                </div>
-                <div class="checkout__field">
-                  <label for="email">ایمیل</label>
-                  <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    autocomplete="email"
-                    [(ngModel)]="draft.email"
-                    (ngModelChange)="onDraftChange()"
-                    [class.checkout__input--error]="addressErrors['email']"
-                  />
-                  <span class="checkout__error" *ngIf="addressErrors['email']">{{ addressErrors['email'] }}</span>
-                </div>
-              </div>
-
-              <div class="checkout__field-row">
-                <div class="checkout__field">
-                  <label for="city">شهر</label>
-                  <input
-                    id="city"
-                    name="city"
-                    type="text"
-                    autocomplete="address-level2"
-                    [(ngModel)]="draft.city"
-                    (ngModelChange)="onDraftChange()"
-                    [class.checkout__input--error]="addressErrors['city']"
-                  />
-                  <span class="checkout__error" *ngIf="addressErrors['city']">{{ addressErrors['city'] }}</span>
-                </div>
-                <div class="checkout__field">
-                  <label for="postalCode">کد پستی</label>
-                  <input
-                    id="postalCode"
-                    name="postalCode"
-                    type="text"
-                    inputmode="numeric"
-                    autocomplete="postal-code"
-                    [(ngModel)]="draft.postalCode"
-                    (ngModelChange)="onDraftChange()"
-                    [class.checkout__input--error]="addressErrors['postalCode']"
-                  />
-                  <span class="checkout__error" *ngIf="addressErrors['postalCode']">{{ addressErrors['postalCode'] }}</span>
-                </div>
-              </div>
-
-              <div class="checkout__field">
-                <label for="address">آدرس کامل</label>
-                <textarea
-                  id="address"
-                  name="address"
-                  rows="3"
-                  autocomplete="street-address"
-                  [(ngModel)]="draft.address"
-                  (ngModelChange)="onDraftChange()"
-                  [class.checkout__input--error]="addressErrors['address']"
-                ></textarea>
-                <span class="checkout__error" *ngIf="addressErrors['address']">{{ addressErrors['address'] }}</span>
-              </div>
-
-              <div class="checkout__field">
-                <label for="note">یادداشت سفارش (اختیاری)</label>
-                <textarea
-                  id="note"
-                  name="note"
-                  rows="2"
-                  [(ngModel)]="draft.note"
-                  (ngModelChange)="onDraftChange()"
-                ></textarea>
-              </div>
-
-              <div class="checkout__panel-actions">
-                <a routerLink="/cart" class="checkout__btn checkout__btn--outline">بازگشت به سبد</a>
-                <button type="submit" class="checkout__btn checkout__btn--primary">ادامه — روش ارسال</button>
-              </div>
-            </form>
-          </section>
-
-          <!-- Step 2: Shipping -->
-          <section class="checkout__panel" *ngIf="step === 2" aria-labelledby="step-shipping-title">
-            <h2 id="step-shipping-title" class="checkout__panel-title">روش ارسال</h2>
-
-            <div class="checkout__shipping-list" role="radiogroup" aria-label="انتخاب روش ارسال">
-              <label
-                class="checkout__shipping-card"
-                *ngFor="let opt of shippingOptions"
-                [class.checkout__shipping-card--selected]="draft.shippingMethod === opt.value"
-              >
-                <input
-                  type="radio"
-                  name="shippingMethod"
-                  [value]="opt.value"
-                  [checked]="draft.shippingMethod === opt.value"
-                  (change)="selectShipping(opt.value)"
-                />
-                <div class="checkout__shipping-body">
-                  <span class="checkout__shipping-title">{{ opt.title }}</span>
-                  <span class="checkout__shipping-desc">{{ opt.desc }}</span>
-                </div>
-                <span class="checkout__shipping-price">
-                  {{ opt.value === 'pickup' ? 'رایگان' : formatPrice(shippingCostFor(opt.value)) }}
-                </span>
-              </label>
-            </div>
-
-            <div class="checkout__panel-actions">
-              <button type="button" class="checkout__btn checkout__btn--outline" (click)="goToStep(1)">مرحله قبل</button>
-              <button type="button" class="checkout__btn checkout__btn--primary" (click)="goToStep(3)">ادامه — بررسی نهایی</button>
-            </div>
-          </section>
-
-          <!-- Step 3: Summary -->
-          <section class="checkout__panel" *ngIf="step === 3" aria-labelledby="step-summary-title">
-            <h2 id="step-summary-title" class="checkout__panel-title">بررسی و تأیید</h2>
-
-            <div class="checkout__review-block">
-              <h3 class="checkout__review-heading">آدرس تحویل</h3>
-              <p class="checkout__review-text">
-                {{ draft.firstName }} {{ draft.lastName }}<br>
-                {{ draft.city }} — {{ draft.address }}<br>
-                کد پستی: {{ draft.postalCode }}<br>
-                {{ draft.phone }} · {{ draft.email }}
-              </p>
-              <button type="button" class="checkout__review-edit" (click)="goToStep(1)">ویرایش</button>
-            </div>
-
-            <div class="checkout__review-block">
-              <h3 class="checkout__review-heading">روش ارسال</h3>
-              <p class="checkout__review-text">{{ shippingLabel() }}</p>
-              <button type="button" class="checkout__review-edit" (click)="goToStep(2)">ویرایش</button>
-            </div>
-
-            <ul class="checkout__items" aria-label="اقلام سفارش">
-              <li class="checkout__item" *ngFor="let item of items; trackBy: trackByProductId">
-                <div class="checkout__item-image-wrap">
-                  <img
-                    *ngIf="item.product_image"
-                    class="checkout__item-image"
-                    [src]="item.product_image"
-                    [alt]="item.product_name || 'محصول'"
-                    loading="lazy"
-                    (error)="onImgError($event)"
-                  />
-                </div>
-                <div class="checkout__item-body">
-                  <span class="checkout__item-name">{{ item.product_name || 'محصول #' + item.product_id }}</span>
-                  <span class="checkout__item-qty">× {{ item.quantity | number:'1.0-0':'fa' }}</span>
-                </div>
-                <span class="checkout__item-price">{{ formatPrice(lineTotal(item)) }}</span>
-              </li>
-            </ul>
-
-            <div class="checkout__panel-actions checkout__panel-actions--pay">
-              <button type="button" class="checkout__btn checkout__btn--outline" (click)="goToStep(2)">مرحله قبل</button>
-              <button type="button" class="checkout__btn checkout__btn--primary checkout__btn--pay" (click)="submitPayment()">
-                پرداخت آنلاین
-              </button>
-            </div>
-          </section>
-
+  } @else {
+    <!-- Gateway confirmation -->
+    @if (gatewayReady && createdOrder) {
+      <div class="checkout__gateway" role="status">
+        <div class="checkout__gateway-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" focusable="false">
+            <path fill="currentColor" d="M12 1 3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-1 14.5-3.5-3.5 1.41-1.41L11 12.67l4.59-4.58L17 9.5 11 15.5z"/>
+          </svg>
         </div>
-
-        <!-- Sidebar summary -->
-        <aside class="checkout__sidebar" aria-labelledby="checkout-sidebar-title" *ngIf="cartSummary$ | async as summary">
-          <h2 id="checkout-sidebar-title" class="checkout__sidebar-title">خلاصه پرداخت</h2>
-
-          <div class="checkout__coupon">
-            <label for="coupon-code">کد تخفیف</label>
-            <div class="checkout__coupon-row">
-              <input
-                id="coupon-code"
-                type="text"
-                [(ngModel)]="couponInput"
-                name="coupon"
-                placeholder="مثلاً BRIDAL10"
-                [disabled]="!!summary.coupon"
-              />
-              <button
-                type="button"
-                class="checkout__btn checkout__btn--outline"
-                *ngIf="!summary.coupon; else removeCouponTpl"
-                (click)="applyCoupon()"
-              >
-                اعمال
-              </button>
-              <ng-template #removeCouponTpl>
-                <button type="button" class="checkout__btn checkout__btn--outline" (click)="removeCoupon()">حذف</button>
-              </ng-template>
-            </div>
-            <p class="checkout__coupon-error" *ngIf="couponError" role="alert">{{ couponError }}</p>
-            <p class="checkout__coupon-ok" *ngIf="summary.coupon">
-              کد {{ summary.coupon }} —
-              <strong *ngIf="summary.couponPercent">{{ summary.couponPercent | number:'1.0-0':'fa-IR' }}٪ تخفیف</strong>
-            </p>
-          </div>
-
-          <dl class="checkout__sidebar-rows">
-            <div class="checkout__sidebar-row">
-              <dt>جمع جزء</dt>
-              <dd>{{ formatPrice(subtotal(items)) }}</dd>
-            </div>
-            <div class="checkout__sidebar-row">
-              <dt>هزینه ارسال</dt>
-              <dd>{{ shippingCost() === 0 ? 'رایگان' : formatPrice(shippingCost()) }}</dd>
-            </div>
-            <div class="checkout__sidebar-row checkout__sidebar-row--discount" *ngIf="summary.couponDiscount">
-              <dt>تخفیف ({{ summary.couponPercent | number:'1.0-0':'fa-IR' }}٪)</dt>
-              <dd>− {{ formatPrice(summary.couponDiscount) }}</dd>
-            </div>
-            <div class="checkout__sidebar-row checkout__sidebar-row--total">
-              <dt>مبلغ قابل پرداخت</dt>
-              <dd>
-                <span
-                  class="checkout__price-old"
-                  *ngIf="summary.couponDiscount"
-                >{{ formatPrice(grossTotal(items)) }}</span>
-                <strong>{{ formatPrice(payableTotal(items, summary.couponDiscount || 0)) }}</strong>
-              </dd>
-            </div>
-          </dl>
-          <p class="checkout__sidebar-note">پرداخت از طریق درگاه امن بانکی انجام می‌شود.</p>
-        </aside>
-
+        <h2 class="checkout__gateway-title">سفارش ثبت شد</h2>
+        <p class="checkout__gateway-lead">
+          در حال انتقال به درگاه بانکی…
+        </p>
+        <p class="checkout__gateway-order">
+          شماره سفارش:
+          <strong>{{ createdOrder.number }}</strong>
+        </p>
+        <p class="checkout__gateway-note">مبلغ نهایی توسط سرور و براساس قیمت ریالی فایل انبار محاسبه شده است.</p>
+        <div class="checkout__gateway-actions">
+          <a routerLink="/orders" class="checkout__btn checkout__btn--primary">پیگیری سفارش</a>
+          <a class="checkout__btn checkout__btn--outline" [routerLink]="postOrderContinueLink">ادامه خرید</a>
+        </div>
       </div>
-    </ng-template>
+    } @else {
+      @if (cartItems$ | async; as items) {
+        <div class="checkout__layout">
+          <!-- Step indicator -->
+          <nav class="checkout__steps" aria-label="مراحل تسویه حساب">
+            <button
+              type="button"
+              class="checkout__step"
+              [class.checkout__step--active]="step === 1"
+              [class.checkout__step--done]="step > 1"
+              (click)="step > 1 ? goToStep(1) : null"
+              [attr.aria-current]="step === 1 ? 'step' : null"
+              >
+              <span class="checkout__step-num">۱</span>
+              <span class="checkout__step-label">آدرس</span>
+            </button>
+            <span class="checkout__step-line" aria-hidden="true"></span>
+            <button
+              type="button"
+              class="checkout__step"
+              [class.checkout__step--active]="step === 2"
+              [class.checkout__step--done]="step > 2"
+              (click)="step > 2 ? goToStep(2) : null"
+              [attr.aria-current]="step === 2 ? 'step' : null"
+              [disabled]="step < 2"
+              >
+              <span class="checkout__step-num">۲</span>
+              <span class="checkout__step-label">ارسال</span>
+            </button>
+            <span class="checkout__step-line" aria-hidden="true"></span>
+            <button
+              type="button"
+              class="checkout__step"
+              [class.checkout__step--active]="step === 3"
+              [attr.aria-current]="step === 3 ? 'step' : null"
+              [disabled]="step < 3"
+              >
+              <span class="checkout__step-num">۳</span>
+              <span class="checkout__step-label">بررسی</span>
+            </button>
+          </nav>
+          <div class="checkout__main">
+            <!-- Step 1: Address -->
+            @if (step === 1) {
+              <section class="checkout__panel" aria-labelledby="step-address-title">
+                <h2 id="step-address-title" class="checkout__panel-title">اطلاعات تحویل</h2>
+                <form class="checkout__form" (ngSubmit)="goToStep(2)">
+                  <div class="checkout__field-row">
+                    <div class="checkout__field">
+                      <label for="firstName">نام</label>
+                      <input
+                        id="firstName"
+                        name="firstName"
+                        type="text"
+                        autocomplete="given-name"
+                        placeholder="اختیاری"
+                        [(ngModel)]="draft.firstName"
+                        (ngModelChange)="onDraftChange()"
+                        [class.checkout__input--error]="addressErrors['firstName']"
+                        [attr.aria-invalid]="addressErrors['firstName'] ? 'true' : null"
+                        [attr.aria-describedby]="addressErrors['firstName'] ? 'firstName-error' : null"
+                        />
+                      @if (addressErrors['firstName']) {
+                        <span id="firstName-error" class="checkout__error" role="alert">{{ addressErrors['firstName'] }}</span>
+                      }
+                    </div>
+                    <div class="checkout__field">
+                      <label for="lastName">نام خانوادگی *</label>
+                      <input
+                        id="lastName"
+                        name="lastName"
+                        type="text"
+                        autocomplete="family-name"
+                        [(ngModel)]="draft.lastName"
+                        (ngModelChange)="onDraftChange()"
+                        [class.checkout__input--error]="addressErrors['lastName']"
+                        [attr.aria-invalid]="addressErrors['lastName'] ? 'true' : null"
+                        [attr.aria-describedby]="addressErrors['lastName'] ? 'lastName-error' : null"
+                        />
+                      @if (addressErrors['lastName']) {
+                        <span id="lastName-error" class="checkout__error" role="alert">{{ addressErrors['lastName'] }}</span>
+                      }
+                    </div>
+                  </div>
+                  <div class="checkout__field-row">
+                    <div class="checkout__field">
+                      <label for="phone">شماره تماس *</label>
+                      <input
+                        id="phone"
+                        name="phone"
+                        type="tel"
+                        inputmode="tel"
+                        autocomplete="tel"
+                        placeholder="۰۹۱۲۳۴۵۶۷۸۹"
+                        [(ngModel)]="draft.phone"
+                        (ngModelChange)="onDraftChange()"
+                        [class.checkout__input--error]="addressErrors['phone']"
+                        [attr.aria-invalid]="addressErrors['phone'] ? 'true' : null"
+                        [attr.aria-describedby]="addressErrors['phone'] ? 'phone-error' : null"
+                        />
+                      @if (addressErrors['phone']) {
+                        <span id="phone-error" class="checkout__error" role="alert">{{ addressErrors['phone'] }}</span>
+                      }
+                    </div>
+                    <div class="checkout__field">
+                      <label for="email">ایمیل</label>
+                      <input
+                        id="email"
+                        name="email"
+                        type="email"
+                        autocomplete="email"
+                        placeholder="اختیاری"
+                        [(ngModel)]="draft.email"
+                        (ngModelChange)="onDraftChange()"
+                        [class.checkout__input--error]="addressErrors['email']"
+                        [attr.aria-invalid]="addressErrors['email'] ? 'true' : null"
+                        [attr.aria-describedby]="addressErrors['email'] ? 'email-error' : null"
+                        />
+                      @if (addressErrors['email']) {
+                        <span id="email-error" class="checkout__error" role="alert">{{ addressErrors['email'] }}</span>
+                      }
+                    </div>
+                  </div>
+                  <div class="checkout__field-row">
+                    <div class="checkout__field">
+                      <label for="city">شهر *</label>
+                      <input
+                        id="city"
+                        name="city"
+                        type="text"
+                        autocomplete="address-level2"
+                        [(ngModel)]="draft.city"
+                        (ngModelChange)="onDraftChange()"
+                        [class.checkout__input--error]="addressErrors['city']"
+                        [attr.aria-invalid]="addressErrors['city'] ? 'true' : null"
+                        [attr.aria-describedby]="addressErrors['city'] ? 'city-error' : null"
+                        />
+                      @if (addressErrors['city']) {
+                        <span id="city-error" class="checkout__error" role="alert">{{ addressErrors['city'] }}</span>
+                      }
+                    </div>
+                    <div class="checkout__field">
+                      <label for="postalCode">کد پستی</label>
+                      <input
+                        id="postalCode"
+                        name="postalCode"
+                        type="text"
+                        inputmode="numeric"
+                        autocomplete="postal-code"
+                        placeholder="اختیاری"
+                        [(ngModel)]="draft.postalCode"
+                        (ngModelChange)="onDraftChange()"
+                        [class.checkout__input--error]="addressErrors['postalCode']"
+                        [attr.aria-invalid]="addressErrors['postalCode'] ? 'true' : null"
+                        [attr.aria-describedby]="addressErrors['postalCode'] ? 'postalCode-error' : null"
+                        />
+                      @if (addressErrors['postalCode']) {
+                        <span id="postalCode-error" class="checkout__error" role="alert">{{ addressErrors['postalCode'] }}</span>
+                      }
+                    </div>
+                  </div>
+                  <div class="checkout__field">
+                    <label for="address">آدرس کامل *</label>
+                    <textarea
+                      id="address"
+                      name="address"
+                      rows="3"
+                      autocomplete="street-address"
+                      [(ngModel)]="draft.address"
+                      (ngModelChange)="onDraftChange()"
+                      [class.checkout__input--error]="addressErrors['address']"
+                      [attr.aria-invalid]="addressErrors['address'] ? 'true' : null"
+                      [attr.aria-describedby]="addressErrors['address'] ? 'address-error' : null"
+                    ></textarea>
+                    @if (addressErrors['address']) {
+                      <span id="address-error" class="checkout__error" role="alert">{{ addressErrors['address'] }}</span>
+                    }
+                  </div>
+                  <div class="checkout__field">
+                    <label for="note">یادداشت سفارش (اختیاری)</label>
+                    <textarea
+                      id="note"
+                      name="note"
+                      rows="2"
+                      [(ngModel)]="draft.note"
+                      (ngModelChange)="onDraftChange()"
+                    ></textarea>
+                  </div>
+                  <div class="checkout__panel-actions">
+                    <a routerLink="/cart" class="checkout__btn checkout__btn--outline">بازگشت به سبد</a>
+                    <button type="submit" class="checkout__btn checkout__btn--primary">ادامه — روش ارسال</button>
+                  </div>
+                </form>
+              </section>
+            }
+            <!-- Step 2: Shipping -->
+            @if (step === 2) {
+              <section class="checkout__panel" aria-labelledby="step-shipping-title">
+                <h2 id="step-shipping-title" class="checkout__panel-title">روش ارسال</h2>
+                <div class="checkout__shipping-list" role="radiogroup" aria-label="انتخاب روش ارسال">
+                  @for (opt of shippingOptions; track opt) {
+                    <label
+                      class="checkout__shipping-card"
+                      [class.checkout__shipping-card--selected]="draft.shippingMethod === opt.value"
+                      >
+                      <input
+                        type="radio"
+                        name="shippingMethod"
+                        [value]="opt.value"
+                        [checked]="draft.shippingMethod === opt.value"
+                        (change)="selectShipping(opt.value)"
+                        />
+                      <div class="checkout__shipping-body">
+                        <span class="checkout__shipping-title">{{ opt.title }}</span>
+                        <span class="checkout__shipping-desc">{{ opt.desc }}</span>
+                      </div>
+                      <span class="checkout__shipping-price">
+                        {{ shippingPriceLabel(opt.value) }}
+                      </span>
+                    </label>
+                  }
+                </div>
+                <div class="checkout__panel-actions">
+                  <button type="button" class="checkout__btn checkout__btn--outline" (click)="goToStep(1)">مرحله قبل</button>
+                  <button type="button" class="checkout__btn checkout__btn--primary" (click)="goToStep(3)">ادامه — بررسی نهایی</button>
+                </div>
+              </section>
+            }
+            <!-- Step 3: Summary -->
+            @if (step === 3) {
+              <section class="checkout__panel" aria-labelledby="step-summary-title">
+                <h2 id="step-summary-title" class="checkout__panel-title">بررسی و تأیید</h2>
+                <div class="checkout__review-block">
+                  <h3 class="checkout__review-heading">آدرس تحویل</h3>
+                  <p class="checkout__review-text">
+                    {{ draft.firstName }} {{ draft.lastName }}<br>
+                    {{ draft.city }} — {{ draft.address }}<br>
+                    @if (draft.postalCode) {
+                      کد پستی: {{ draft.postalCode }}<br>
+                    }
+                    {{ draft.phone }}@if (draft.email) {
+                    · {{ draft.email }}
+                  }
+                </p>
+                <button type="button" class="checkout__review-edit" (click)="goToStep(1)">ویرایش</button>
+              </div>
+              <div class="checkout__review-block">
+                <h3 class="checkout__review-heading">روش ارسال</h3>
+                <p class="checkout__review-text">{{ shippingLabel() }}</p>
+                <button type="button" class="checkout__review-edit" (click)="goToStep(2)">ویرایش</button>
+              </div>
+              <ul class="checkout__items" aria-label="اقلام سفارش">
+                @for (item of items; track trackByProductId($index, item)) {
+                  <li class="checkout__item">
+                    <div class="checkout__item-image-wrap">
+                      @if (item.product_image) {
+                        <img
+                          class="checkout__item-image"
+                          [src]="item.product_image"
+                          [alt]="item.product_name || 'محصول'"
+                          loading="lazy"
+                          (error)="onImgError($event)"
+                          />
+                      }
+                    </div>
+                    <div class="checkout__item-body">
+                      <span class="checkout__item-name">{{ item.product_name || 'محصول #' + item.product_id }}</span>
+                      <span class="checkout__item-qty">× {{ item.quantity | number:'1.0-0':'fa' }}</span>
+                    </div>
+                    <span class="checkout__item-price">{{ formatPrice(lineTotal(item)) }}</span>
+                  </li>
+                }
+              </ul>
+              <div class="checkout__panel-actions checkout__panel-actions--pay">
+                <button type="button" class="checkout__btn checkout__btn--outline" (click)="goToStep(2)">مرحله قبل</button>
+                <button type="button" class="checkout__btn checkout__btn--primary checkout__btn--pay"
+                  (click)="submitPayment()" [disabled]="paymentBusy || !paymentSettings.enabled">
+                  {{ paymentBusy ? 'در حال اتصال…' : paymentSettings.displayName }}
+                </button>
+              </div>
+              @if (paymentError) {
+                <p class="checkout__coupon-error" role="alert">{{ paymentError }}</p>
+              }
+            </section>
+          }
+        </div>
+        <!-- Sidebar summary -->
+        @if (cartSummary$ | async; as summary) {
+          <aside class="checkout__sidebar" aria-labelledby="checkout-sidebar-title">
+            <h2 id="checkout-sidebar-title" class="checkout__sidebar-title">خلاصه پرداخت</h2>
+            <div class="checkout__coupon">
+              <label for="coupon-code">کد تخفیف</label>
+              <div class="checkout__coupon-row">
+                <input
+                  id="coupon-code"
+                  type="text"
+                  [(ngModel)]="couponInput"
+                  name="coupon"
+                  placeholder="مثلاً BRIDAL10"
+                  [disabled]="!!summary.coupon"
+                  />
+                @if (!summary.coupon) {
+                  <button
+                    type="button"
+                    class="checkout__btn checkout__btn--outline"
+                    (click)="applyCoupon()"
+                    >
+                    اعمال
+                  </button>
+                } @else {
+                  <button type="button" class="checkout__btn checkout__btn--outline" (click)="removeCoupon()">حذف</button>
+                }
+              </div>
+              @if (couponError) {
+                <p class="checkout__coupon-error" role="alert">{{ couponError }}</p>
+              }
+              @if (summary.coupon) {
+                <p class="checkout__coupon-ok">
+                  کد {{ summary.coupon }} —
+                  @if (summary.couponPercent) {
+                    <strong>{{ summary.couponPercent | number:'1.0-0':'fa-IR' }}٪ تخفیف</strong>
+                  }
+                </p>
+              }
+            </div>
+            <dl class="checkout__sidebar-rows">
+              <div class="checkout__sidebar-row">
+                <dt>جمع جزء</dt>
+                <dd>{{ formatPrice(subtotal(items)) }}</dd>
+              </div>
+              <div class="checkout__sidebar-row">
+                <dt>هزینه ارسال</dt>
+                <dd>{{ shippingPriceLabel(draft.shippingMethod) }}</dd>
+              </div>
+              @if (summary.couponDiscount) {
+                <div class="checkout__sidebar-row checkout__sidebar-row--discount">
+                  <dt>تخفیف ({{ summary.couponPercent | number:'1.0-0':'fa-IR' }}٪)</dt>
+                  <dd>− {{ formatPrice(summary.couponDiscount) }}</dd>
+                </div>
+              }
+              <div class="checkout__sidebar-row checkout__sidebar-row--total">
+                <dt>مبلغ قابل پرداخت</dt>
+                <dd>
+                  @if (summary.couponDiscount) {
+                    <span
+                      class="checkout__price-old"
+                    >{{ formatPrice(grossTotal(items)) }}</span>
+                  }
+                  <strong>{{ formatPrice(payableTotal(items, summary.couponDiscount || 0)) }}</strong>
+                </dd>
+              </div>
+            </dl>
+            <p class="checkout__sidebar-note">پرداخت از طریق درگاه امن بانکی انجام می‌شود.</p>
+          </aside>
+        }
+      </div>
+    }
+  }
+}
 
-  </ng-template>
 
 </section>

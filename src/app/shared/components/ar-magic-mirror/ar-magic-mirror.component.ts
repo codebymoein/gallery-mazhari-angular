@@ -8,7 +8,7 @@ import {
   ViewChild,
   inject
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { Subscription } from 'rxjs';
 import { ArMagicMirrorService } from '@core/services/ar-magic-mirror.service';
 
@@ -23,7 +23,7 @@ export interface ArAccessory {
 @Component({
   selector: 'app-ar-magic-mirror',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   templateUrl: './ar-magic-mirror.component.html',
   styleUrls: ['./ar-magic-mirror.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush

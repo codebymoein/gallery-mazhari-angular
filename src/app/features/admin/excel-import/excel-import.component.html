@@ -1,10 +1,10 @@
 <section class="adm adm-page" dir="rtl">
   <header class="adm-page__head">
     <div>
-      <p class="adm-page__eyebrow" lang="en" dir="ltr">EXCEL TAGGING ENGINE</p>
-      <h1 class="adm-page__title">تگ‌گذاری فایل اکسل انبار</h1>
+      <p class="adm-page__eyebrow" lang="en" dir="ltr">INVENTORY FILE</p>
+      <h1 class="adm-page__title">بارگذاری فایل موجودی انبار</h1>
       <p class="adm-page__lead">
-        فایل را بارگذاری کنید؛ موتور تگ‌گذاری فقط موجودی‌دارها را به صف می‌فرستد،
+        فایل را بارگذاری کنید؛ سامانه فقط موجودی‌دارها را به صف می‌فرستد،
         ناموجودها را حذف می‌کند و کدهای تازه را در «محصول جدید وارد شده» قرار می‌دهد.
       </p>
     </div>
@@ -23,7 +23,7 @@
     (dragover)="onDragOver($event)"
     (dragleave)="onDragLeave()"
     (drop)="onDrop($event)"
-  >
+    >
     <div class="import-drop__icon" aria-hidden="true">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
         <path d="M12 16V7m0 0 4 4m-4-4-4 4M5 19h14" stroke-linecap="round" stroke-linejoin="round" />
@@ -41,103 +41,117 @@
         (change)="onFilePick($event)"
         [disabled]="parsing"
         hidden
-      />
-      <span>{{ parsing ? 'در حال تگ‌گذاری…' : 'انتخاب و اجرای تگ‌گذاری' }}</span>
+        />
+      <span>{{ parsing ? 'در حال پردازش موجودی…' : 'انتخاب و پردازش فایل موجودی' }}</span>
     </label>
   </div>
 
-  <p class="adm-alert" *ngIf="error" role="alert">{{ error }}</p>
+  @if (error) {
+    <p class="adm-alert" role="alert">{{ error }}</p>
+  }
 
-  <div class="adm-card" *ngIf="result as r">
-    <div class="adm-card__head">
-      <div>
-        <h2 class="adm-card__title">نتیجه موتور تگ‌گذاری</h2>
-        <p class="adm-card__sub" dir="ltr">{{ r.fileName }}</p>
-      </div>
-      <a class="adm-btn adm-btn--sm adm-btn--gold" routerLink="/admin/staging" *ngIf="r.accepted.length">
-        مدیریت صف انتشار
-      </a>
-    </div>
-    <div class="adm-card__body">
-      <div class="adm-kpis">
-        <article class="adm-kpi">
-          <span class="adm-kpi__label">کل ردیف‌ها</span>
-          <strong class="adm-kpi__value">{{ r.totalRows | number:'1.0-0':'fa-IR' }}</strong>
-        </article>
-        <article class="adm-kpi adm-kpi--success">
-          <span class="adm-kpi__label">وارد صف شد</span>
-          <strong class="adm-kpi__value">{{ r.accepted.length | number:'1.0-0':'fa-IR' }}</strong>
-        </article>
-        <article class="adm-kpi adm-kpi--info">
-          <span class="adm-kpi__label">محصول جدید</span>
-          <strong class="adm-kpi__value">{{ r.newProductCount | number:'1.0-0':'fa-IR' }}</strong>
-        </article>
-        <article class="adm-kpi adm-kpi--warning">
-          <span class="adm-kpi__label">حذف از صف (ناموجود)</span>
-          <strong class="adm-kpi__value">{{ removedCount | number:'1.0-0':'fa-IR' }}</strong>
-        </article>
-      </div>
-
-      <p class="import-apply-note" *ngIf="addedCount || removedCount">
-        اعمال روی صف:
-        {{ addedCount | number:'1.0-0':'fa-IR' }} کالای تازه افزوده شد،
-        {{ removedCount | number:'1.0-0':'fa-IR' }} ناموجود از چرخه حذف شد.
-      </p>
-
-      <div class="import-accepted" *ngIf="r.accepted.length">
-        <h3>محصولات تگ‌شده و پذیرفته‌شده</h3>
-        <div class="adm-table-wrap">
-          <table class="adm-table">
-            <thead>
-              <tr>
-                <th scope="col">کد</th>
-                <th scope="col">نام</th>
-                <th scope="col">دسته اصلی</th>
-                <th scope="col">زیردسته / تگ</th>
-                <th scope="col">موجودی</th>
-                <th scope="col">وضعیت تگ</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let item of r.accepted" [class.stg-row--new]="item.isNewImport">
-                <td class="adm-table__code" dir="ltr">{{ item.code }}</td>
-                <td>{{ item.name }}</td>
-                <td>{{ item.parentCategory }}</td>
-                <td>{{ item.category }}</td>
-                <td>{{ item.stock | number:'1.0-0':'fa-IR' }}</td>
-                <td>
-                  <span class="import-tag-pill" *ngIf="item.isNewImport; else taggedOk">محصول جدید وارد شده</span>
-                  <ng-template #taggedOk>
-                    <span class="import-tag-pill import-tag-pill--ok">تگ سایت</span>
-                  </ng-template>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+  @if (result; as r) {
+    <div class="adm-card">
+      <div class="adm-card__head">
+        <div>
+          <h2 class="adm-card__title">نتیجه پردازش فایل موجودی</h2>
+          <p class="adm-card__sub" dir="ltr">{{ r.fileName }}</p>
         </div>
+        @if (r.accepted.length) {
+          <a class="adm-btn adm-btn--sm adm-btn--gold" routerLink="/admin/staging">
+            مدیریت صف انتشار
+          </a>
+        }
       </div>
-
-      <div class="import-filtered" *ngIf="r.filtered.length">
-        <h3>رد شده / حذف‌شده از چرخه</h3>
-        <div class="adm-table-wrap">
-          <table class="adm-table">
-            <thead>
-              <tr>
-                <th scope="col">کد کالا</th>
-                <th scope="col">نام</th>
-                <th scope="col">دلیل</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let row of r.filtered">
-                <td class="adm-table__code" dir="ltr">{{ row.code }}</td>
-                <td>{{ row.name }}</td>
-                <td>{{ row.reason }}</td>
-              </tr>
-            </tbody>
-          </table>
+      <div class="adm-card__body">
+        <div class="adm-kpis">
+          <article class="adm-kpi">
+            <span class="adm-kpi__label">کل ردیف‌ها</span>
+            <strong class="adm-kpi__value">{{ r.totalRows | number:'1.0-0':'fa-IR' }}</strong>
+          </article>
+          <article class="adm-kpi adm-kpi--success">
+            <span class="adm-kpi__label">وارد صف شد</span>
+            <strong class="adm-kpi__value">{{ r.accepted.length | number:'1.0-0':'fa-IR' }}</strong>
+          </article>
+          <article class="adm-kpi adm-kpi--info">
+            <span class="adm-kpi__label">محصول جدید</span>
+            <strong class="adm-kpi__value">{{ r.newProductCount | number:'1.0-0':'fa-IR' }}</strong>
+          </article>
+          <article class="adm-kpi adm-kpi--warning">
+            <span class="adm-kpi__label">حذف از صف (ناموجود)</span>
+            <strong class="adm-kpi__value">{{ removedCount | number:'1.0-0':'fa-IR' }}</strong>
+          </article>
         </div>
+        @if (addedCount || removedCount) {
+          <p class="import-apply-note">
+            اعمال روی صف:
+            {{ addedCount | number:'1.0-0':'fa-IR' }} کالای تازه افزوده شد،
+            {{ removedCount | number:'1.0-0':'fa-IR' }} ناموجود از چرخه حذف شد.
+          </p>
+        }
+        @if (r.accepted.length) {
+          <div class="import-accepted">
+            <h3>محصولات تگ‌شده و پذیرفته‌شده</h3>
+            <div class="adm-table-wrap">
+              <table class="adm-table">
+                <thead>
+                  <tr>
+                    <th scope="col">کد</th>
+                    <th scope="col">نام</th>
+                    <th scope="col">دسته اصلی</th>
+                    <th scope="col">زیردسته / تگ</th>
+                    <th scope="col">موجودی</th>
+                    <th scope="col">وضعیت تگ</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (item of r.accepted; track item) {
+                    <tr [class.stg-row--new]="item.isNewImport">
+                      <td class="adm-table__code" dir="ltr">{{ item.code }}</td>
+                      <td>{{ item.name }}</td>
+                      <td>{{ item.parentCategory }}</td>
+                      <td>{{ item.category }}</td>
+                      <td>{{ item.stock | number:'1.0-0':'fa-IR' }}</td>
+                      <td>
+                        @if (item.isNewImport) {
+                          <span class="import-tag-pill">محصول جدید وارد شده</span>
+                        } @else {
+                          <span class="import-tag-pill import-tag-pill--ok">تگ سایت</span>
+                        }
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+        }
+        @if (r.filtered.length) {
+          <div class="import-filtered">
+            <h3>رد شده / حذف‌شده از چرخه</h3>
+            <div class="adm-table-wrap">
+              <table class="adm-table">
+                <thead>
+                  <tr>
+                    <th scope="col">کد کالا</th>
+                    <th scope="col">نام</th>
+                    <th scope="col">دلیل</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (row of r.filtered; track row) {
+                    <tr>
+                      <td class="adm-table__code" dir="ltr">{{ row.code }}</td>
+                      <td>{{ row.name }}</td>
+                      <td>{{ row.reason }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+        }
       </div>
     </div>
-  </div>
+  }
 </section>

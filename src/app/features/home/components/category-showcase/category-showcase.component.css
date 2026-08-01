@@ -6,6 +6,7 @@
 /* ── Section ── */
 .cat-showcase {
   position: relative;
+  scroll-margin-block-start: 6rem;
   padding-block: 1.15rem clamp(1.75rem, 5vw, 4.5rem);
   margin-block-start: 0;
   background: var(--color-bg-cream);
@@ -126,7 +127,7 @@
 .cat-story__img {
   position: absolute;
   inset: 0;
-  z-index: 0;
+  z-index: 1;
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -283,7 +284,7 @@
 }
 .cat-card__eyebrow {
   margin: 0;
-  color: var(--color-gold-light);
+  color: #f4dda8;
   font-family: var(--font-english);
   font-size: .65rem;
   font-weight: 600;
@@ -562,6 +563,28 @@
   .cat-showcase__lead-sep { display: inline; }
   .cat-showcase__stories { display: none; }
   .cat-bento             { display: grid; }
+}
+
+/* Keep the three compact accessory destinations together on desktop. */
+@media (min-width: 1024px) {
+  .cat-card[data-category="bridal-jewelry"],
+  .cat-card[data-category="bridal-bouquets"],
+  .cat-card[data-category="special-bridal-accessories"] {
+    grid-row: 3 !important;
+    min-height: clamp(220px, 20vw, 280px);
+  }
+
+  .cat-card[data-category="bridal-bouquets"] {
+    grid-column: 1 / 3 !important;
+  }
+
+  .cat-card[data-category="special-bridal-accessories"] {
+    grid-column: 3 / 5 !important;
+  }
+
+  .cat-card[data-category="bridal-jewelry"] {
+    grid-column: 5 / 7 !important;
+  }
 }
 
 /* Reduced motion */

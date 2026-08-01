@@ -1,10 +1,9 @@
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
 import {
   formatIrr,
-  mockPriceForProduct,
   SearchCategoryHit,
   SearchProductHit,
   SearchService,
@@ -14,12 +13,15 @@ import {
   BRIDAL_COLLECTION_CATEGORIES,
   BridalCollectionCategory,
   BridalSampleProduct,
+  getBridalProductById,
+  isConsultationCategory,
   productsForCategory
 } from '@shared/data/bridal-collection-categories';
 import {
   findCategoryForSubSlug,
   getCatalogCategoryBySlug
 } from '@shared/data/catalog-categories';
+import { ResponsiveProductImageDirective } from '@shared/directives/responsive-product-image.directive';
 
 const BRIDAL_SLUGS = new Set(BRIDAL_COLLECTION_CATEGORIES.map(c => c.slug));
 const COLLECTION_SLUGS = new Set([
@@ -33,7 +35,7 @@ const COLLECTION_SLUGS = new Set([
 @Component({
   selector: 'app-catalog',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [RouterLink, ResponsiveProductImageDirective],
   templateUrl: './catalog.component.html',
   styleUrls: ['./catalog.component.css']
 })
@@ -153,7 +155,23 @@ export class CatalogComponent implements OnInit, OnDestroy {
   }
 
   productPrice(product: BridalSampleProduct): string {
-    return formatIrr(mockPriceForProduct(product.id));
+    return product.price != null && product.price > 0
+      ? formatIrr(product.price)
+      : 'قیمت ثبت نشده';
+  }
+
+  showPrice(product: { categorySlug: string }): boolean {
+    return !isConsultationCategory(product.categorySlug);
+  }
+
+  isDressProduct(product: { categorySlug: string }): boolean {
+    return COLLECTION_SLUGS.has(product.categorySlug);
+  }
+
+  galleryImages(product: { id: string; image: string }): string[] {
+    const fullProduct = getBridalProductById(product.id);
+    const images = (fullProduct?.gallery?.length ? fullProduct.gallery : [product.image]).filter(Boolean);
+    return Array.from(new Set(images)).slice(0, 5);
   }
 
   hideBrokenImage(event: Event): void {

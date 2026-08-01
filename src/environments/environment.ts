@@ -10,6 +10,8 @@ export const environment = {
   apiBaseUrl: 'http://localhost:8081',
   apiPath: '/wp-json',
   backendApiBaseUrl: 'http://localhost:3000/api',
+  /** Empty in development: serve media from Angular's local /assets folder. */
+  mediaBaseUrl: '',
   apiTimeout: 30000,
 
   // WordPress

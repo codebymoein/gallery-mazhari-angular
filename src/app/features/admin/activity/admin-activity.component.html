@@ -29,40 +29,43 @@
           placeholder="جستجو در فعالیت‌ها…"
           [ngModel]="query()"
           (ngModelChange)="onSearch($event)"
-        />
+          />
       </div>
     </div>
 
-    <div class="adm-table-wrap" *ngIf="rows().length; else empty">
-      <table class="adm-table">
-        <thead>
-          <tr>
-            <th scope="col">زمان</th>
-            <th scope="col">نوع</th>
-            <th scope="col">کاربر</th>
-            <th scope="col">نقش</th>
-            <th scope="col">شرح</th>
-            <th scope="col">کد کالا</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let row of rows()">
-            <td>{{ formatDate(row.createdAt) }}</td>
-            <td>{{ labels[row.action] }}</td>
-            <td dir="ltr">{{ row.actor }}</td>
-            <td>{{ roleLabel(row.actorRole) }}</td>
-            <td>{{ row.summary }}</td>
-            <td class="adm-table__code" dir="ltr">{{ row.entityCode || '—' }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <ng-template #empty>
+    @if (rows().length) {
+      <div class="adm-table-wrap">
+        <table class="adm-table">
+          <thead>
+            <tr>
+              <th scope="col">زمان</th>
+              <th scope="col">نوع</th>
+              <th scope="col">کاربر</th>
+              <th scope="col">نقش</th>
+              <th scope="col">شرح</th>
+              <th scope="col">کد کالا</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of rows(); track row) {
+              <tr>
+                <td>{{ formatDate(row.createdAt) }}</td>
+                <td>{{ labels[row.action] }}</td>
+                <td dir="ltr">{{ row.actor }}</td>
+                <td>{{ roleLabel(row.actorRole) }}</td>
+                <td>{{ row.summary }}</td>
+                <td class="adm-table__code" dir="ltr">{{ row.entityCode || '—' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    } @else {
       <div class="adm-empty">
         <strong>موردی یافت نشد</strong>
         <p>فیلتر یا عبارت جستجو را تغییر دهید.</p>
       </div>
-    </ng-template>
+    }
+
   </div>
 </section>

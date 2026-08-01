@@ -2,7 +2,7 @@
  * Consultation form options
  */
 
-import { BRIDAL_SAMPLE_PRODUCTS } from './bridal-collection-categories';
+import { CATALOG_CATEGORIES } from './catalog-categories';
 
 export const CONSULTATION_CONTACT_TIMES: Readonly<Record<string, string>> = {
   anytime: 'هر زمان مناسب بود',
@@ -18,7 +18,10 @@ export interface ConsultationTopicOption {
 }
 
 export const CONSULTATION_TOPIC_OPTIONS: readonly ConsultationTopicOption[] =
-  BRIDAL_SAMPLE_PRODUCTS.map(p => ({ id: p.id, label: p.name }));
+  CATALOG_CATEGORIES.map(category => ({
+    id: category.slug,
+    label: category.title
+  }));
 
 export type ConsultationSource = 'website' | 'homepage' | 'vip-product';
 

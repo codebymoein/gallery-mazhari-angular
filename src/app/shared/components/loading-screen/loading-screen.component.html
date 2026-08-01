@@ -1,50 +1,42 @@
-<div class="ls"
-     *ngIf="visible"
-     [class.ls--exiting]="exiting"
-     aria-hidden="true"
-     role="presentation">
-
-  <div class="ls__center">
-
-    <div class="ls__scene" aria-hidden="true">
-
-      <!-- Fast red petals onto her head -->
-      <span class="ls__petal ls__petal--1"></span>
-      <span class="ls__petal ls__petal--2"></span>
-      <span class="ls__petal ls__petal--3"></span>
-      <span class="ls__petal ls__petal--4"></span>
-      <span class="ls__petal ls__petal--5"></span>
-      <span class="ls__petal ls__petal--6"></span>
-      <span class="ls__petal ls__petal--7"></span>
-      <span class="ls__petal ls__petal--8"></span>
-      <span class="ls__petal ls__petal--9"></span>
-      <span class="ls__petal ls__petal--10"></span>
-      <span class="ls__petal ls__petal--11"></span>
-      <span class="ls__petal ls__petal--12"></span>
-      <span class="ls__petal ls__petal--13"></span>
-      <span class="ls__petal ls__petal--14"></span>
-      <span class="ls__petal ls__petal--15"></span>
-      <span class="ls__petal ls__petal--16"></span>
-      <span class="ls__petal ls__petal--17"></span>
-      <span class="ls__petal ls__petal--18"></span>
-
-      <!-- Reference one-line bride -->
-      <img
-        class="ls__bride"
-        src="assets/images/loading/bride-line.png"
-        alt=""
-        width="640"
-        height="480"
-        decoding="async" />
-
+@if (visible) {
+  <div class="ls"
+    [class.ls--exiting]="exiting"
+    aria-hidden="true"
+    role="presentation">
+    <div class="ls__center">
+      <div class="ls__scene" aria-hidden="true">
+        <!-- Fast red petals onto her head -->
+        <span class="ls__petal ls__petal--1"></span>
+        <span class="ls__petal ls__petal--2"></span>
+        <span class="ls__petal ls__petal--3"></span>
+        <span class="ls__petal ls__petal--4"></span>
+        <span class="ls__petal ls__petal--5"></span>
+        <span class="ls__petal ls__petal--6"></span>
+        <span class="ls__petal ls__petal--7"></span>
+        <span class="ls__petal ls__petal--8"></span>
+        <span class="ls__petal ls__petal--9"></span>
+        <span class="ls__petal ls__petal--10"></span>
+        <span class="ls__petal ls__petal--11"></span>
+        <span class="ls__petal ls__petal--12"></span>
+        <span class="ls__petal ls__petal--13"></span>
+        <span class="ls__petal ls__petal--14"></span>
+        <span class="ls__petal ls__petal--15"></span>
+        <span class="ls__petal ls__petal--16"></span>
+        <span class="ls__petal ls__petal--17"></span>
+        <span class="ls__petal ls__petal--18"></span>
+        <!-- Reference one-line bride -->
+        <img
+          class="ls__bride"
+          src="assets/images/loading/bride-line.png"
+          alt=""
+          width="640"
+          height="480"
+          decoding="async" />
+      </div>
+      <h1 class="ls__brand" lang="en" dir="ltr">Gallery Mazhari</h1>
     </div>
-
-    <h1 class="ls__brand" lang="en" dir="ltr">Gallery Mazhari</h1>
-
+    <div class="ls__bar-track" aria-hidden="true">
+      <div class="ls__bar-fill" [style.width.%]="progress"></div>
+    </div>
   </div>
-
-  <div class="ls__bar-track" aria-hidden="true">
-    <div class="ls__bar-fill" [style.width.%]="progress"></div>
-  </div>
-
-</div>
+}

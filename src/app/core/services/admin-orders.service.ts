@@ -1,5 +1,5 @@
-import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Injectable, computed, inject, signal } from '@angular/core';
 import { catchError, of } from 'rxjs';
 import { environment } from '@env/environment';
 import {
@@ -9,204 +9,186 @@ import {
   GALLERY_SENDER_ADDRESS,
   ORDER_STAGES
 } from '@shared/models/admin-enterprise.model';
-import { LocalOrder, OrderService } from '@core/services/order.service';
 
 const STORAGE_KEY = 'mazhariAdminOrdersV1';
 
-/**
- * سفارش‌های کانبان — منبع حقیقت: سفارش‌های فروشگاه + localStorage.
- * HttpClient آماده است؛ در صورت در دسترس نبودن API از داده محلی استفاده می‌شود.
- */
+interface BackendAdminOrder {
+  id: string;
+  number: string;
+  status: 'pending-payment' | 'processing' | 'preparing' | 'ready' | 'shipped' | 'completed' | 'cancelled';
+  paymentStatus: 'pending' | 'paid' | 'failed' | 'cancelled' | 'refunded';
+  lines: Array<{ code: string; name: string; quantity: number; unitPrice: number | string }>;
+  customer: {
+    firstName: string;
+    lastName: string;
+    phone: string;
+    email: string;
+    address: string;
+    city: string;
+    postalCode: string;
+  };
+  total: number | string;
+  note: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class AdminOrdersService {
   private readonly http = inject(HttpClient);
-  private readonly storefrontOrders = inject(OrderService);
-  private readonly ordersSignal = signal<BridalOrder[]>(this.loadLocal());
+  private readonly apiUrl = `${environment.backendApiBaseUrl}/orders`;
+  private readonly ordersSignal = signal<BridalOrder[]>(this.loadCache());
 
   readonly orders = this.ordersSignal.asReadonly();
   readonly senderAddress = GALLERY_SENDER_ADDRESS;
-
   readonly byStage = computed(() => {
     const map = {} as Record<BridalOrderStage, BridalOrder[]>;
     for (const stage of ORDER_STAGES) map[stage] = [];
-    for (const order of this.ordersSignal()) {
-      map[order.stage].push(order);
-    }
+    for (const order of this.ordersSignal()) map[order.stage].push(order);
     return map;
   });
 
   constructor() {
-    this.syncFromStorefront();
-    this.storefrontOrders.orders$.subscribe(() => this.syncFromStorefront());
     this.refreshFromApi();
   }
 
   refreshFromApi(): void {
-    this.http
-      .get<BridalOrder[]>(`${environment.apiBaseUrl}${environment.apiPath}/mazhari/v1/orders`)
+    this.http.get<BackendAdminOrder[]>(this.apiUrl)
       .pipe(catchError(() => of(null)))
-      .subscribe((remote) => {
-        if (remote && Array.isArray(remote) && remote.length) {
-          this.ordersSignal.set(remote.map((o) => this.normalize(o)));
-          this.persist();
-        }
+      .subscribe(remote => {
+        if (!remote) return;
+        this.ordersSignal.set(remote.map(order => this.fromBackend(order)));
+        this.persistCache();
       });
   }
 
   moveToStage(orderId: string, stage: BridalOrderStage): void {
-    this.ordersSignal.update((list) =>
-      list.map((o) =>
-        o.id === orderId ? { ...o, stage, updatedAt: new Date().toISOString() } : o
-      )
-    );
-    this.persist();
+    const previous = this.ordersSignal();
+    this.ordersSignal.update(list => list.map(order =>
+      order.id === orderId ? { ...order, stage, updatedAt: new Date().toISOString() } : order
+    ));
+    this.persistCache();
+    this.http.patch<BackendAdminOrder>(`${this.apiUrl}/${orderId}/status`, {
+      status: this.backendStatus(stage)
+    }).subscribe({
+      next: remote => {
+        this.ordersSignal.update(list => list.map(order =>
+          order.id === orderId ? this.fromBackend(remote) : order
+        ));
+        this.persistCache();
+      },
+      error: () => {
+        this.ordersSignal.set(previous);
+        this.persistCache();
+      }
+    });
   }
 
   bulkMoveToStage(orderIds: string[], stage: BridalOrderStage): number {
-    const set = new Set(orderIds);
-    let count = 0;
-    this.ordersSignal.update((list) =>
-      list.map((o) => {
-        if (!set.has(o.id)) return o;
-        count += 1;
-        return { ...o, stage, updatedAt: new Date().toISOString() };
-      })
-    );
-    this.persist();
-    return count;
+    const ids = new Set(orderIds);
+    this.ordersSignal.update(list => list.map(order =>
+      ids.has(order.id) ? { ...order, stage, updatedAt: new Date().toISOString() } : order
+    ));
+    this.persistCache();
+    for (const id of orderIds) {
+      this.http.patch(`${this.apiUrl}/${id}/status`, {
+        status: this.backendStatus(stage)
+      }).subscribe({ error: () => this.refreshFromApi() });
+    }
+    return orderIds.length;
   }
 
   getById(id: string): BridalOrder | undefined {
-    return this.ordersSignal().find((o) => o.id === id);
+    return this.ordersSignal().find(order => order.id === id);
   }
 
   buildShippingLabel(order: BridalOrder): string {
-    const recv = order.shippingAddress;
-    const receiverBlock = recv
+    const address = order.shippingAddress;
+    const receiver = address
       ? [
-          `گیرنده: ${recv.fullName}`,
-          `تلفن: ${recv.phone}`,
-          `آدرس: ${recv.city}، ${recv.address}`,
-          `کد پستی: ${recv.postalCode || '—'}`
+          `گیرنده: ${address.fullName}`,
+          `تلفن: ${address.phone}`,
+          `آدرس: ${address.city}، ${address.address}`,
+          `کد پستی: ${address.postalCode || '—'}`
         ].join('\n')
-      : [
-          `گیرنده: ${order.customerName}`,
-          `تلفن: ${order.customerPhone}`,
-          'آدرس: ثبت‌نشده در سفارش'
-        ].join('\n');
-
+      : `گیرنده: ${order.customerName}\nتلفن: ${order.customerPhone}`;
     return [
-      '══════════════════════════════════════',
-      '   گالری مظهری — لیبل ارسال',
-      '══════════════════════════════════════',
+      'گالری مظهری — لیبل ارسال',
       `شماره سفارش: ${order.orderNo}`,
       '',
-      '—— فرستنده ——',
+      'فرستنده:',
       this.senderAddress,
       '',
-      '—— گیرنده ——',
-      receiverBlock,
+      receiver,
       '',
-      `تاریخ: ${new Date().toLocaleString('fa-IR')}`,
-      '══════════════════════════════════════'
+      `تاریخ: ${new Date().toLocaleString('fa-IR')}`
     ].join('\n');
   }
 
-  private syncFromStorefront(): void {
-    const local = this.storefrontOrders.getOrders();
-    if (!local.length) return;
-
-    this.ordersSignal.update((current) => {
-      const bySource = new Map(
-        current.filter((c) => c.sourceOrderId).map((c) => [c.sourceOrderId!, c])
-      );
-      const merged = [...current];
-
-      for (const lo of local) {
-        const existing = bySource.get(lo.id);
-        const mapped = this.fromLocalOrder(lo, existing);
-        if (existing) {
-          const idx = merged.findIndex((m) => m.id === existing.id);
-          if (idx >= 0) merged[idx] = { ...mapped, stage: existing.stage, id: existing.id };
-        } else {
-          merged.unshift(mapped);
-        }
-      }
-      return merged;
-    });
-    this.persist();
-  }
-
-  private fromLocalOrder(lo: LocalOrder, existing?: BridalOrder): BridalOrder {
-    const shipping: BridalShippingAddress = {
-      fullName: `${lo.customer.firstName} ${lo.customer.lastName}`.trim(),
-      phone: lo.customer.phone,
-      address: lo.customer.address,
-      city: lo.customer.city,
-      postalCode: lo.customer.postalCode
+  private fromBackend(order: BackendAdminOrder): BridalOrder {
+    const shippingAddress: BridalShippingAddress = {
+      fullName: `${order.customer.firstName} ${order.customer.lastName}`.trim(),
+      phone: order.customer.phone,
+      address: order.customer.address,
+      city: order.customer.city,
+      postalCode: order.customer.postalCode
     };
-
-    const stage: BridalOrderStage =
-      existing?.stage ||
-      (lo.status === 'completed' || lo.status === 'shipped'
-        ? 'delivered'
-        : lo.status === 'processing'
-          ? 'tailoring'
-          : 'new');
-
     return {
-      id: existing?.id || `adm-${lo.id}`,
-      sourceOrderId: lo.id,
-      orderNo: lo.number,
-      customerName: shipping.fullName,
-      customerPhone: lo.customer.phone,
-      customerId: `crm-${lo.customer.phone}`,
-      stage,
-      paymentStatus:
-        lo.status === 'pending-payment'
+      id: order.id,
+      sourceOrderId: order.id,
+      orderNo: order.number,
+      customerName: shippingAddress.fullName,
+      customerPhone: order.customer.phone,
+      customerId: `crm-${order.customer.phone}`,
+      stage: this.frontendStage(order.status),
+      paymentStatus: order.paymentStatus === 'paid'
+        ? 'paid'
+        : order.paymentStatus === 'pending'
           ? 'pending'
-          : lo.status === 'cancelled'
-            ? 'refunded'
-            : 'paid',
-      total: lo.total,
-      paidAmount: lo.status === 'pending-payment' ? 0 : lo.total,
-      notes: lo.note,
-      shippingAddress: shipping,
-      lines: lo.items.map((i) => ({
-        productCode: String(i.product_id),
-        name: i.product_name || `محصول ${i.product_id}`,
-        qty: i.quantity,
-        unitPrice: i.price
+          : 'refunded',
+      total: Number(order.total),
+      paidAmount: order.paymentStatus === 'paid' ? Number(order.total) : 0,
+      notes: order.note || undefined,
+      shippingAddress,
+      lines: order.lines.map(line => ({
+        productCode: line.code,
+        name: line.name,
+        qty: line.quantity,
+        unitPrice: Number(line.unitPrice)
       })),
-      createdAt: lo.createdAt,
-      updatedAt: new Date().toISOString()
+      createdAt: order.createdAt,
+      updatedAt: order.updatedAt
     };
   }
 
-  private normalize(o: BridalOrder): BridalOrder {
-    return {
-      ...o,
-      lines: o.lines || [],
-      shippingAddress: o.shippingAddress
-    };
+  private frontendStage(status: BackendAdminOrder['status']): BridalOrderStage {
+    if (status === 'ready') return 'ready';
+    if (status === 'shipped' || status === 'completed' || status === 'cancelled') return 'delivered';
+    if (status === 'preparing') return 'tailoring';
+    return 'new';
   }
 
-  private loadLocal(): BridalOrder[] {
+  private backendStatus(stage: BridalOrderStage): BackendAdminOrder['status'] {
+    if (stage === 'ready') return 'ready';
+    if (stage === 'delivered') return 'completed';
+    if (stage === 'fitting' || stage === 'tailoring') return 'preparing';
+    return 'processing';
+  }
+
+  private loadCache(): BridalOrder[] {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return [];
-      const parsed = JSON.parse(raw) as BridalOrder[];
-      return Array.isArray(parsed) ? parsed.map((o) => this.normalize(o)) : [];
+      const value = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+      return Array.isArray(value) ? value : [];
     } catch {
       return [];
     }
   }
 
-  private persist(): void {
+  private persistCache(): void {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(this.ordersSignal()));
     } catch {
-      // ignore
+      // Cache failure must not affect server-side order operations.
     }
   }
 }

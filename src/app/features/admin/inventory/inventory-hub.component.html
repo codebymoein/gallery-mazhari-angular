@@ -8,7 +8,7 @@
       </p>
     </div>
     <div class="adm-page__actions">
-      <a class="adm-btn adm-btn--ghost" routerLink="/admin/import">تگ‌گذاری اکسل</a>
+      <a class="adm-btn adm-btn--ghost" routerLink="/admin/import">بارگذاری فایل موجودی</a>
       <a class="adm-btn adm-btn--gold" routerLink="/admin/staging">
         صف عکس ({{ queue.pendingItems().length | number:'1.0-0':'fa-IR' }})
       </a>
@@ -16,27 +16,28 @@
   </header>
 
   <section class="inv-cats" aria-label="دسته‌بندی‌های اصلی">
-    <a
-      class="inv-cat-card"
-      *ngFor="let cat of categoryCards()"
-      [routerLink]="['/admin/inventory/category', cat.slug]"
-    >
-      <img
-        class="inv-cat-card__img"
-        [src]="cat.image"
-        [alt]="cat.title"
-        width="320"
-        height="200"
-        loading="lazy"
-        (error)="onImgError($event)"
-      />
-      <span class="inv-cat-card__overlay" aria-hidden="true"></span>
-      <span class="inv-cat-card__body">
-        <small lang="en" dir="ltr">{{ cat.subtitle }}</small>
-        <strong>{{ cat.title }}</strong>
-        <em>{{ cat.count | number:'1.0-0':'fa-IR' }} محصول</em>
-      </span>
-    </a>
+    @for (cat of categoryCards(); track cat) {
+      <a
+        class="inv-cat-card"
+        [routerLink]="['/admin/inventory/category', cat.slug]"
+        >
+        <img
+          class="inv-cat-card__img"
+          [src]="cat.image"
+          [alt]="cat.title"
+          width="320"
+          height="200"
+          loading="lazy"
+          (error)="onImgError($event)"
+          />
+        <span class="inv-cat-card__overlay" aria-hidden="true"></span>
+        <span class="inv-cat-card__body">
+          <small lang="en" dir="ltr">{{ cat.subtitle }}</small>
+          <strong>{{ cat.title }}</strong>
+          <em>{{ cat.count | number:'1.0-0':'fa-IR' }} محصول</em>
+        </span>
+      </a>
+    }
   </section>
 
   <div class="adm-card">
@@ -62,72 +63,85 @@
       </div>
     </div>
 
-    <div class="inv-bulk" *ngIf="selectedCount()">
-      <span>{{ selectedCount() | number:'1.0-0':'fa-IR' }} مورد انتخاب‌شده</span>
-      <div class="inv-bulk__actions">
-        <button type="button" class="adm-btn adm-btn--sm adm-btn--gold" (click)="bulkDiscount()">اعمال تخفیف ۱۰٪</button>
-        <button type="button" class="adm-btn adm-btn--sm adm-btn--soft" (click)="bulkSale()">افزودن به حراج</button>
-        <button type="button" class="adm-btn adm-btn--sm adm-btn--ghost" (click)="bulkOutOfStock()">ناموجود کردن</button>
+    @if (selectedCount()) {
+      <div class="inv-bulk">
+        <span>{{ selectedCount() | number:'1.0-0':'fa-IR' }} مورد انتخاب‌شده</span>
+        <div class="inv-bulk__actions">
+          <button type="button" class="adm-btn adm-btn--sm adm-btn--gold" (click)="bulkDiscount()">اعمال تخفیف ۱۰٪</button>
+          <button type="button" class="adm-btn adm-btn--sm adm-btn--soft" (click)="bulkSale()">افزودن به حراج</button>
+          <button type="button" class="adm-btn adm-btn--sm adm-btn--ghost" (click)="bulkOutOfStock()">ناموجود کردن</button>
+        </div>
       </div>
-    </div>
+    }
 
-    <div class="adm-table-wrap" *ngIf="rows().length; else emptyInv">
-      <table class="adm-table">
-        <thead>
-          <tr>
-            <th>
-              <input
-                type="checkbox"
-                [checked]="selectedCount() && selectedCount() === rows().length"
-                (change)="toggleAll(($any($event.target)).checked)"
-                aria-label="انتخاب همه"
-              />
-            </th>
-            <th>کد</th>
-            <th>نام</th>
-            <th>طبقه</th>
-            <th>قیمت</th>
-            <th>موجودی</th>
-            <th>عکس</th>
-            <th>وضعیت</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let item of rows()" [class.inv-row--selected]="isChecked(item.id)">
-            <td>
-              <input
-                type="checkbox"
-                [checked]="isChecked(item.id)"
-                (change)="toggle(item.id, ($any($event.target)).checked)"
-                [attr.aria-label]="'انتخاب ' + item.code"
-              />
-            </td>
-            <td class="adm-table__code" dir="ltr">{{ item.code }}</td>
-            <td>
-              {{ item.name }}
-              <span class="inv-sale" *ngIf="item.onSale">حراج {{ (item.discountPercent || 0) | number:'1.0-0':'fa-IR' }}٪</span>
-            </td>
-            <td>{{ item.category }}</td>
-            <td>{{ formatToman(item.price) }}</td>
-            <td [class.inv-low]="item.stock > 0 && item.stock <= 3">
-              {{ item.stock | number:'1.0-0':'fa-IR' }}
-            </td>
-            <td>
-              <img *ngIf="item.photoUrl" class="adm-thumb" [src]="item.photoUrl" [alt]="item.code" width="40" height="40" (error)="onImgError($event)" />
-              <span *ngIf="!item.hasPhoto" class="adm-status adm-status--waiting_photo">بدون عکس</span>
-            </td>
-            <td>{{ statusLabel(item.status) }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    <ng-template #emptyInv>
+    @if (rows().length) {
+      <div class="adm-table-wrap">
+        <table class="adm-table">
+          <thead>
+            <tr>
+              <th>
+                <input
+                  type="checkbox"
+                  [checked]="selectedCount() && selectedCount() === rows().length"
+                  (change)="toggleAll(($any($event.target)).checked)"
+                  aria-label="انتخاب همه"
+                  />
+              </th>
+              <th>کد</th>
+              <th>نام</th>
+              <th>طبقه</th>
+              <th>قیمت</th>
+              <th>موجودی</th>
+              <th>عکس</th>
+              <th>وضعیت</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of rows(); track item) {
+              <tr [class.inv-row--selected]="isChecked(item.id)">
+                <td>
+                  <input
+                    type="checkbox"
+                    [checked]="isChecked(item.id)"
+                    (change)="toggle(item.id, ($any($event.target)).checked)"
+                    [attr.aria-label]="'انتخاب ' + item.code"
+                    />
+                </td>
+                <td class="adm-table__code" dir="ltr">{{ item.code }}</td>
+                <td>
+                  {{ item.name }}
+                  @if (item.onSale) {
+                    <span class="inv-sale">حراج {{ (item.discountPercent || 0) | number:'1.0-0':'fa-IR' }}٪</span>
+                  }
+                </td>
+                <td>{{ item.category }}</td>
+                <td>{{ formatToman(item.price) }}</td>
+                <td [class.inv-low]="item.stock > 0 && item.stock <= 3">
+                  {{ item.stock | number:'1.0-0':'fa-IR' }}
+                </td>
+                <td>
+                  @if (item.photoUrl) {
+                    <img class="adm-thumb" [src]="item.photoUrl" [alt]="item.code" width="40" height="40" (error)="onImgError($event)" />
+                  }
+                  @if (!item.hasPhoto) {
+                    <span class="adm-status adm-status--waiting_photo">بدون عکس</span>
+                  }
+                </td>
+                <td>{{ statusLabel(item.status) }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    } @else {
       <div class="adm-empty">
         <strong>محصولی در انبار نیست</strong>
-        <p>از تگ‌گذاری اکسل و انتشار Staging محصولات را اضافه کنید.</p>
+        <p>از بارگذاری فایل موجودی و صف انتشار، محصولات را اضافه کنید.</p>
       </div>
-    </ng-template>
+    }
   </div>
 
-  <div class="adm-toast" *ngIf="toast()" role="status">{{ toast() }}</div>
+  @if (toast()) {
+    <div class="adm-toast" role="status">{{ toast() }}</div>
+  }
 </section>

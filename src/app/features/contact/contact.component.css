@@ -138,7 +138,12 @@
   color: var(--mds-color-text);
   font-size: 0.88rem;
   line-height: 1.7;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
 }
+.contact__address::-webkit-scrollbar { display: none; }
 
 .contact__metro {
   display: flex;
@@ -172,6 +177,7 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 0.65rem;
+  justify-content: center;
 }
 
 .contact__phone {
@@ -179,8 +185,9 @@
   align-items: center;
   gap: 0.4rem;
   padding: 0.45rem 0.85rem;
-  background: var(--color-matte-black);
-  color: var(--color-champagne-gold);
+  background: #f8f1df;
+  color: #6f521e;
+  border: 1px solid #d9c088;
   border-radius: var(--mds-radius-sm);
   font-size: 0.85rem;
   font-weight: 600;
@@ -189,8 +196,8 @@
 }
 
 .contact__phone:hover {
-  background: var(--color-dark-charcoal);
-  color: var(--color-gold-bright);
+  background: #f2e4c2;
+  color: #4d3814;
 }
 
 .contact__maps {
@@ -205,6 +212,11 @@
   font-weight: 600;
   text-decoration: none;
   transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+.contact__map-logo {
+  width: 1.35rem;
+  height: 1.35rem;
+  flex: 0 0 auto;
 }
 
 .contact__maps:hover {
@@ -266,9 +278,17 @@
 
 .contact__support-list li {
   display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem;
+  padding: .55rem;
+  border: 1px solid rgba(184, 151, 62, .18);
+  border-radius: .75rem;
+  background: rgba(255,255,255,.42);
 }
+.contact__support-copy { display:flex; min-width:0; flex-direction:column; gap:.2rem; }
+.contact__line-socials { display:flex; flex:0 0 auto; gap:.35rem; }
 
 .contact__support-label {
   font-size: 0.82rem;
@@ -286,6 +306,12 @@
 
 .contact__support-phone:hover {
   color: var(--color-gold-primary);
+}
+
+.contact__support-hours {
+  color: #806020;
+  font-size: 0.68rem;
+  font-weight: 600;
 }
 
 /* ── CTAs ── */
@@ -361,5 +387,118 @@
 @media (min-width: 960px) {
   .contact__branch {
     padding: 1.5rem 1.35rem 1.6rem;
+  }
+}
+.contact__branch-hours {
+  margin:.65rem 0 0;
+  padding:.6rem .75rem;
+  display:grid;
+  justify-items:center;
+  gap:.2rem;
+  border-radius:.55rem;
+  background:#faf6ec;
+  color:#65594d;
+  font-size:.72rem;
+  line-height:1.5;
+  text-align:center;
+  white-space:normal;
+  overflow:visible;
+  scrollbar-width:none;
+}
+.contact__branch-hours strong,
+.contact__branch-hours span {
+  display:block;
+  width:100%;
+  text-align:center;
+}
+.contact__branch-hours::-webkit-scrollbar { display:none; }
+.contact__maps { gap:.4rem; }
+.contact__maps>span { display:grid; place-items:center; width:1.35rem; height:1.35rem; border-radius:50%; color:#fff; font-weight:900; }
+.contact__maps--google>span,
+.contact__maps--neshan>span { color:#fffffc; background:#656561; border:1px solid #9d7937; }
+.contact__branch-guide { padding:.7rem 0; border-bottom:1px solid #e8dfd1; }
+.contact__branch-guide:last-child { border-bottom:0; }
+.contact__branch-guide p { margin:.3rem 0 0; color:#6d6258; line-height:1.8; font-size:.8rem; }
+.contact__socials { display:flex; gap:.6rem; margin-top:1rem; padding-top:.8rem; border-top:1px solid #e8dfd1; }
+.contact__social { display:grid; place-items:center; min-width:2.25rem; height:2.25rem; padding:0 .45rem; border-radius:.65rem; color:#9a7429; font-weight:800; text-decoration:none; box-shadow:0 4px 12px #6b4d1810; }
+.contact__social--wa,
+.contact__social--tg,
+.contact__social--bale {
+  color:#d7b968;
+  background:#656561;
+  border:1px solid #b8973e;
+}
+.contact__social--bale { font-size:.7rem; }
+.contact__social svg { width:1.15rem; height:1.15rem; }
+
+.contact__line-socials .contact__social {
+  color:#765826;
+  background:rgba(255,255,255,.62);
+  border:1px solid rgba(184,151,62,.34);
+}
+
+.contact__maps--google {
+  color:#806020;
+  background:rgba(255,255,255,.55);
+}
+
+@media(max-width:560px){
+  .contact { overflow-x:hidden; }
+  .contact__hero { padding-block:1.6rem; }
+  .contact__branches,
+  .contact__info-grid,
+  .contact__cta { width:calc(100% - 1rem); }
+  .contact__branch { padding:.9rem .75rem 1rem; }
+  .contact__address {
+    white-space:normal;
+    overflow:visible;
+    font-size:.72rem;
+    line-height:1.8;
+  }
+  .contact__metro {
+    margin-bottom:.55rem;
+    padding:.4rem .55rem;
+    font-size:.68rem;
+    white-space:normal;
+    overflow:visible;
+  }
+  .contact__branch-hours {
+    white-space:normal;
+    overflow:visible;
+    line-height:1.8;
+  }
+  .contact__branch-actions {
+    display:grid;
+    width:100%;
+    grid-template-columns:minmax(0,1.35fr) repeat(2,minmax(0,1fr));
+    gap:.25rem;
+  }
+  .contact__phone,.contact__maps {
+    width:100%;
+    min-width:0;
+    min-height:2.25rem;
+    padding-inline:.2rem;
+    justify-content:center;
+    gap:.2rem;
+    font-size:.6rem;
+    white-space:nowrap;
+    overflow:hidden;
+  }
+  .contact__phone .contact__icon,
+  .contact__map-logo { width:.9rem; height:.9rem; }
+  .contact__support-list li { padding:.45rem; gap:.4rem; }
+  .contact__support-label { font-size:.68rem; }
+  .contact__support-phone { font-size:.78rem; }
+  .contact__line-socials { gap:.2rem; }
+  .contact__line-socials .contact__social {
+    min-width:1.9rem;
+    height:1.9rem;
+    padding-inline:.3rem;
+  }
+  .contact__social svg { width:.95rem; height:.95rem; }
+  .contact__panel { padding:.85rem .7rem; }
+  .contact__btn {
+    min-height:2.6rem;
+    font-size:.78rem;
   }
 }

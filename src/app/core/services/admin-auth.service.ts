@@ -1,24 +1,14 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { environment } from '@env/environment';
 import { AdminActivityService } from '@core/services/admin-activity.service';
 import { AdminRole, AdminSessionUser } from '@shared/models/staging-product.model';
-import { firstValueFrom, of } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { firstValueFrom } from 'rxjs';
 import { BackendApiService } from './backend-api.service';
-
-interface AdminAccount {
-  username: string;
-  password: string;
-  displayName: string;
-  role: AdminRole;
-}
 
 @Injectable({ providedIn: 'root' })
 export class AdminAuthService {
   private readonly storageKey = environment.storageKeys.adminSession;
   private readonly activity = inject(AdminActivityService);
-  private readonly http = inject(HttpClient);
   private readonly backendApi = inject(BackendApiService);
 
   private readonly sessionSignal = signal<AdminSessionUser | null>(this.readSession());
@@ -36,26 +26,33 @@ export class AdminAuthService {
     password: string
   ): Promise<{ ok: true } | { ok: false; message: string }> {
     const normalized = username.trim().toLowerCase();
+    const localAliases: Record<string, string> = {
+      admin: 'admin@test.local',
+      manager: 'manager@local.test'
+    };
+    const backendUsername = normalized.includes('@')
+      ? normalized
+      : localAliases[normalized] || `${normalized}@local.test`;
 
     // Primary path: new Nest backend auth.
     try {
       const response = await firstValueFrom(
         this.backendApi.login({
-          email: normalized,
+          email: backendUsername,
           password
         })
       );
 
-      if (response.user.role !== 'admin') {
+      if (response.user.role !== 'admin' && response.user.role !== 'staff') {
         return { ok: false, message: 'این حساب دسترسی ادمین ندارد.' };
       }
 
       const session: AdminSessionUser = {
         username: response.user.email,
-        displayName: response.user.email,
-        role: 'manager',
-        accessToken: response.accessToken,
-        backendUserRole: response.user.role
+        displayName: response.user.fullName || response.user.email,
+        role: response.user.role === 'admin' ? 'manager' : 'staff',
+        backendUserRole: response.user.role,
+        permissions: response.user.permissions || []
       };
 
       this.persist(session);
@@ -68,33 +65,8 @@ export class AdminAuthService {
       });
       return { ok: true };
     } catch {
-      // Fallback to legacy local/wordpress admin users.
+      return { ok: false, message: 'ورود سرور انجام نشد؛ نام کاربری، رمز و اتصال بک‌اند را بررسی کنید.' };
     }
-
-    const accounts = await this.loadAccounts();
-    const account = accounts.find(
-      (a) => a.username.toLowerCase() === normalized && a.password === password
-    );
-
-    if (!account) {
-      return { ok: false, message: 'نام کاربری یا رمز عبور نادرست است.' };
-    }
-
-    const session: AdminSessionUser = {
-      username: account.username,
-      displayName: account.displayName,
-      role: account.role
-    };
-
-    this.persist(session);
-    this.sessionSignal.set(session);
-    this.activity.log({
-      action: 'login',
-      actor: session.username,
-      actorRole: session.role,
-      summary: `${session.displayName} وارد پنل شد (Legacy)`
-    });
-    return { ok: true };
   }
 
   logout(): void {
@@ -113,11 +85,19 @@ export class AdminAuthService {
       // Ignore storage errors.
     }
     this.sessionSignal.set(null);
+    this.backendApi.logout().subscribe({ error: () => undefined });
   }
 
   hasRole(roles: AdminRole[]): boolean {
     const current = this.sessionSignal();
     return !!current && roles.includes(current.role);
+  }
+
+  hasPermission(permission: string): boolean {
+    const current = this.sessionSignal();
+    if (!current) return false;
+    if (current.role === 'manager') return true;
+    return (current.permissions || []).includes(permission);
   }
 
   private readSession(): AdminSessionUser | null {
@@ -141,28 +121,4 @@ export class AdminAuthService {
     }
   }
 
-  private async loadAccounts(): Promise<AdminAccount[]> {
-    try {
-      const remote = await firstValueFrom(
-        this.http
-          .get<AdminAccount[]>(`${environment.apiBaseUrl}${environment.apiPath}/mazhari/v1/admin-users`)
-          .pipe(catchError(() => of([] as AdminAccount[])))
-      );
-      if (Array.isArray(remote) && remote.length) {
-        return remote;
-      }
-    } catch {
-      // ignore and fallback
-    }
-
-    // Fallback: persisted users (configured by backend bootstrap/import process)
-    try {
-      const raw = localStorage.getItem('mazhariAdminUsers');
-      if (!raw) return [];
-      const parsed = JSON.parse(raw) as AdminAccount[];
-      return Array.isArray(parsed) ? parsed : [];
-    } catch {
-      return [];
-    }
-  }
 }

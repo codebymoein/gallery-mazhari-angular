@@ -16,7 +16,7 @@
   --adm-surface-soft: #fafaf9;
   --adm-sidebar: #141210;
   --adm-sidebar-elevated: #1c1917;
-  --adm-gold: #b8973e;
+  --adm-gold: #765826;
   --adm-gold-soft: #eee5d1;
   --adm-gold-deep: #8f742e;
   --adm-success: #15803d;
@@ -444,8 +444,34 @@
 /* ── Tables ──────────────────────────────────────────────────── */
 
 .adm-table-wrap {
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  -webkit-overflow-scrolling: touch;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 720px) {
+  .adm-page__head, .adm-toolbar { align-items: stretch; flex-direction: column; }
+  .adm-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .adm-table { min-width: 760px; }
+  .adm-btn { white-space: normal; }
+}
+
+@media (max-width: 640px) {
+  .adm-page { width: 100%; min-width: 0; gap: 0.65rem; }
+  .adm-page__title { font-size: 1.05rem; }
+  .adm-page__lead { font-size: 0.72rem; }
+  .adm-page__actions,
+  .adm-toolbar,
+  .adm-chips { width: 100%; }
+  .adm-page__actions > *,
+  .adm-toolbar .adm-search { width: 100%; }
+  .adm-kpis { gap: 0.45rem; }
+  .adm-kpi { min-width: 0; padding: 0.7rem; }
+  .adm-kpi__value { font-size: 1.1rem; }
+  .adm-card { min-width: 0; border-radius: 0.6rem; }
 }
 
 .adm-table {

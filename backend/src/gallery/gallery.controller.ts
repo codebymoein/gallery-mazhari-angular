@@ -8,15 +8,16 @@ import {
   Patch,
   Post,
   Query,
-  Req,
   UploadedFile,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import { existsSync, mkdirSync } from 'fs';
-import { extname, join } from 'path';
+import { memoryStorage } from 'multer';
+import { mkdir, writeFile } from 'fs/promises';
+import { join } from 'path';
+import { randomUUID } from 'crypto';
+import sharp from 'sharp';
 import { GalleryService } from './gallery.service';
 import { CreateGalleryItemDto } from './dto/create-gallery-item.dto';
 import { QueryGalleryDto } from './dto/query-gallery.dto';
@@ -25,10 +26,16 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '../users/entities/user.entity';
+import { ConfigService } from '@nestjs/config';
+import { getPublicBackendUrl } from '../config/public-url';
+import { Throttle } from '@nestjs/throttler';
 
 @Controller('gallery')
 export class GalleryController {
-  constructor(private readonly galleryService: GalleryService) {}
+  constructor(
+    private readonly galleryService: GalleryService,
+    private readonly config: ConfigService,
+  ) {}
 
   @Get()
   list(@Query() query: QueryGalleryDto) {
@@ -42,62 +49,67 @@ export class GalleryController {
 
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.STAFF)
   create(@Body() dto: CreateGalleryItemDto) {
     return this.galleryService.create(dto);
   }
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.STAFF)
   update(@Param('id') id: string, @Body() dto: UpdateGalleryItemDto) {
     return this.galleryService.update(id, dto);
   }
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.STAFF)
   remove(@Param('id') id: string) {
     return this.galleryService.remove(id);
   }
 
   @Post('upload')
+  @Throttle({ default: { limit: 15, ttl: 60_000 } })
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.STAFF)
   @UseInterceptors(
     FileInterceptor('file', {
-      storage: diskStorage({
-        destination: (_req, _file, callback) => {
-          const destination = join(process.cwd(), 'uploads');
-          if (!existsSync(destination)) {
-            mkdirSync(destination, { recursive: true });
-          }
-          callback(null, destination);
-        },
-        filename: (_req, file, callback) => {
-          const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-          callback(null, `${uniqueSuffix}${extname(file.originalname)}`);
-        },
-      }),
+      storage: memoryStorage(),
       limits: { fileSize: 5 * 1024 * 1024 },
     }),
   )
-  uploadImage(
-    @UploadedFile() file: { filename: string; mimetype: string } | undefined,
-    @Req() req: { protocol: string; get(header: string): string | undefined },
-  ) {
+  async uploadImage(@UploadedFile() file: { buffer: Buffer } | undefined) {
     if (!file) {
       throw new BadRequestException('File is required');
     }
 
-    if (!file.mimetype.startsWith('image/')) {
+    let format: string | undefined;
+    try {
+      format = (await sharp(file.buffer, { failOn: 'error' }).metadata())
+        .format;
+    } catch {
+      throw new BadRequestException('The uploaded file is not a valid image');
+    }
+
+    const extensions: Record<string, string> = {
+      jpeg: '.jpg',
+      png: '.png',
+      webp: '.webp',
+      avif: '.avif',
+    };
+    const extension = format ? extensions[format] : undefined;
+    if (!extension) {
       throw new BadRequestException('Only image files are allowed');
     }
 
-    const host = req.get('host');
+    const filename = `${randomUUID()}${extension}`;
+    const destination = join(process.cwd(), 'uploads');
+    await mkdir(destination, { recursive: true });
+    await writeFile(join(destination, filename), file.buffer, { flag: 'wx' });
+
     return {
-      imageUrl: `${req.protocol}://${host}/uploads/${file.filename}`,
-      filename: file.filename,
+      imageUrl: `${getPublicBackendUrl(this.config)}/uploads/${filename}`,
+      filename,
     };
   }
 }

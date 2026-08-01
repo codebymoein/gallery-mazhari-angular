@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { RouterLink } from '@angular/router';
 
 export interface SocialLink {
@@ -19,7 +19,7 @@ export interface SupportChannel {
 @Component({
   selector: 'app-footer',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [RouterLink],
   templateUrl: './footer.component.html',
   styleUrls: ['./footer.component.css']
 })
@@ -82,12 +82,11 @@ export class FooterComponent {
     params: Record<string, string> | null;
     fragment?: string;
   }> = [
-    { label: 'فروشگاه اکسسوری', route: '/catalog', params: null },
+    { label: 'فروشگاه اکسسوری', route: '/accessories', params: null },
     { label: 'کالکشن لباس عروس', route: '/collections/bridal-clothing', params: null },
     { label: 'رزرو مشاوره حرفه‌ای', route: '/', params: null, fragment: 'appointment' },
     { label: 'کاتالوگ اختصاصی', route: '/catalog-builder', params: null },
     { label: 'ارتباط با ما', route: '/contact', params: null },
-    { label: 'درخواست مشاوره', route: '/consultation', params: null },
     { label: 'سبد خرید', route: '/cart', params: null },
     { label: 'پیگیری سفارش', route: '/orders', params: null }
   ];

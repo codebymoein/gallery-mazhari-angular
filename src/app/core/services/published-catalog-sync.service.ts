@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import { catchError, of } from 'rxjs';
 import { environment } from '@env/environment';
 import {
@@ -15,6 +15,20 @@ import {
 export class PublishedCatalogSyncService {
   private readonly api = inject(ProductsApiService);
   private readonly cacheKey = environment.storageKeys.publishedProducts;
+  readonly version = signal(0);
+
+  getCachedProductCodes(): string[] {
+    try {
+      const parsed = JSON.parse(localStorage.getItem(this.cacheKey) || '[]') as Array<{
+        code?: string;
+      }>;
+      return Array.isArray(parsed)
+        ? parsed.map(item => item.code || '').filter(Boolean)
+        : [];
+    } catch {
+      return [];
+    }
+  }
 
   refresh(): void {
     this.api
@@ -27,8 +41,11 @@ export class PublishedCatalogSyncService {
         try {
           localStorage.setItem(
             this.cacheKey,
-            JSON.stringify(items.map(backendProductToStaging))
+            JSON.stringify(
+              items.map(item => backendProductToStaging(item))
+            )
           );
+          this.version.update(value => value + 1);
         } catch (err) {
           console.warn('PublishedCatalogSync: cache write failed', err);
         }

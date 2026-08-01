@@ -1,24 +1,27 @@
-<app-loading-screen></app-loading-screen>
 
 <div class="app-layout" [class.app-layout--admin]="isAdminShell()">
-  <app-header #header *ngIf="!isAdminShell()"></app-header>
+  @if (!isAdminShell()) {
+    <app-header #header></app-header>
+  }
 
   <main class="app-main" [class.app-main--admin]="isAdminShell()" id="main-content">
     <router-outlet></router-outlet>
   </main>
 
-  <app-footer *ngIf="!isAdminShell()"></app-footer>
+  @if (!isAdminShell()) {
+    <app-footer></app-footer>
+  }
 </div>
 
 <!-- ═══ Mobile Drawer — در root رندر می‌شود تا position:fixed کار کند ═══ -->
-<ng-container *ngIf="!isAdminShell() && headerRef">
+@if (!isAdminShell() && headerRef) {
   <ng-container *ngTemplateOutlet="headerRef.drawerTpl"></ng-container>
-</ng-container>
+}
 
 <!-- Global floating tools (same placement as WordPress theme) -->
-<ng-container *ngIf="!isAdminShell()">
+@if (!isAdminShell() && !isFocusedForm()) {
   <app-dream-canvas-widget></app-dream-canvas-widget>
   <app-wedding-timeline-widget></app-wedding-timeline-widget>
   <app-ar-magic-mirror></app-ar-magic-mirror>
   <app-consultation-toast></app-consultation-toast>
-</ng-container>
+}

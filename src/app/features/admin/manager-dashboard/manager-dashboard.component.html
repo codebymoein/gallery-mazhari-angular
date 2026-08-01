@@ -14,7 +14,7 @@
         class="adm-btn adm-btn--success"
         [disabled]="!readyItems().length"
         (click)="publishAll()"
-      >
+        >
         انتشار همه آماده‌ها
       </button>
     </div>
@@ -51,129 +51,153 @@
       </div>
     </div>
 
-    <div class="mgr-list" *ngIf="readyItems().length; else emptyReady">
-      <article class="mgr-card" *ngFor="let item of readyItems()">
-        <div class="mgr-card__media" *ngIf="item.photos.length || item.photoUrl">
-          <img
-            [src]="item.photos[0].url || item.photoUrl"
-            [alt]="item.name"
-            width="96"
-            height="96"
-          />
-          <small *ngIf="item.photos.length > 1">
-            {{ item.photos.length | number:'1.0-0':'fa-IR' }} عکس
-          </small>
-        </div>
-        <div class="mgr-card__body">
-          <div class="mgr-card__top">
-            <strong class="adm-table__code" dir="ltr">{{ item.code }}</strong>
-            <span class="adm-status adm-status--ready_for_approval">
-              {{ statusLabels[item.status] }}
-            </span>
-          </div>
-          <h3>
-            {{ item.name }}
-            <span class="mgr-new" *ngIf="item.isNewImport">جدید</span>
-          </h3>
-          <dl class="mgr-meta">
-            <div>
-              <dt>دسته اصلی</dt>
-              <dd>{{ item.parentCategory || '—' }}</dd>
+    @if (readyItems().length) {
+      <div class="mgr-list">
+        @for (item of readyItems(); track item) {
+          <article class="mgr-card">
+            @if (item.photos.length || item.photoUrl) {
+              <div class="mgr-card__media">
+                <img
+                  [src]="item.photos[0].url || item.photoUrl"
+                  [alt]="item.name"
+                  width="96"
+                  height="96"
+                  />
+                @if (item.photos.length > 1) {
+                  <small>
+                    {{ item.photos.length | number:'1.0-0':'fa-IR' }} عکس
+                  </small>
+                }
+              </div>
+            }
+            <div class="mgr-card__body">
+              <div class="mgr-card__top">
+                <strong class="adm-table__code" dir="ltr">{{ item.code }}</strong>
+                <span class="adm-status adm-status--ready_for_approval">
+                  {{ statusLabels[item.status] }}
+                </span>
+              </div>
+              <h3>
+                {{ item.name }}
+                @if (item.isNewImport) {
+                  <span class="mgr-new">جدید</span>
+                }
+              </h3>
+              <dl class="mgr-meta">
+                <div>
+                  <dt>دسته اصلی</dt>
+                  <dd>{{ item.parentCategory || '—' }}</dd>
+                </div>
+                <div>
+                  <dt>زیردسته</dt>
+                  <dd>{{ item.category }}</dd>
+                </div>
+                <div>
+                  <dt>موجودی</dt>
+                  <dd>{{ item.stock | number:'1.0-0':'fa-IR' }}</dd>
+                </div>
+                <div>
+                  <dt>عکس‌ها</dt>
+                  <dd>{{ (item.photos.length || (item.photoUrl ? 1 : 0)) | number:'1.0-0':'fa-IR' }} / ۵</dd>
+                </div>
+                <div>
+                  <dt>ثبت توسط</dt>
+                  <dd dir="ltr">{{ item.processedBy || '—' }}</dd>
+                </div>
+                <div>
+                  <dt>زمان آماده‌سازی</dt>
+                  <dd>{{ formatDate(item.processedAt) }}</dd>
+                </div>
+              </dl>
+              @if (item.photos.length) {
+                <div class="mgr-thumbs">
+                  @for (ph of item.photos; track ph) {
+                    <img
+                      [src]="ph.url"
+                      [alt]="ph.fileName"
+                      width="48"
+                      height="48"
+                      />
+                  }
+                </div>
+              }
             </div>
-            <div>
-              <dt>زیردسته</dt>
-              <dd>{{ item.category }}</dd>
+            <div class="mgr-card__actions">
+              <a
+                class="adm-btn adm-btn--ghost adm-btn--sm"
+                routerLink="/admin/staging"
+                [queryParams]="{ settings: item.id, returnTo: '/admin/manager' }"
+                >
+                تنظیمات محصول و تگ‌ها
+              </a>
+              <button
+                type="button"
+                class="adm-btn adm-btn--success"
+                [disabled]="publishingId() === item.id"
+                (click)="publish(item)"
+                >
+                {{ publishingId() === item.id ? 'در حال انتشار…' : 'تایید و انتشار روی سایت' }}
+              </button>
+              <button type="button" class="adm-btn adm-btn--ghost adm-btn--sm" (click)="overrideToWaiting(item)">
+                بازگردانی به عکاسی
+              </button>
             </div>
-            <div>
-              <dt>موجودی</dt>
-              <dd>{{ item.stock | number:'1.0-0':'fa-IR' }}</dd>
-            </div>
-            <div>
-              <dt>عکس‌ها</dt>
-              <dd>{{ (item.photos.length || (item.photoUrl ? 1 : 0)) | number:'1.0-0':'fa-IR' }} / ۵</dd>
-            </div>
-            <div>
-              <dt>ثبت توسط</dt>
-              <dd dir="ltr">{{ item.processedBy || '—' }}</dd>
-            </div>
-            <div>
-              <dt>زمان آماده‌سازی</dt>
-              <dd>{{ formatDate(item.processedAt) }}</dd>
-            </div>
-          </dl>
-          <div class="mgr-thumbs" *ngIf="item.photos.length">
-            <img
-              *ngFor="let ph of item.photos"
-              [src]="ph.url"
-              [alt]="ph.fileName"
-              width="48"
-              height="48"
-            />
-          </div>
-        </div>
-        <div class="mgr-card__actions">
-          <button
-            type="button"
-            class="adm-btn adm-btn--success"
-            [disabled]="publishingId() === item.id"
-            (click)="publish(item)"
-          >
-            {{ publishingId() === item.id ? 'در حال انتشار…' : 'تایید و انتشار روی سایت' }}
-          </button>
-          <button type="button" class="adm-btn adm-btn--ghost adm-btn--sm" (click)="overrideToWaiting(item)">
-            بازگردانی به عکاسی
-          </button>
-        </div>
-      </article>
-    </div>
-
-    <ng-template #emptyReady>
+          </article>
+        }
+      </div>
+    } @else {
       <div class="adm-empty">
         <strong>کالایی آماده تایید نیست</strong>
         <p>وقتی کارکنان عکس ثبت کنند، اینجا ظاهر می‌شود.</p>
       </div>
-    </ng-template>
+    }
+
   </section>
 
-  <section class="adm-card" *ngIf="publishedPreview().length">
-    <div class="adm-card__head">
-      <div>
-        <h2 class="adm-card__title">اخیراً منتشرشده</h2>
-        <p class="adm-card__sub">محصولات فعال روی سایت</p>
+  @if (publishedPreview().length) {
+    <section class="adm-card">
+      <div class="adm-card__head">
+        <div>
+          <h2 class="adm-card__title">اخیراً منتشرشده</h2>
+          <p class="adm-card__sub">محصولات فعال روی سایت</p>
+        </div>
       </div>
-    </div>
-    <div class="adm-table-wrap">
-      <table class="adm-table">
-        <thead>
-          <tr>
-            <th scope="col">کد</th>
-            <th scope="col">نام</th>
-            <th scope="col">منتشرکننده</th>
-            <th scope="col">زمان</th>
-            <th scope="col">وضعیت</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let item of publishedPreview()">
-            <td class="adm-table__code" dir="ltr">{{ item.code }}</td>
-            <td>{{ item.name }}</td>
-            <td dir="ltr">{{ item.publishedBy || '—' }}</td>
-            <td>{{ formatDate(item.publishedAt) }}</td>
-            <td>
-              <span class="adm-status adm-status--published">{{ statusLabels.published }}</span>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </section>
+      <div class="adm-table-wrap">
+        <table class="adm-table">
+          <thead>
+            <tr>
+              <th scope="col">کد</th>
+              <th scope="col">نام</th>
+              <th scope="col">منتشرکننده</th>
+              <th scope="col">زمان</th>
+              <th scope="col">وضعیت</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of publishedPreview(); track item) {
+              <tr>
+                <td class="adm-table__code" dir="ltr">{{ item.code }}</td>
+                <td>{{ item.name }}</td>
+                <td dir="ltr">{{ item.publishedBy || '—' }}</td>
+                <td>{{ formatDate(item.publishedAt) }}</td>
+                <td>
+                  <span class="adm-status adm-status--published">{{ statusLabels.published }}</span>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+  }
 
-  <div
-    class="adm-toast"
-    [class.adm-toast--success]="toastOk()"
-    *ngIf="toast()"
-    role="status"
-  >
-    {{ toast() }}
-  </div>
+  @if (toast()) {
+    <div
+      class="adm-toast"
+      [class.adm-toast--success]="toastOk()"
+      role="status"
+      >
+      {{ toast() }}
+    </div>
+  }
 </section>

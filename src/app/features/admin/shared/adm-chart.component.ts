@@ -9,7 +9,7 @@ import {
   SimpleChanges,
   ViewChild
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import {
   Chart,
   ChartConfiguration,
@@ -24,7 +24,7 @@ Chart.register(...registerables);
 @Component({
   selector: 'app-adm-chart',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   template: `
     <div class="chart-wrap">
       <canvas #canvas role="img" [attr.aria-label]="title || 'نمودار تحلیلی'"></canvas>
@@ -56,7 +56,7 @@ export class AdmChartComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input() points: AnalyticsPoint[] = [];
   @Input() color = '#b8973e';
   @Input() fill = true;
-  /** واحد نمایش در tooltip مثلاً «میلیون تومان» یا «٪» */
+  /** واحد نمایش در tooltip مثلاً «میلیون ریال» یا «٪» */
   @Input() unit = '';
 
   private chart?: Chart;

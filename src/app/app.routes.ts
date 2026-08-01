@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import {
   adminAuthGuard,
   adminGuestGuard,
+  adminPermissionGuard,
   managerRoleGuard
 } from './core/guards/admin-auth.guard';
 
@@ -19,6 +20,17 @@ export const routes: Routes = [
     loadComponent: () => import('./features/home/home.component').then(m => m.HomeComponent)
   },
   {
+    path: 'discounts',
+    data: {
+      seo: {
+        title: 'محصولات تخفیف‌دار | گالری مظهری',
+        description: 'مشاهده همه محصولات دارای تخفیف فعال در گالری مظهری.'
+      }
+    },
+    loadComponent: () =>
+      import('./features/discounts/discounts-page.component').then(m => m.DiscountsPageComponent)
+  },
+  {
     path: 'catalog',
     data: {
       seo: {
@@ -27,6 +39,19 @@ export const routes: Routes = [
       }
     },
     loadComponent: () => import('./features/catalog/catalog.component').then(m => m.CatalogComponent)
+  },
+  {
+    path: 'accessories',
+    data: {
+      seo: {
+        title: 'فروشگاه اکسسوری عروس | گالری مظهری',
+        description: 'تمام دسته‌بندی‌های اکسسوری عروس؛ تاج، تور، زیورآلات، کفش، کیف و ملزومات مراسم.'
+      }
+    },
+    loadComponent: () =>
+      import('./features/accessory-store/accessory-store.component').then(
+        m => m.AccessoryStoreComponent
+      )
   },
   {
     path: 'collections/:slug',
@@ -77,13 +102,11 @@ export const routes: Routes = [
   },
   {
     path: 'looks',
-    redirectTo: 'catalog',
-    pathMatch: 'full'
+    loadComponent: () => import('./features/looks/looks.component').then(m => m.LooksComponent)
   },
   {
     path: 'look/:id',
-    redirectTo: 'catalog',
-    pathMatch: 'full'
+    loadComponent: () => import('./features/look-detail/look-detail.component').then(m => m.LookDetailComponent)
   },
   {
     path: 'cart',
@@ -164,6 +187,11 @@ export const routes: Routes = [
     loadComponent: () => import('./features/consultation/consultation.component').then(m => m.ConsultationComponent)
   },
   {
+    path: 'custom-request/:type',
+    data: { seo: { title: 'درخواست طراحی سفارشی | گالری مظهری', description: 'ثبت درخواست تور سر یا لباس سفارشی همراه با تصاویر مدل موردنظر.' } },
+    loadComponent: () => import('./features/custom-request/custom-request.component').then(m => m.CustomRequestComponent)
+  },
+  {
     path: 'account',
     data: {
       seo: {
@@ -190,6 +218,11 @@ export const routes: Routes = [
       )
   },
   {
+    path: 'admin/reset-password',
+    data: { seo: { title: 'بازیابی رمز پنل | گالری مظهری', robots: 'noindex,nofollow' } },
+    loadComponent: () => import('./features/admin/reset-password/admin-reset-password.component').then(m => m.AdminResetPasswordComponent)
+  },
+  {
     path: 'admin',
     canActivate: [adminAuthGuard],
     data: {
@@ -207,6 +240,7 @@ export const routes: Routes = [
       { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
       {
         path: 'dashboard',
+        canActivate: [adminPermissionGuard('dashboard.view')],
         data: {
           seo: {
             title: 'مرکز فرماندهی | گالری مظهری',
@@ -220,6 +254,7 @@ export const routes: Routes = [
       },
       {
         path: 'orders',
+        canActivate: [adminPermissionGuard('orders.manage')],
         data: {
           seo: {
             title: 'کانبان سفارش عروس | گالری مظهری',
@@ -233,6 +268,7 @@ export const routes: Routes = [
       },
       {
         path: 'crm',
+        canActivate: [adminPermissionGuard('crm.manage')],
         data: {
           seo: {
             title: 'CRM مشتریان | گالری مظهری',
@@ -246,6 +282,7 @@ export const routes: Routes = [
       },
       {
         path: 'crm/:id',
+        canActivate: [adminPermissionGuard('crm.manage')],
         data: {
           seo: {
             title: 'پروفایل مشتری | گالری مظهری',
@@ -259,6 +296,7 @@ export const routes: Routes = [
       },
       {
         path: 'inventory',
+        canActivate: [adminPermissionGuard('inventory.manage')],
         data: {
           seo: {
             title: 'هاب انبار | گالری مظهری',
@@ -272,6 +310,7 @@ export const routes: Routes = [
       },
       {
         path: 'inventory/category/:slug',
+        canActivate: [adminPermissionGuard('inventory.manage')],
         data: {
           seo: {
             title: 'محصولات دسته | گالری مظهری',
@@ -285,6 +324,7 @@ export const routes: Routes = [
       },
       {
         path: 'marketing',
+        canActivate: [adminPermissionGuard('marketing.manage')],
         data: {
           seo: {
             title: 'بازاریابی | گالری مظهری',
@@ -297,7 +337,22 @@ export const routes: Routes = [
           )
       },
       {
+        path: 'appearance',
+        canActivate: [adminPermissionGuard('marketing.manage')],
+        data: {
+          seo: {
+            title: 'مرکز مدیریت سایت | گالری مظهری',
+            robots: 'noindex,nofollow'
+          }
+        },
+        loadComponent: () =>
+          import('./features/admin/appearance/appearance-manager.component').then(
+            m => m.AppearanceManagerComponent
+          )
+      },
+      {
         path: 'import',
+        canActivate: [adminPermissionGuard('inventory.manage')],
         data: {
           seo: {
             title: 'بارگذاری اکسل انبار | گالری مظهری',
@@ -310,7 +365,36 @@ export const routes: Routes = [
           )
       },
       {
+        path: 'platform',
+        canActivate: [adminPermissionGuard('inventory.manage')],
+        data: {
+          seo: {
+            title: 'پلتفرم هوشمند واردات | گالری مظهری',
+            robots: 'noindex,nofollow'
+          }
+        },
+        loadComponent: () =>
+          import('./features/admin/platform-hub/platform-hub.component').then(
+            (m) => m.PlatformHubComponent
+          )
+      },
+      {
+        path: 'published-products',
+        canActivate: [adminPermissionGuard('publishing.published.manage')],
+        data: {
+          seo: {
+            title: 'کالاهای منتشر شده | گالری مظهری',
+            robots: 'noindex,nofollow'
+          }
+        },
+        loadComponent: () =>
+          import('./features/admin/published-products/published-products.component').then(
+            (m) => m.PublishedProductsComponent
+          )
+      },
+      {
         path: 'staging',
+        canActivate: [adminPermissionGuard('publishing.queue.manage')],
         data: {
           seo: {
             title: 'محصولات منتظر انتشار | گالری مظهری',
@@ -337,6 +421,17 @@ export const routes: Routes = [
           ).then((m) => m.ManagerDashboardComponent)
       },
       {
+        path: 'users',
+        canActivate: [managerRoleGuard],
+        data: {
+          seo: { title: 'مدیریت کاربران | گالری مظهری', robots: 'noindex,nofollow' }
+        },
+        loadComponent: () =>
+          import('./features/admin/user-manager/user-manager.component').then(
+            (m) => m.UserManagerComponent
+          )
+      },
+      {
         path: 'activity',
         canActivate: [managerRoleGuard],
         data: {
@@ -352,10 +447,11 @@ export const routes: Routes = [
       },
       {
         path: 'client-insights',
+        canActivate: [adminPermissionGuard('consultation.manage')],
         data: {
           seo: {
-            title: 'بینش مشتریان | گالری مظهری',
-            description: 'مشاهده بوم رویایی و تاریخ مراسم مشتریان برای آماده‌سازی مشاوره.',
+            title: 'درخواست‌های مشاوره | گالری مظهری',
+            description: 'مدیریت، انتخاب و چاپ درخواست‌های مشاوره تلفنی.',
             robots: 'noindex,nofollow'
           }
         },
@@ -363,6 +459,12 @@ export const routes: Routes = [
           import('./features/admin/client-insights/client-insights.component').then(
             (m) => m.ClientInsightsComponent
           )
+      },
+      {
+        path: 'custom-requests',
+        canActivate: [adminPermissionGuard('consultation.manage')],
+        data: { seo: { title: 'درخواست‌های سفارشی مشتریان | گالری مظهری', robots: 'noindex,nofollow' } },
+        loadComponent: () => import('./features/admin/custom-requests/custom-requests-admin.component').then(m => m.CustomRequestsAdminComponent)
       }
     ]
   },

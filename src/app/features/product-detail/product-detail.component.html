@@ -1,145 +1,365 @@
-<article class="bridal-product" dir="rtl" *ngIf="product as p">
-  <nav class="bridal-product__crumb" aria-label="مسیر صفحه">
-    <a routerLink="/">خانه</a>
-    <span aria-hidden="true">/</span>
-    <ng-container *ngIf="shopParent as parent">
-      <a [routerLink]="['/shop', parent.slug]">{{ parent.title }}</a>
-      <span *ngIf="shopSub" aria-hidden="true">/</span>
-      <a *ngIf="shopSub as sub" [routerLink]="['/shop', parent.slug, sub.slug]">{{ sub.label }}</a>
-    </ng-container>
-    <ng-container *ngIf="!shopParent && category as cat">
-      <a routerLink="/collections/bridal-clothing">پوشاک عروس</a>
+@if (product; as p) {
+  <article class="bridal-product" dir="rtl">
+    <nav class="bridal-product__crumb" aria-label="مسیر صفحه">
+      <a routerLink="/">خانه</a>
       <span aria-hidden="true">/</span>
-      <a [routerLink]="['/collections', cat.slug]">{{ cat.title }}</a>
-    </ng-container>
-    <span aria-hidden="true">/</span>
-    <span>{{ p.name }}</span>
-  </nav>
-
-  <div class="bridal-product__stage">
-    <div class="bridal-product__gallery">
-      <figure class="bridal-product__hero">
-        <img
-          [src]="activeImage"
-          [alt]="p.name"
-          width="900"
-          height="1200"
-          decoding="async"
-          (error)="hideBrokenImage($event)"
-        />
-        <span class="bridal-product__tag">{{ p.tag }}</span>
-      </figure>
-
-      <div class="bridal-product__thumbs" *ngIf="galleryImages().length > 1" role="list">
-        <button
-          *ngFor="let src of galleryImages()"
-          type="button"
-          class="bridal-product__thumb"
-          role="listitem"
-          [class.bridal-product__thumb--active]="src === activeImage"
-          [attr.aria-label]="'نمایش تصویر ' + p.name"
-          [attr.aria-pressed]="src === activeImage"
-          (click)="selectImage(src)"
-        >
-          <img [src]="src" [alt]="''" width="120" height="160" loading="lazy" decoding="async" />
-        </button>
-      </div>
-    </div>
-
-    <div class="bridal-product__info">
-      <p class="bridal-product__eyebrow" lang="en" dir="ltr">BRIDAL GOWN</p>
-      <h1 class="bridal-product__title">{{ p.name }}</h1>
-      <p class="bridal-product__collection" *ngIf="category as cat">
-        از
+      @if (shopParent; as parent) {
+        <a [routerLink]="['/shop', parent.slug]">{{ parent.title }}</a>
+        @if (shopSub) {
+          <span aria-hidden="true">/</span>
+        }
+        @if (shopSub; as sub) {
+          <a [routerLink]="['/shop', parent.slug, sub.slug]">{{ sub.label }}</a>
+        }
+      }
+      @if (!shopParent && category; as cat) {
+        <a routerLink="/collections/bridal-clothing">پوشاک عروس</a>
+        <span aria-hidden="true">/</span>
         <a [routerLink]="['/collections', cat.slug]">{{ cat.title }}</a>
-      </p>
-      <p class="bridal-product__collection" *ngIf="!category && shopSub as sub">
-        از
-        <a [routerLink]="['/shop', shopParent!.slug, sub.slug]">{{ sub.label }}</a>
-      </p>
-
-      <p class="bridal-product__lead">{{ p.description }}</p>
-
-      <p class="bridal-product__price">{{ priceLabel }}</p>
-
-      <dl class="bridal-product__meta">
-        <div>
-          <dt>فرم لباس</dt>
-          <dd>{{ p.silhouette }}</dd>
-        </div>
-        <div>
-          <dt>پارچه</dt>
-          <dd>{{ p.fabric }}</dd>
-        </div>
-      </dl>
-
-      <ul class="bridal-product__highlights" aria-label="جزئیات برجسته">
-        <li *ngFor="let item of p.highlights">{{ item }}</li>
-      </ul>
-
-      <div class="bridal-product__commerce">
-        <button class="bridal-product__cart-btn" type="button" (click)="addToCart()">
-          افزودن به سبد خرید
-        </button>
-        <button
-          class="bridal-product__dream-btn"
-          type="button"
-          [class.bridal-product__dream-btn--active]="onDreamBoard"
-          (click)="addToDreamBoard()"
-        >
-          {{ onDreamBoard ? 'در بوم رویایی' : 'افزودن به بوم رویایی' }}
-        </button>
-      </div>
-
-      <div class="bridal-product__actions">
-        <a
-          class="bridal-product__cta"
-          routerLink="/consultation"
-          [queryParams]="{ product: p.name, productId: p.id }"
-        >
-          درخواست مشاوره برای این مدل
-          <span aria-hidden="true">←</span>
-        </a>
-        <a
-          class="bridal-product__secondary"
-          [routerLink]="backLink"
-        >
-          {{ backLabel }}
-        </a>
-      </div>
-
-      <p class="bridal-product__note">
-        برای دیدن جزئیات پارچه، اندازه‌ها و هماهنگی اکسسوری، پس از ثبت درخواست با شما هماهنگ می‌کنیم.
-      </p>
-    </div>
-  </div>
-
-  <section class="bridal-product__related" *ngIf="related.length" aria-labelledby="related-title">
-    <header class="bridal-product__related-head">
-      <h2 id="related-title">مدل‌های مشابه</h2>
-      <p>از همین کالکشن ببینید</p>
-    </header>
-
-    <div class="bridal-product__related-grid">
-      <a
-        class="bridal-product__related-card"
-        *ngFor="let item of related"
-        [routerLink]="['/product', item.id]"
-      >
-        <span class="bridal-product__related-media">
+      }
+      <span aria-hidden="true">/</span>
+      <span>{{ p.name }}</span>
+    </nav>
+    <div class="bridal-product__stage">
+      <div class="bridal-product__gallery">
+        <figure
+          class="bridal-product__hero"
+          (touchstart)="onGalleryTouchStart($event)"
+          (touchend)="onGalleryTouchEnd($event)"
+          >
           <img
-            [src]="item.image"
-            [alt]="item.name"
-            width="280"
-            height="380"
-            loading="lazy"
+            [src]="activeImage"
+            [appResponsiveProductImage]="activeImage"
+            responsiveSizes="(max-width: 800px) 100vw, 50vw"
+            [alt]="p.name"
+            width="900"
+            height="1200"
             decoding="async"
             (error)="hideBrokenImage($event)"
-          />
-        </span>
-        <strong>{{ item.name }}</strong>
-        <small>{{ item.tag }}</small>
-      </a>
+            />
+          @if (isBridalDress) {
+            <span class="bridal-product__tag">{{ p.tag }}</span>
+          }
+          @if (galleryImages().length > 1) {
+            <button
+              type="button"
+              class="bridal-product__gallery-arrow bridal-product__gallery-arrow--prev"
+              aria-label="تصویر قبلی"
+              (click)="changeGalleryImage(-1)"
+            >‹</button>
+            <button
+              type="button"
+              class="bridal-product__gallery-arrow bridal-product__gallery-arrow--next"
+              aria-label="تصویر بعدی"
+              (click)="changeGalleryImage(1)"
+            >›</button>
+            <span class="bridal-product__gallery-count">
+              {{ galleryImages().indexOf(activeImage) + 1 }} / {{ galleryImages().length }}
+            </span>
+          }
+        </figure>
+        @if (galleryImages().length > 1) {
+          <div class="bridal-product__thumbs" role="list">
+            @for (src of galleryImages(); track src) {
+              <button
+                type="button"
+                class="bridal-product__thumb"
+                role="listitem"
+                [class.bridal-product__thumb--active]="src === activeImage"
+                [attr.aria-label]="'نمایش تصویر ' + p.name"
+                [attr.aria-pressed]="src === activeImage"
+                (click)="selectImage(src)"
+                >
+                <img [src]="src" [appResponsiveProductImage]="src" responsiveSizes="120px" [alt]="''" width="120" height="160" loading="lazy" decoding="async" />
+              </button>
+            }
+          </div>
+        }
+      </div>
+      <div class="bridal-product__info">
+        <p class="bridal-product__eyebrow" lang="en" dir="ltr">
+          {{ isShoes ? 'BRIDAL SHOES' : isSneakers ? 'BRIDAL SNEAKERS' : isVeil ? 'BRIDAL VEIL' : 'BRIDAL GOWN' }}
+        </p>
+        <h1 class="bridal-product__title">{{ p.name }}</h1>
+        @if (!showConsultation) {
+          <p class="bridal-product__price">{{ priceLabel }}</p>
+        }
+        <dl class="bridal-product__meta">
+          <div>
+            <dt>{{ metaPrimaryLabel }}</dt>
+            <dd>{{ metaPrimaryValue }}</dd>
+          </div>
+          <div>
+            <dt>{{ metaSecondaryLabel }}</dt>
+            <dd>{{ metaSecondaryValue }}</dd>
+          </div>
+        </dl>
+        @if (isFootwear && sizeOptions.length) {
+          <div class="bridal-product__sizes" role="group" aria-label="انتخاب سایز">
+            <div class="bridal-product__sizes-head">
+              <strong>انتخاب سایز</strong>
+            </div>
+            <div class="bridal-product__size-list">
+              @for (option of sizeOptions; track option) {
+                <button
+                  type="button"
+                  class="bridal-product__size-btn"
+                  [class.bridal-product__size-btn--active]="option.size === selectedSize"
+                  [class.bridal-product__size-btn--disabled]="!option.available"
+                  [disabled]="!option.available"
+                  [attr.aria-pressed]="option.size === selectedSize"
+                  (click)="selectSize(option)"
+                  >
+                  {{ option.size }}
+                </button>
+              }
+            </div>
+            @if (sizeError) {
+              <p class="bridal-product__size-error" role="alert">{{ sizeError }}</p>
+            }
+          </div>
+        }
+        @if (!isFootwear && variationOptions.length) {
+          <div class="bridal-product__sizes">
+            <div class="bridal-product__sizes-head">
+              <strong>انتخاب مدل / رنگ</strong>
+              @if (selectedVariationId) {
+                <span>موجودی: {{ selectedStock }}</span>
+              }
+            </div>
+            <select
+              class="bridal-product__variation-select"
+              [ngModel]="selectedVariationId"
+              (ngModelChange)="selectVariation($event)"
+              >
+              <option value="">انتخاب کنید…</option>
+              @for (option of variationOptions; track option) {
+                <option
+                  [value]="option.productId"
+                  [disabled]="!option.available"
+                  >
+                  {{ option.label }}{{ option.available ? ' — موجودی ' + option.stock : ' — ناموجود' }}
+                </option>
+              }
+            </select>
+            @if (variationError) {
+              <p class="bridal-product__size-error" role="alert">{{ variationError }}</p>
+            }
+          </div>
+        }
+        <ul class="bridal-product__highlights" aria-label="جزئیات برجسته">
+          @for (item of visibleHighlights(p); track item) {
+            <li>{{ item }}</li>
+          }
+        </ul>
+        @if (adminUser() && canEditProduct()) {
+          <a
+            class="bridal-product__admin-edit"
+            [routerLink]="['/admin/published-products']"
+            [queryParams]="{ settings: p.id, returnTo: '/product/' + p.id }"
+            >
+            ویرایش کالا
+          </a>
+        }
+        @if (isShoes) {
+          <section class="bridal-product__engraving">
+            <label class="bridal-product__engraving-toggle">
+              <input
+                type="checkbox"
+                [(ngModel)]="engravingRequested"
+                (ngModelChange)="engravingError = ''"
+                />
+              <span>
+                <strong>درخواست حکاکی سفارشی</strong>
+                <small>۸٬۰۰۰٬۰۰۰ ریال به مبلغ سفارش اضافه می‌شود.</small>
+              </span>
+            </label>
+            @if (engravingRequested) {
+              <div class="bridal-product__engraving-form">
+                <label for="engravingText">متن موردنظر برای حکاکی</label>
+                <input
+                  id="engravingText"
+                  type="text"
+                  maxlength="80"
+                  placeholder="متن دلخواه را وارد کنید"
+                  [(ngModel)]="engravingText"
+                  (ngModelChange)="engravingError = ''"
+                  />
+                <p>با انتخاب حکاکی سفارشی، زمان ارسال سفارش ۲ روز بیشتر می‌شود.</p>
+                @if (engravingError) {
+                  <span class="bridal-product__size-error" role="alert">{{ engravingError }}</span>
+                }
+              </div>
+            }
+          </section>
+        }
+        @if (isVeil) {
+          <section class="bridal-product__engraving">
+            <p class="bridal-product__custom-coordination">در صورت انتخاب چاپ اختصاصی، همکاران ما برای هرگونه هماهنگی بیشتر با شما تماس می‌گیرند.</p>
+            <label class="bridal-product__engraving-toggle">
+              <input
+                type="checkbox"
+                [(ngModel)]="veilPrintRequested"
+                (ngModelChange)="veilPrintError = ''"
+                />
+              <span>
+                <strong>چاپ اسم و تاریخ اختصاصی</strong>
+                <small>۱۰٬۰۰۰٬۰۰۰ ریال به مبلغ سفارش اضافه می‌شود.</small>
+              </span>
+            </label>
+            @if (veilPrintRequested) {
+              <div class="bridal-product__engraving-form">
+                <label for="veilPrintText">توضیحات چاپ اسم و تاریخ</label>
+                <textarea
+                  id="veilPrintText"
+                  maxlength="500"
+                  rows="4"
+                  placeholder="اسم، تاریخ و جزئیات موردنظر برای چاپ را بنویسید"
+                  [(ngModel)]="veilPrintText"
+                  (ngModelChange)="veilPrintError = ''"
+                ></textarea>
+                <p>همکاران ما جهت هماهنگی بیشتر با شما تماس می‌گیرند.</p>
+                @if (veilPrintError) {
+                  <span class="bridal-product__size-error" role="alert">{{ veilPrintError }}</span>
+                }
+              </div>
+            }
+          </section>
+        }
+        @if (!showConsultation) {
+          <div class="bridal-product__commerce">
+            <button class="bridal-product__cart-btn" type="button" (click)="addToCart()">
+              افزودن به سبد خرید
+            </button>
+            <button
+              class="bridal-product__dream-btn"
+              type="button"
+              [class.bridal-product__dream-btn--active]="onDreamBoard"
+              (click)="addToDreamBoard()"
+              >
+              {{ onDreamBoard ? 'در بوم رویایی' : 'افزودن به بوم رویایی' }}
+            </button>
+          </div>
+        }
+        @if (showConsultation) {
+          <div class="bridal-product__consultation-only">
+            <a
+              routerLink="/consultation"
+              [queryParams]="{ product: p.name, productId: p.id }"
+            >درخواست مشاوره حرفه‌ای</a>
+          </div>
+        }
+        <section class="bridal-product__additional">
+          <h2>توضیحات تکمیلی</h2>
+          <p>{{ p.additionalDescription || p.description }}</p>
+        </section>
+        @if (false && showConsultation) {
+          <p class="bridal-product__note">
+            برای دیدن جزئیات پارچه، اندازه‌ها و هماهنگی اکسسوری، پس از ثبت درخواست با شما هماهنگ می‌کنیم.
+          </p>
+        }
+        @if (false && !showConsultation && isFootwear) {
+          <p class="bridal-product__note">
+            سایز و موجودی از فایل اکسل انبار به‌روز می‌شود. پس از انتخاب سایز می‌توانید به سبد اضافه کنید.
+          </p>
+        }
+      </div>
     </div>
-  </section>
-</article>
+    @if (related.length) {
+      <section class="bridal-product__related" aria-labelledby="related-title">
+        <header class="bridal-product__related-head">
+          <h2 id="related-title">مدل‌های مشابه</h2>
+          <p>از همین کالکشن ببینید</p>
+        </header>
+        <div class="bridal-product__related-grid">
+          @for (item of related; track item) {
+            <a
+              class="bridal-product__related-card"
+              [routerLink]="['/product', item.id]"
+              >
+              <span class="bridal-product__related-media">
+                <img
+                  [src]="item.image"
+                  [alt]="item.name"
+                  width="280"
+                  height="380"
+                  loading="lazy"
+                  decoding="async"
+                  (error)="hideBrokenImage($event)"
+                  />
+              </span>
+              <strong>{{ item.name }}</strong>
+              <small>{{ item.tag }}</small>
+            </a>
+          }
+        </div>
+      </section>
+    }
+    @if (suggested.length) {
+      <section class="bridal-product__related bridal-product__suggested" aria-labelledby="suggested-title">
+        <header class="bridal-product__related-head">
+          <h2 id="suggested-title">کالاهای پیشنهادی</h2>
+          <p>انتخاب‌های مکمل برای کامل‌کردن استایل شما</p>
+        </header>
+        <div class="bridal-product__related-grid">
+          @for (item of suggested; track item) {
+            <a
+              class="bridal-product__related-card"
+              [routerLink]="['/product', item.id]"
+              >
+              <span class="bridal-product__related-media">
+                <img
+                  [src]="item.image"
+                  [alt]="item.name"
+                  width="280"
+                  height="380"
+                  loading="lazy"
+                  decoding="async"
+                  (error)="hideBrokenImage($event)"
+                  />
+              </span>
+              <strong>{{ item.name }}</strong>
+              <small>{{ item.tag }}</small>
+            </a>
+          }
+        </div>
+      </section>
+    }
+    @if (product.id) {
+      <app-recommendation-widget
+        [productCode]="product!.id"
+        widgetLabel="تکمیل استایل عروس شما"
+        widgetKey="complete_your_bridal_look"
+      ></app-recommendation-widget>
+    }
+    @if (product.id) {
+      <app-recommendation-widget
+        [productCode]="product!.id"
+        widgetLabel="هماهنگی کامل"
+        widgetKey="perfect_match"
+      ></app-recommendation-widget>
+    }
+    @if (product.id) {
+      <app-recommendation-widget
+        [productCode]="product!.id"
+        widgetLabel="پیشنهاد استایلیست مظهری"
+        widgetKey="mazhari_stylist"
+      ></app-recommendation-widget>
+    }
+    @if (cartNoticeVisible) {
+      <aside
+        class="bridal-product__cart-notice"
+        role="status"
+        aria-live="polite"
+        >
+        <span class="bridal-product__cart-notice-icon" aria-hidden="true">✓</span>
+        <div>
+          <strong>محصول به سبد خرید اضافه شد</strong>
+          <small>می‌توانید انتخاب خود را ادامه دهید.</small>
+        </div>
+        <a routerLink="/cart">مشاهده سبد</a>
+        <button type="button" aria-label="بستن پیام" (click)="closeCartNotice()">×</button>
+      </aside>
+    }
+  </article>
+}

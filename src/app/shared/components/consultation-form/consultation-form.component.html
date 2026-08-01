@@ -3,64 +3,60 @@
   dir="rtl"
   (submit)="onSubmit($event)"
   novalidate
->
+  >
   <!-- Honeypot -->
   <div class="consult-form__honeypot" aria-hidden="true">
     <label for="consult-website">وب‌سایت</label>
     <input id="consult-website" type="text" name="website" tabindex="-1" autocomplete="off" [(ngModel)]="honeypot"/>
   </div>
 
-  <p *ngIf="lockedProduct" class="consult-form__product consult-form__product--top">
-    <span>درخواست مشاوره برای</span>
-    <strong>{{ productName }}</strong>
-  </p>
+  @if (lockedProduct) {
+    <p class="consult-form__product consult-form__product--top">
+      <span>درخواست مشاوره برای</span>
+      <strong>{{ productName }}</strong>
+    </p>
+  }
 
   <ol class="consult-form__progress" aria-label="مراحل فرم مشاوره">
-    <li
-      *ngFor="let item of progressItems"
-      class="consult-form__progress-item"
-      [class.consult-form__progress-item--complete]="isStepComplete(item.step)"
-      [attr.aria-current]="currentStep === item.step ? 'step' : null"
-    >
-      <span>{{ item.step }}</span>
-      <strong>{{ item.label }}</strong>
-    </li>
+    @for (item of progressItems; track item) {
+      <li
+        class="consult-form__progress-item"
+        [class.consult-form__progress-item--complete]="isStepComplete(item.step)"
+        [attr.aria-current]="currentStep === item.step ? 'step' : null"
+        >
+        <span>{{ item.step }}</span>
+        <strong>{{ item.label }}</strong>
+      </li>
+    }
   </ol>
 
   <p class="consult-form__status" aria-live="polite">{{ stepAnnouncement }}</p>
 
-  <div
-    *ngIf="noticeType"
-    class="consult-form__notice consult-form__notice--error"
-    role="alert"
-    tabindex="-1"
-  >
-    {{ noticeMessage }}
-  </div>
+  @if (noticeType) {
+    <div
+      class="consult-form__notice consult-form__notice--error"
+      role="alert"
+      tabindex="-1"
+      >
+      {{ noticeMessage }}
+    </div>
+  }
 
   <!-- Step 1 -->
   <fieldset class="consult-form__step" [hidden]="currentStep !== 1">
     <legend #stepHeading tabindex="-1">
       <span>مرحله اول</span>
-      <strong>درخواست مشاوره برای چه محصولی دارید؟</strong>
+      <strong>شروع یک انتخاب هماهنگ</strong>
     </legend>
 
-    <label *ngIf="!lockedProduct" class="consult-form__field">
-      <span>برای چه محصولی؟ <b aria-hidden="true">*</b></span>
-      <select name="consultation_topic" required [(ngModel)]="selectedTopicId">
-        <option value="" disabled>محصول موردنظر را انتخاب کنید</option>
-        <option *ngFor="let topic of topicOptions" [value]="topic.id">{{ topic.label }}</option>
-      </select>
-    </label>
-
     <div class="consult-form__field">
-      <span id="consult-ceremony-label">تاریخ مراسم <b aria-hidden="true">*</b></span>
+      <span id="consult-ceremony-label">تاریخ مراسم <small>(اختیاری)</small></span>
 
       <div
         class="consult-form__calendar"
         role="group"
         aria-labelledby="consult-ceremony-label"
-      >
+        >
         <div class="consult-form__calendar-header">
           <button type="button" class="consult-form__cal-nav" aria-label="ماه قبل" (click)="prevMonth()">‹</button>
           <div class="consult-form__cal-title" aria-live="polite">{{ monthTitle }}</div>
@@ -68,34 +64,42 @@
         </div>
 
         <div class="consult-form__weekdays" aria-hidden="true">
-          <span *ngFor="let day of weekdays">{{ day }}</span>
+          @for (day of weekdays; track day) {
+            <span>{{ day }}</span>
+          }
         </div>
 
-        <div class="consult-form__grid" role="grid" aria-label="تقویم تاریخ مراسم">
-          <button
-            *ngFor="let cell of cells"
-            type="button"
-            class="consult-form__day"
-            role="gridcell"
-            [class.consult-form__day--empty]="cell.empty"
-            [class.consult-form__day--selected]="cell.selected"
-            [class.consult-form__day--today]="cell.today"
-            [disabled]="!!cell.empty || cell.disabled"
-            [attr.aria-label]="cell.empty ? null : ('روز ' + cell.jd)"
-            [attr.aria-selected]="cell.selected"
-            (click)="selectDay(cell)"
-          >
-            <span *ngIf="!cell.empty">{{ faDay(cell.jd) }}</span>
-          </button>
+        <div class="consult-form__grid" role="group" aria-label="تقویم تاریخ مراسم">
+          @for (cell of cells; track cell) {
+            <button
+              type="button"
+              class="consult-form__day"
+              [class.consult-form__day--empty]="cell.empty"
+              [class.consult-form__day--selected]="cell.selected"
+              [class.consult-form__day--today]="cell.today"
+              [disabled]="!!cell.empty || cell.disabled"
+              [attr.aria-label]="cell.empty ? null : ('روز ' + cell.jd)"
+              [attr.aria-pressed]="cell.selected"
+              (click)="selectDay(cell)"
+              >
+              @if (!cell.empty) {
+                <span>{{ faDay(cell.jd) }}</span>
+              }
+            </button>
+          }
         </div>
       </div>
 
-      <p class="consult-form__selected" *ngIf="displayCeremonyDate">
-        تاریخ انتخاب‌شده: <strong>{{ displayCeremonyDate }}</strong>
-      </p>
-      <p class="consult-form__selected consult-form__selected--empty" *ngIf="!displayCeremonyDate">
-        لطفاً تاریخ مراسم را از تقویم انتخاب کنید.
-      </p>
+      @if (displayCeremonyDate) {
+        <p class="consult-form__selected">
+          تاریخ انتخاب‌شده: <strong>{{ displayCeremonyDate }}</strong>
+        </p>
+      }
+      @if (!displayCeremonyDate) {
+        <p class="consult-form__selected consult-form__selected--empty">
+          لطفاً تاریخ مراسم را از تقویم انتخاب کنید.
+        </p>
+      }
     </div>
 
     <label class="consult-form__field">
@@ -126,16 +130,14 @@
 
     <div class="consult-form__row">
       <label class="consult-form__field">
-        <span>نام خانوادگی <b aria-hidden="true">*</b></span>
+        <span>نام خانوادگی <small>(اختیاری)</small></span>
         <input
           type="text"
           name="last_name"
-          minlength="2"
           maxlength="80"
           autocomplete="family-name"
-          required
           [(ngModel)]="lastName"
-        />
+          />
       </label>
 
       <label class="consult-form__field">
@@ -143,27 +145,28 @@
         <input
           type="tel"
           name="phone"
-          minlength="11"
           maxlength="15"
           inputmode="numeric"
           autocomplete="tel"
-          pattern="[0-9۰-۹\s\-]{11,15}"
-          required
           [(ngModel)]="phone"
           (ngModelChange)="onPhoneInput()"
           [attr.aria-invalid]="phoneError ? true : null"
           [attr.aria-describedby]="phoneError ? 'consult-phone-error' : null"
-        />
-        <small *ngIf="phoneError" id="consult-phone-error" class="consult-form__field-error" role="alert">
-          {{ phoneError }}
-        </small>
+          />
+        @if (phoneError) {
+          <small id="consult-phone-error" class="consult-form__field-error" role="alert">
+            {{ phoneError }}
+          </small>
+        }
       </label>
     </div>
 
     <label class="consult-form__field">
-      <span>زمان پیشنهادی تماس <b aria-hidden="true">*</b></span>
-      <select name="contact_time" required [(ngModel)]="contactTime">
-        <option *ngFor="let key of timeKeys" [value]="key">{{ contactTimes[key] }}</option>
+      <span>زمان پیشنهادی تماس <small>(اختیاری)</small></span>
+      <select name="contact_time" [(ngModel)]="contactTime">
+        @for (key of timeKeys; track key) {
+          <option [value]="key">{{ contactTimes[key] }}</option>
+        }
       </select>
     </label>
 
@@ -186,18 +189,22 @@
       <strong>تأیید و ثبت درخواست</strong>
     </legend>
 
-    <p *ngIf="resolvedProductName" class="consult-form__product">
-      <span>{{ lockedProduct ? 'مدل انتخاب‌شده' : 'محصول انتخاب‌شده' }}</span>
-      <strong>{{ resolvedProductName }}</strong>
-    </p>
+    @if (resolvedProductName) {
+      <p class="consult-form__product">
+        <span>{{ lockedProduct ? 'مدل انتخاب‌شده' : 'محصول انتخاب‌شده' }}</span>
+        <strong>{{ resolvedProductName }}</strong>
+      </p>
+    }
 
-    <p class="consult-form__summary" *ngIf="displayCeremonyDate">
-      <span>تاریخ مراسم</span>
-      <strong>{{ displayCeremonyDate }}</strong>
-    </p>
+    @if (displayCeremonyDate) {
+      <p class="consult-form__summary">
+        <span>تاریخ مراسم</span>
+        <strong>{{ displayCeremonyDate }}</strong>
+      </p>
+    }
 
     <label class="consult-form__consent">
-      <input type="checkbox" name="consent" value="1" required [(ngModel)]="consent"/>
+      <input type="checkbox" name="consent" value="1" [(ngModel)]="consent"/>
       <span>
         با تماس گالری مظهری و پردازش این اطلاعات برای پیگیری داخلی درخواست موافقم.
       </span>
@@ -216,7 +223,7 @@
         class="consult-form__btn consult-form__btn--submit"
         type="submit"
         [disabled]="submitting"
-      >
+        >
         <span>{{ submitting ? 'در حال ثبت درخواست…' : 'ثبت درخواست مشاوره' }}</span>
         <span aria-hidden="true">←</span>
       </button>

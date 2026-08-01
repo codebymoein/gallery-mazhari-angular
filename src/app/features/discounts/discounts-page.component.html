@@ -1,0 +1,29 @@
+<main class="discounts" dir="rtl">
+  <header class="hero"><span>SALE COLLECTION</span><h1>محصولات دارای تخفیف</h1><p>فرصت‌های ویژه گالری مظهری؛ قیمت نهایی هر محصول در همین صفحه مشخص است.</p></header>
+  @if (categories.length) {
+    <nav class="filters">
+      <button [class.active]="!selectedCategory" (click)="selectedCategory = ''">همه محصولات</button>
+      @for (category of categories; track category) {
+        <button [class.active]="selectedCategory === category" (click)="selectedCategory = category">{{ category }}</button>
+      }
+    </nav>
+  }
+  @if (loading) {
+    <div class="state">در حال دریافت پیشنهادها…</div>
+  }
+  @if (!loading && !products.length) {
+    <div class="state"><strong>فعلاً تخفیف فعالی وجود ندارد.</strong><a routerLink="/catalog">مشاهده فروشگاه</a></div>
+  }
+  @if (!loading) {
+    <section class="grid">
+      @for (product of visible; track product) {
+        <a class="product" [routerLink]="['/product', product.id]">
+          <div class="media"><img [src]="image(product)" [alt]="product.name" loading="lazy" /><b>{{ product.discountPercent }}٪</b></div>
+          <div class="content"><small>{{ product.category }}</small><h2>{{ product.name }}</h2><span class="code">{{ product.code }}</span>
+          <div class="price"><del>{{ product.originalPrice | number:'1.0-0':'fa-IR' }} ریال</del><strong>{{ product.salePrice | number:'1.0-0':'fa-IR' }} ریال</strong></div>
+        </div>
+      </a>
+    }
+  </section>
+}
+</main>

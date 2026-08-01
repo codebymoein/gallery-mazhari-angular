@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { AdminActivityService } from '@core/services/admin-activity.service';
 import {
@@ -10,7 +10,7 @@ import {
 @Component({
   selector: 'app-admin-activity',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [FormsModule],
   templateUrl: './admin-activity.component.html',
   styleUrls: ['./admin-activity.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush

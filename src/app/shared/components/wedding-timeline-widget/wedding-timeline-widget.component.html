@@ -4,7 +4,7 @@
   [class.wedding-timeline--personalized]="(timeline.state$ | async)?.personalized"
   [class.wedding-timeline--dock-visible]="dockVisible"
   [hidden]="hiddenOnRoute"
->
+  >
   <button
     #triggerBtn
     class="wedding-timeline__trigger"
@@ -14,7 +14,7 @@
     [attr.aria-label]="'باز کردن برنامه‌ریز تاریخ مراسم — ' + triggerText"
     [attr.tabindex]="dockVisible ? null : -1"
     (click)="open()"
-  >
+    >
     <span class="wedding-timeline__trigger-icon" aria-hidden="true">✦</span>
     <span class="wedding-timeline__trigger-label">{{ triggerText }}</span>
   </button>
@@ -23,17 +23,19 @@
     #dialogEl
     class="wedding-timeline__dialog"
     id="wedding-timeline-dialog"
+    tabindex="-1"
     aria-labelledby="wedding-timeline-title"
     aria-describedby="wedding-timeline-description"
     (close)="onDialogClose()"
     (click)="onDialogBackdrop($event)"
-  >
+    (keydown.escape)="dialogEl.close()"
+    >
     <button
       class="wedding-timeline__close"
       type="button"
       aria-label="بستن پنجره تاریخ مراسم"
       (click)="close()"
-    >
+      >
       <svg viewBox="0 0 24 24" aria-hidden="true">
         <path d="M6 6l12 12M18 6 6 18"></path>
       </svg>
@@ -57,7 +59,7 @@
           class="wedding-timeline__calendar"
           role="group"
           aria-labelledby="wedding-calendar-label"
-        >
+          >
           <div class="wedding-timeline__calendar-header">
             <button type="button" class="wedding-timeline__cal-nav" aria-label="ماه قبل" (click)="prevMonth()">
               ‹
@@ -69,32 +71,38 @@
           </div>
 
           <div class="wedding-timeline__weekdays" aria-hidden="true">
-            <span *ngFor="let day of weekdays">{{ day }}</span>
+            @for (day of weekdays; track day) {
+              <span>{{ day }}</span>
+            }
           </div>
 
-          <div class="wedding-timeline__grid" role="grid" aria-label="تقویم ماهانه">
-            <button
-              *ngFor="let cell of cells; let i = index"
-              type="button"
-              class="wedding-timeline__day"
-              role="gridcell"
-              [class.wedding-timeline__day--empty]="cell.empty"
-              [class.wedding-timeline__day--selected]="cell.selected"
-              [class.wedding-timeline__day--today]="cell.today"
-              [disabled]="!!cell.empty || cell.disabled"
-              [attr.aria-label]="cell.empty ? null : ('روز ' + cell.jd)"
-              [attr.aria-selected]="cell.selected"
-              (click)="selectDay(cell)"
-            >
-              <span *ngIf="!cell.empty">{{ faDay(cell.jd) }}</span>
-            </button>
+          <div class="wedding-timeline__grid" role="group" aria-label="تقویم ماهانه">
+            @for (cell of cells; track cell; let i = $index) {
+              <button
+                type="button"
+                class="wedding-timeline__day"
+                [class.wedding-timeline__day--empty]="cell.empty"
+                [class.wedding-timeline__day--selected]="cell.selected"
+                [class.wedding-timeline__day--today]="cell.today"
+                [disabled]="!!cell.empty || cell.disabled"
+                [attr.aria-label]="cell.empty ? null : ('روز ' + cell.jd)"
+                [attr.aria-pressed]="cell.selected"
+                (click)="selectDay(cell)"
+                >
+                @if (!cell.empty) {
+                  <span>{{ faDay(cell.jd) }}</span>
+                }
+              </button>
+            }
           </div>
         </div>
 
-        <p class="wedding-timeline__selected" *ngIf="displayDate">
-          تاریخ انتخاب‌شده:
-          <strong>{{ displayDate }}</strong>
-        </p>
+        @if (displayDate) {
+          <p class="wedding-timeline__selected">
+            تاریخ انتخاب‌شده:
+            <strong>{{ displayDate }}</strong>
+          </p>
+        }
         <small>تاریخ دقیق لازم نیست؛ نزدیک‌ترین روز را از تقویم لمس کنید.</small>
       </div>
 
@@ -104,7 +112,7 @@
           type="checkbox"
           [checked]="consented"
           (change)="onConsentChange($event)"
-        />
+          />
         <span>موافقم این تاریخ فقط روی همین مرورگر و حداکثر یک سال ذخیره شود.</span>
       </label>
 
@@ -112,19 +120,21 @@
         این تاریخ به سرور گالری ارسال نمی‌شود.
       </p>
 
-      <ng-container *ngIf="timeline.state$ | async as state">
-        <div class="wedding-timeline__result" aria-live="polite" *ngIf="state.personalized">
-          <strong>{{ state.title }}</strong>
-          <p>{{ state.message }}</p>
-        </div>
-      </ng-container>
+      @if (timeline.state$ | async; as state) {
+        @if (state.personalized) {
+          <div class="wedding-timeline__result" aria-live="polite">
+            <strong>{{ state.title }}</strong>
+            <p>{{ state.message }}</p>
+          </div>
+        }
+      }
 
       <p
         class="wedding-timeline__status"
         role="status"
         aria-live="polite"
         [class.wedding-timeline__status--error]="statusIsError"
-      >
+        >
         {{ statusMessage }}
       </p>
 
@@ -133,17 +143,18 @@
           class="wedding-timeline__button wedding-timeline__button--save"
           type="button"
           (click)="save()"
-        >
+          >
           ذخیره و شخصی‌سازی
         </button>
-        <button
-          class="wedding-timeline__button wedding-timeline__button--remove"
-          type="button"
-          *ngIf="(timeline.state$ | async)?.personalized"
-          (click)="remove()"
-        >
-          حذف تاریخ ذخیره‌شده
-        </button>
+        @if ((timeline.state$ | async)?.personalized) {
+          <button
+            class="wedding-timeline__button wedding-timeline__button--remove"
+            type="button"
+            (click)="remove()"
+            >
+            حذف تاریخ ذخیره‌شده
+          </button>
+        }
       </div>
     </div>
   </dialog>

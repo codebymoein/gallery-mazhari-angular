@@ -32,72 +32,80 @@
 
     <!-- Magazine grid: Dress · Crown · Shoes -->
     <div class="catalog-builder__grid" role="list">
-      <article
-        *ngFor="let slot of slots"
-        class="catalog-builder__slot"
-        role="listitem"
-        [class.catalog-builder__slot--filled]="!!itemFor(slot.category)">
-
-        <div class="catalog-builder__slot-label">
-          <span>{{ slot.label }}</span>
-          <button
-            *ngIf="itemFor(slot.category) as item"
-            type="button"
-            class="catalog-builder__slot-remove"
-            [attr.aria-label]="'حذف ' + item.name"
-            (click)="removeSlot(slot.category)">
-            حذف
-          </button>
-        </div>
-
-        <ng-container *ngIf="itemFor(slot.category) as item; else emptySlot">
-          <div class="catalog-builder__media">
-            <img
-              *ngIf="item.image; else mediaFallback"
-              [src]="item.image"
-              [alt]="item.name"
-              width="640"
-              height="800"
-              loading="lazy"
-              decoding="async"/>
-            <ng-template #mediaFallback>
-              <div class="catalog-builder__media-fallback" [attr.data-category]="slot.category" aria-hidden="true">
-                <span>{{ slot.label }}</span>
-              </div>
-            </ng-template>
+      @for (slot of slots; track slot) {
+        <article
+          class="catalog-builder__slot"
+          role="listitem"
+          [class.catalog-builder__slot--filled]="!!itemFor(slot.category)">
+          <div class="catalog-builder__slot-label">
+            <span>{{ slot.label }}</span>
+            @if (itemFor(slot.category); as item) {
+              <button
+                type="button"
+                class="catalog-builder__slot-remove"
+                [attr.aria-label]="'حذف ' + item.name"
+                (click)="removeSlot(slot.category)">
+                حذف
+              </button>
+            }
           </div>
-          <h2 class="catalog-builder__item-name">{{ item.name }}</h2>
-          <p *ngIf="item.subtitle" class="catalog-builder__item-sub">{{ item.subtitle }}</p>
-        </ng-container>
-
-        <ng-template #emptySlot>
-          <div class="catalog-builder__empty">
-            <span class="catalog-builder__empty-plus" aria-hidden="true">+</span>
-            <p>{{ slot.emptyHint }}</p>
-            <a class="catalog-builder__empty-link" routerLink="/catalog">رفتن به فروشگاه</a>
-          </div>
-        </ng-template>
-      </article>
+          @if (itemFor(slot.category); as item) {
+            <div class="catalog-builder__media">
+              @if (item.image) {
+                <img
+                  [src]="item.image"
+                  [alt]="item.name"
+                  width="640"
+                  height="800"
+                  loading="lazy"
+                  decoding="async"/>
+              } @else {
+                <div class="catalog-builder__media-fallback" [attr.data-category]="slot.category" aria-hidden="true">
+                  <span>{{ slot.label }}</span>
+                </div>
+              }
+            </div>
+            <h2 class="catalog-builder__item-name">{{ item.name }}</h2>
+            @if (item.subtitle) {
+              <p class="catalog-builder__item-sub">{{ item.subtitle }}</p>
+            }
+          } @else {
+            <div class="catalog-builder__empty">
+              <span class="catalog-builder__empty-plus" aria-hidden="true">+</span>
+              <p>{{ slot.emptyHint }}</p>
+              <a class="catalog-builder__empty-link" routerLink="/catalog">رفتن به فروشگاه</a>
+            </div>
+          }
+        </article>
+      }
     </div>
 
     <!-- Extra selections -->
-    <ul *ngIf="extraItems().length" class="catalog-builder__extras" aria-label="سایر انتخاب‌ها">
-      <li *ngFor="let item of extraItems()" class="catalog-builder__extra">
-        <span class="catalog-builder__extra-name">{{ item.name }}</span>
-        <span *ngIf="item.subtitle" class="catalog-builder__extra-sub">{{ item.subtitle }}</span>
-        <button
-          type="button"
-          class="catalog-builder__slot-remove"
-          [attr.aria-label]="'حذف ' + item.name"
-          (click)="removeItem(item.id)">
-          حذف
-        </button>
-      </li>
-    </ul>
+    @if (extraItems().length) {
+      <ul class="catalog-builder__extras" aria-label="سایر انتخاب‌ها">
+        @for (item of extraItems(); track item) {
+          <li class="catalog-builder__extra">
+            <span class="catalog-builder__extra-name">{{ item.name }}</span>
+            @if (item.subtitle) {
+              <span class="catalog-builder__extra-sub">{{ item.subtitle }}</span>
+            }
+            <button
+              type="button"
+              class="catalog-builder__slot-remove"
+              [attr.aria-label]="'حذف ' + item.name"
+              (click)="removeItem(item.id)">
+              حذف
+            </button>
+          </li>
+        }
+      </ul>
+    }
 
-    <p *ngIf="shareFeedback" class="catalog-builder__feedback" role="status">
-      {{ shareFeedback }}
-    </p>
+    @if (shareFeedback) {
+      <p class="catalog-builder__feedback" role="status">
+        {{ shareFeedback }}
+      </p>
+    }
 
     <!-- Actions -->
     <div class="catalog-builder__actions">

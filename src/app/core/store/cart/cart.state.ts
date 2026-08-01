@@ -13,7 +13,7 @@ export interface CartState {
   total: number;
   itemCount: number;
   coupon?: string;
-  /** مبلغ تخفیف به تومان */
+  /** مبلغ تخفیف به ریال */
   couponDiscount?: number;
   /** درصد تخفیف برای نمایش در چک‌اوت */
   couponPercent?: number;

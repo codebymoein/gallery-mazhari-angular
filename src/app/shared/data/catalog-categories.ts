@@ -10,27 +10,10 @@ export interface CatalogSubcategory {
   image?: string;
 }
 
-const SUBCATEGORY_IMAGE_POOL = [
-  '/assets/images/cat-bridal-clothing.webp',
-  '/assets/images/home-hero-bride.webp',
-  '/assets/images/cat-hair-accessories.webp',
-  '/assets/images/cat-jewelry.webp',
-  '/assets/images/cat-shoes.webp',
-  '/assets/images/cat-veil.webp',
-  '/assets/images/cat-headwear.webp',
-  '/assets/images/cat-bouquet.webp',
-  '/assets/images/cat-special.webp',
-  '/assets/images/cat-engagement.webp',
-  '/assets/images/bridal-hair-accessories.webp',
-  '/assets/images/home-complete-selection.webp'
-] as const;
-
 function assignSubcategoryImages(categories: CatalogCategory[]): void {
-  let index = 0;
   for (const category of categories) {
     for (const sub of category.subcategories) {
-      sub.image = SUBCATEGORY_IMAGE_POOL[index % SUBCATEGORY_IMAGE_POOL.length];
-      index += 1;
+      sub.image = category.image;
     }
   }
 }
@@ -62,6 +45,7 @@ export const CATALOG_CATEGORIES: CatalogCategory[] = [
       { label: 'روبدوشامبر عروس', slug: 'bridal-robes', icon: '🛁' },
       { label: 'شنل عروس', slug: 'bridal-capes', icon: '🌸' },
       { label: 'دستکش عروس', slug: 'bridal-gloves', icon: '💎' },
+      { label: 'لباس زیر', slug: 'bridal-lingerie', icon: '🤍' },
     ]
   },
   {
@@ -108,20 +92,19 @@ export const CATALOG_CATEGORIES: CatalogCategory[] = [
       { label: 'کفش عروس', slug: 'bridal-shoes', icon: '👠' },
       { label: 'کتونی عروس', slug: 'bridal-sneakers', icon: '👟' },
       { label: 'کیف عروس', slug: 'bridal-bags', icon: '👜' },
+      { label: 'اکسسوری کفش و کتونی', slug: 'bridal-footwear-accessories', icon: '✦' },
     ]
   },
   {
     id: 'veil',
-    title: 'تور سر',
+    title: 'تورسر',
     subtitle: 'BRIDAL VEIL',
     slug: 'bridal-veils',
     image: '/assets/images/cat-veil.webp',
     span: 'small',
     subcategories: [
-      { label: 'تور ساده', slug: 'simple-veil', icon: '🤍' },
-      { label: 'تور تزئینی', slug: 'decorated-veil', icon: '✨' },
-      { label: 'تور بلند', slug: 'long-veil', icon: '🌊' },
-      { label: 'تور کوتاه', slug: 'short-veil', icon: '🕊️' },
+      { label: 'تورسر عربی', slug: 'arabic-bridal-veils', icon: '✦' },
+      { label: 'تورسر اروپایی', slug: 'european-bridal-veils', icon: '✦' },
     ]
   },
   {
@@ -145,12 +128,7 @@ export const CATALOG_CATEGORIES: CatalogCategory[] = [
     slug: 'bridal-bouquets',
     image: '/assets/images/cat-bouquet.webp',
     span: 'small',
-    subcategories: [
-      { label: 'دسته‌گل رز', slug: 'rose-bouquet', icon: '🌹' },
-      { label: 'دسته‌گل مختلط', slug: 'mixed-bouquet', icon: '💐' },
-      { label: 'دسته‌گل ارکیده', slug: 'orchid-bouquet', icon: '🌺' },
-      { label: 'دسته‌گل سفید', slug: 'white-bouquet', icon: '🤍' },
-    ]
+    subcategories: []
   },
   {
     id: 'special',
@@ -159,12 +137,7 @@ export const CATALOG_CATEGORIES: CatalogCategory[] = [
     slug: 'special-bridal-accessories',
     image: '/assets/images/cat-special.webp',
     span: 'small',
-    subcategories: [
-      { label: 'باکس گل', slug: 'bridal-flower-boxes', icon: '🎁' },
-      { label: 'بادبزن عروس', slug: 'bridal-fans', icon: '🌬️' },
-      { label: 'عینک عروس', slug: 'bridal-glasses', icon: '🕶️' },
-      { label: 'چتر عروس', slug: 'bridal-umbrella', icon: '☂️' },
-    ]
+    subcategories: []
   },
   {
     id: 'engagement',
@@ -180,6 +153,24 @@ export const CATALOG_CATEGORIES: CatalogCategory[] = [
     ]
   }
 ];
+
+export function applyCatalogOrder(
+  categoryOrder: string[],
+  subcategoryOrder: Record<string, string[]>
+): void {
+  const categoryRank = new Map(categoryOrder.map((slug, index) => [slug, index]));
+  CATALOG_CATEGORIES.sort((a, b) =>
+    (categoryRank.get(a.slug) ?? Number.MAX_SAFE_INTEGER) -
+    (categoryRank.get(b.slug) ?? Number.MAX_SAFE_INTEGER)
+  );
+  for (const category of CATALOG_CATEGORIES) {
+    const rank = new Map((subcategoryOrder[category.slug] || []).map((slug, index) => [slug, index]));
+    category.subcategories.sort((a, b) =>
+      (rank.get(a.slug) ?? Number.MAX_SAFE_INTEGER) -
+      (rank.get(b.slug) ?? Number.MAX_SAFE_INTEGER)
+    );
+  }
+}
 
 assignSubcategoryImages(CATALOG_CATEGORIES);
 

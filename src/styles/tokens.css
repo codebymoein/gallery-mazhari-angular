@@ -6,30 +6,30 @@
 
 :root {
   /* ── Brand Core ─────────────────────────────────────────────── */
-  --color-matte-black: #0a0a0a;
-  --color-dark-charcoal: #1a1a1a;
-  --color-champagne-gold: #d4af37;
-  --color-gold-primary: #b8973e;
+  --color-matte-black: #656561;
+  --color-dark-charcoal: #484846;
+  --color-champagne-gold: #9d7937;
+  --color-gold-primary: #89682f;
   --color-gold-light: var(--color-champagne-gold);
-  --color-gold-hover: #9f7e38;
-  --color-gold-subtle: #eee5d1;
-  --color-gold-bright: #e8c97a;
-  --color-gold-deep: #c4a055;
+  --color-gold-hover: #705225;
+  --color-gold-subtle: #e5dcc8;
+  --color-gold-bright: #b99752;
+  --color-gold-deep: #765826;
 
-  --color-bg-cream: #f9f8f6;
-  --color-cream-warm: #f3efe6;
-  --color-cream-soft: #f7f4ee;
-  --color-surface: #ffffff;
+  --color-bg-cream: #f4f3f0;
+  --color-cream-warm: #e9e7e2;
+  --color-cream-soft: #efeeea;
+  --color-surface: #fbfaf8;
   --color-white: #ffffff;
 
-  --color-text-main: #333333;
-  --color-text-muted: #7a7a7a;
-  --color-text-on-dark: rgba(255, 255, 255, 0.72);
-  --color-text-on-dark-soft: rgba(255, 255, 255, 0.55);
-  --color-text-on-dark-faint: rgba(255, 255, 255, 0.42);
+  --color-text-main: #555552;
+  --color-text-muted: #666560;
+  --color-text-on-dark: rgba(255, 255, 252, 0.96);
+  --color-text-on-dark-soft: rgba(255, 255, 252, 0.78);
+  --color-text-on-dark-faint: rgba(255, 255, 252, 0.62);
 
-  --color-border: #e4dfd6;
-  --color-border-light: #e5e5e5;
+  --color-border: #d9d6d0;
+  --color-border-light: #e3e1dc;
 
   --color-error: #d32f2f;
   --color-success: #388e3c;
@@ -42,26 +42,26 @@
   --color-social-bale: #00a3e0;
 
   /* RGB channels for alpha compositing */
-  --color-champagne-rgb: 212, 175, 55;
-  --color-gold-primary-rgb: 184, 151, 62;
-  --color-matte-rgb: 10, 10, 10;
-  --color-overlay-rgb: 10, 9, 8;
+  --color-champagne-rgb: 157, 121, 55;
+  --color-gold-primary-rgb: 137, 104, 47;
+  --color-matte-rgb: 101, 101, 97;
+  --color-overlay-rgb: 72, 72, 70;
 
   /* Gold / matte alpha scales */
   --color-gold-a04: rgba(var(--color-champagne-rgb), 0.04);
   --color-gold-a08: rgba(var(--color-champagne-rgb), 0.08);
   --color-gold-a10: rgba(var(--color-champagne-rgb), 0.1);
   --color-gold-a12: rgba(var(--color-champagne-rgb), 0.12);
-  --color-gold-a14: rgba(var(--color-champagne-rgb), 0.14);
-  --color-gold-a16: rgba(var(--color-champagne-rgb), 0.16);
-  --color-gold-a18: rgba(var(--color-champagne-rgb), 0.18);
-  --color-gold-a22: rgba(var(--color-champagne-rgb), 0.22);
-  --color-gold-a24: rgba(var(--color-champagne-rgb), 0.24);
-  --color-gold-a28: rgba(var(--color-champagne-rgb), 0.28);
-  --color-gold-a30: rgba(var(--color-champagne-rgb), 0.3);
-  --color-gold-a32: rgba(var(--color-champagne-rgb), 0.32);
-  --color-gold-a35: rgba(var(--color-champagne-rgb), 0.35);
-  --color-gold-a38: rgba(var(--color-champagne-rgb), 0.38);
+  --color-gold-a14: rgba(var(--color-champagne-rgb), 0.24);
+  --color-gold-a16: rgba(var(--color-champagne-rgb), 0.26);
+  --color-gold-a18: rgba(var(--color-champagne-rgb), 0.28);
+  --color-gold-a22: rgba(var(--color-champagne-rgb), 0.32);
+  --color-gold-a24: rgba(var(--color-champagne-rgb), 0.34);
+  --color-gold-a28: rgba(var(--color-champagne-rgb), 0.38);
+  --color-gold-a30: rgba(var(--color-champagne-rgb), 0.4);
+  --color-gold-a32: rgba(var(--color-champagne-rgb), 0.42);
+  --color-gold-a35: rgba(var(--color-champagne-rgb), 0.45);
+  --color-gold-a38: rgba(var(--color-champagne-rgb), 0.48);
   --color-gold-a45: rgba(var(--color-champagne-rgb), 0.45);
   --color-gold-a55: rgba(var(--color-champagne-rgb), 0.55);
   --color-gold-a70: rgba(var(--color-champagne-rgb), 0.7);
@@ -70,14 +70,14 @@
   --color-gold-a90: rgba(var(--color-champagne-rgb), 0.9);
 
   --color-primary-a10: rgba(var(--color-gold-primary-rgb), 0.1);
-  --color-primary-a14: rgba(var(--color-gold-primary-rgb), 0.14);
-  --color-primary-a16: rgba(var(--color-gold-primary-rgb), 0.16);
-  --color-primary-a18: rgba(var(--color-gold-primary-rgb), 0.18);
-  --color-primary-a22: rgba(var(--color-gold-primary-rgb), 0.22);
-  --color-primary-a28: rgba(var(--color-gold-primary-rgb), 0.28);
-  --color-primary-a30: rgba(var(--color-gold-primary-rgb), 0.3);
-  --color-primary-a32: rgba(var(--color-gold-primary-rgb), 0.32);
-  --color-primary-a38: rgba(var(--color-gold-primary-rgb), 0.38);
+  --color-primary-a14: rgba(var(--color-gold-primary-rgb), 0.24);
+  --color-primary-a16: rgba(var(--color-gold-primary-rgb), 0.26);
+  --color-primary-a18: rgba(var(--color-gold-primary-rgb), 0.28);
+  --color-primary-a22: rgba(var(--color-gold-primary-rgb), 0.32);
+  --color-primary-a28: rgba(var(--color-gold-primary-rgb), 0.38);
+  --color-primary-a30: rgba(var(--color-gold-primary-rgb), 0.4);
+  --color-primary-a32: rgba(var(--color-gold-primary-rgb), 0.42);
+  --color-primary-a38: rgba(var(--color-gold-primary-rgb), 0.48);
   --color-primary-a55: rgba(var(--color-gold-primary-rgb), 0.55);
 
   --color-white-a04: rgba(255, 255, 255, 0.04);
@@ -97,16 +97,16 @@
   --color-overlay-a88: rgba(var(--color-overlay-rgb), 0.88);
 
   /* Luxury section surfaces */
-  --color-surface-dark: #1c1a17;
-  --color-surface-dark-elevated: #24211d;
-  --color-surface-dark-deep: #141210;
-  --color-surface-dark-deeper: #0e0c0a;
-  --color-loading-bg: #0e0c09;
-  --color-text-cream: #f0ece3;
-  --color-text-cream-muted: #c8c3b8;
-  --color-fallback-warm: #2c241c;
-  --color-fallback-deep: #1a1612;
-  --color-fallback-story: #2c2318;
+  --color-surface-dark: #70706c;
+  --color-surface-dark-elevated: #7d7d78;
+  --color-surface-dark-deep: #5d5d59;
+  --color-surface-dark-deeper: #50504d;
+  --color-loading-bg: #696965;
+  --color-text-cream: #fffffc;
+  --color-text-cream-muted: #ffffff;
+  --color-fallback-warm: #85857f;
+  --color-fallback-deep: #6d6d68;
+  --color-fallback-story: #797974;
 
   /* Luxury dark section shell (shared by lookbook / VIP / footer) */
   --bg-luxury-dark:

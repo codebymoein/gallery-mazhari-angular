@@ -1,0 +1,61 @@
+<section class="adm-page user-manager" dir="rtl">
+  <header class="adm-page__head">
+    <div><p class="adm-page__eyebrow">ACCESS CONTROL</p><h1 class="adm-page__title">مدیریت کاربران و کلاینت‌ها</h1><p class="adm-page__lead">ساخت حساب، تعیین سطح دسترسی، تغییر مشخصات ورود و کنترل وضعیت کاربران.</p></div>
+    <button class="adm-btn adm-btn--primary" type="button" (click)="openCreate()">+ کلاینت جدید</button>
+  </header>
+
+  @if (notice) {
+    <p class="alert alert--ok">{{ notice }}</p>
+  }
+  @if (error) {
+    <p class="alert alert--error">{{ error }}</p>
+  }
+
+  <div class="stats">
+    <div class="adm-card stat"><strong>{{ users.length }}</strong><span>کل حساب‌ها</span></div>
+    <div class="adm-card stat"><strong>{{ (users | slice:0:users.length).length }}</strong><span>ثبت‌شده در سامانه</span></div>
+    <div class="adm-card stat"><strong>{{ filteredUsers.length }}</strong><span>نتیجه فعلی</span></div>
+  </div>
+
+  <section class="adm-card panel">
+    <div class="panel__head"><div><h2>فهرست کاربران</h2><small>رمزهای عبور قابل مشاهده نیستند و فقط بازنشانی می‌شوند.</small></div><input class="search" type="search" [(ngModel)]="query" placeholder="جستجو نام یا نام کاربری…"></div>
+    <div class="table-wrap">
+      <table><thead><tr><th>کاربر</th><th>سطح</th><th>دسترسی‌ها</th><th>وضعیت</th><th>عملیات</th></tr></thead>
+      <tbody>
+        @for (user of filteredUsers; track user) {
+          <tr>
+            <td><strong>{{ user.fullName }}</strong><small>{{ user.email }}</small></td>
+            <td><span class="role">{{ user.role === 'admin' ? 'مدیر' : (user.role === 'staff' ? 'استاف' : 'کلاینت') }}</span></td>
+            <td><span class="permission-count">{{ (user.permissions || []).length }} دسترسی</span></td>
+            <td><button class="status" [class.status--off]="!user.isActive" (click)="toggleActive(user)">{{ user.isActive ? 'فعال' : 'غیرفعال' }}</button></td>
+            <td class="actions"><button type="button" (click)="openEdit(user)">ویرایش / رمز</button><button class="danger" type="button" (click)="remove(user)">حذف</button></td>
+          </tr>
+        }
+        @if (!loading && !filteredUsers.length) {
+          <tr><td colspan="5" class="empty">کاربری پیدا نشد.</td></tr>
+        }
+      </tbody></table>
+    </div>
+  </section>
+
+  <section class="adm-card panel account">
+    <div><h2>حساب مدیر فعلی</h2><small>نام کاربری یا رمز ورود خودتان را تغییر دهید.</small></div>
+    <div class="account__form"><label>نام نمایشی<input [(ngModel)]="me.fullName"></label><label>نام کاربری (ایمیل)<input type="email" dir="ltr" [(ngModel)]="me.email"></label><label>رمز جدید<input type="password" dir="ltr" [(ngModel)]="me.password" placeholder="بدون تغییر"></label><button class="adm-btn adm-btn--primary" [disabled]="saving" (click)="saveMe()">ذخیره حساب من</button></div>
+  </section>
+
+  @if (showForm) {
+    <div class="modal-backdrop" role="button" tabindex="0" aria-label="بستن فرم کاربر"
+      (click)="showForm = false" (keydown.enter)="showForm = false"></div>
+  }
+  @if (showForm) {
+    <section class="modal adm-card" role="dialog" aria-modal="true">
+      <div class="modal__head"><div><p class="adm-page__eyebrow">USER PROFILE</p><h2>{{ editingId ? 'ویرایش کاربر' : 'تعریف کلاینت جدید' }}</h2></div><button class="close" (click)="showForm = false">×</button></div>
+      <div class="form-grid"><label>نام و نام خانوادگی<input [(ngModel)]="form.fullName"></label><label>نام کاربری (ایمیل)<input type="email" dir="ltr" [(ngModel)]="form.email"></label><label>سطح حساب<select [(ngModel)]="form.role"><option value="customer">کلاینت</option><option value="staff">استاف / اپراتور</option><option value="admin">مدیر کامل</option></select></label><label>{{ editingId ? 'رمز جدید (اختیاری)' : 'رمز عبور' }}<input type="password" dir="ltr" [(ngModel)]="password"></label></div>
+      <fieldset><legend>سطح‌های دسترسی</legend>@for (p of permissionOptions; track p) {
+      <label class="check"><input type="checkbox" [checked]="form.permissions.includes(p.key)" (change)="togglePermission(p.key, $any($event.target).checked)"><span>{{ p.label }}</span></label>
+    }</fieldset>
+    <label class="check active-check"><input type="checkbox" [(ngModel)]="form.isActive"><span>حساب فعال باشد</span></label>
+    <div class="modal__actions"><button class="adm-btn adm-btn--ghost" (click)="showForm = false">انصراف</button><button class="adm-btn adm-btn--primary" [disabled]="saving" (click)="save()">{{ saving ? 'در حال ذخیره…' : 'ذخیره کاربر' }}</button></div>
+  </section>
+}
+</section>

@@ -1,0 +1,46 @@
+<main class="custom-page" dir="rtl">
+  <nav class="custom-page__crumb"><a routerLink="/">خانه</a><span>‹</span><span>{{ title }}</span></nav>
+  @if (success) {
+    <section class="custom-page__success" role="status"><span>✓</span><h1>درخواست شما ثبت شد</h1><p>همکاران ما بعد از برآورد هزینه برای هماهنگی بیشتر با شما تماس می‌گیرند.</p><a routerLink="/">بازگشت به صفحه اصلی</a></section>
+  } @else {
+    <section class="custom-page__layout">
+      <header class="custom-page__intro"><p lang="en" dir="ltr">BESPOKE CONSULTATION</p><h1>{{ title }}</h1><p>{{ introDescription }}</p><ul><li>بهترین کیفیت و متریال</li><li>اجرای حرفه‌ای و کار دست</li><li>تکمیل فرم در کمتر از دو دقیقه</li><li>تماس مشاوران در زمان انتخابی شما</li></ul></header>
+      <form class="consult-form custom-form" (ngSubmit)="submit()" #form="ngForm" novalidate>
+        <input class="custom-form__trap" name="website" [(ngModel)]="model.website" tabindex="-1" autocomplete="off">
+        <ol class="consult-form__progress" aria-label="مراحل فرم درخواست سفارشی">@for (item of progressItems; track item.step) { <li class="consult-form__progress-item" [class.consult-form__progress-item--complete]="isStepComplete(item.step)" [attr.aria-current]="currentStep === item.step ? 'step' : null"><span>{{ item.step.toLocaleString('fa-IR') }}</span><strong>{{ item.label }}</strong></li> }</ol>
+        <p class="consult-form__status" aria-live="polite">{{ stepAnnouncement }}</p>
+        @if (error) { <div class="consult-form__notice consult-form__notice--error" role="alert">{{ error }}</div> }
+
+        <fieldset class="consult-form__step" [hidden]="currentStep !== 1"><legend><span>مرحله اول</span><strong>مدل موردنظر و تاریخ مراسم</strong></legend>
+          <div class="consult-form__field"><span id="custom-ceremony-label">تاریخ مراسم <b>*</b></span><div class="consult-form__calendar" role="group" aria-labelledby="custom-ceremony-label"><div class="consult-form__calendar-header"><button type="button" class="consult-form__cal-nav" aria-label="ماه قبل" (click)="prevMonth()">‹</button><div class="consult-form__cal-title" aria-live="polite">{{ monthTitle }}</div><button type="button" class="consult-form__cal-nav" aria-label="ماه بعد" (click)="nextMonth()">›</button></div><div class="consult-form__weekdays" aria-hidden="true">@for (day of weekdays; track day) { <span>{{ day }}</span> }</div><div class="consult-form__grid" role="group" aria-label="تقویم جلالی تاریخ مراسم">@for (cell of cells; track cell) { <button type="button" class="consult-form__day" [class.consult-form__day--empty]="cell.empty" [class.consult-form__day--selected]="cell.selected" [class.consult-form__day--today]="cell.today" [disabled]="!!cell.empty || cell.disabled" [attr.aria-label]="cell.empty ? null : ('روز ' + cell.jd)" [attr.aria-pressed]="cell.selected" (click)="selectDay(cell)">@if (!cell.empty) { <span>{{ faDay(cell.jd) }}</span> }</button> }</div></div>@if (displayCeremonyDate) { <p class="consult-form__selected">تاریخ انتخاب‌شده: <strong>{{ displayCeremonyDate }}</strong></p> } @else { <p class="consult-form__selected consult-form__selected--empty">لطفاً تاریخ مراسم را از تقویم جلالی انتخاب کنید.</p> }</div>
+          <label class="consult-form__field"><span>عنوان مدل درخواستی</span><input name="modelTitle" [(ngModel)]="model.modelTitle" maxlength="160" [placeholder]="type === 'veil' ? 'مثلاً تور بلند دانتل‌دوزی' : 'مثلاً لباس عروس مدل ماهی مینیمال'"></label>
+          @if (type === 'veil') {
+            <label class="consult-form__field"><span>توضیح اولیه مدل</span><textarea name="descriptionIntro" [(ngModel)]="model.description" maxlength="2000" rows="4" placeholder="مدل موردنظر، سبک، تزئینات و نکات مهم را توضیح دهید"></textarea></label>
+          }
+          <div class="consult-form__actions"><button class="consult-form__btn consult-form__btn--next" type="button" (click)="nextStep()">مرحله بعد <span>←</span></button></div>
+        </fieldset>
+
+        <fieldset class="consult-form__step" [hidden]="currentStep !== 2"><legend><span>مرحله دوم</span><strong>راه ارتباط با شما</strong></legend>
+          <div class="consult-form__row"><label class="consult-form__field"><span>نام و نام خانوادگی</span><input name="fullName" [(ngModel)]="model.fullName" maxlength="100" autocomplete="name"></label><label class="consult-form__field"><span>شماره موبایل <b>*</b></span><input name="phone" [(ngModel)]="model.phone" maxlength="11" inputmode="numeric" dir="ltr" placeholder="09xxxxxxxxx" autocomplete="tel"></label></div>
+          <div class="consult-form__row"><label class="consult-form__field"><span>ایمیل <small>(اختیاری)</small></span><input name="email" [(ngModel)]="model.email" type="email" maxlength="160" dir="ltr" autocomplete="email"></label><label class="consult-form__field"><span>شهر</span><input name="city" [(ngModel)]="model.city" maxlength="80"></label></div>
+          <label class="consult-form__field"><span>زمان پیشنهادی تماس</span><select name="contactTime" [(ngModel)]="model.contactTime"><option value="anytime">هر زمان</option><option value="morning">صبح، ۹ تا ۱۲</option><option value="afternoon">ظهر، ۱۲ تا ۱۶</option><option value="evening">عصر، ۱۶ تا ۲۰</option></select></label>
+          <label class="consult-form__field"><span>روش تماس ترجیحی</span><select name="preferredContact" [(ngModel)]="model.preferredContact"><option value="phone">تماس تلفنی</option><option value="whatsapp">واتساپ</option><option value="telegram">تلگرام</option></select></label>
+          <div class="consult-form__actions"><button class="consult-form__btn consult-form__btn--back" type="button" (click)="prevStep()">→ مرحله قبل</button><button class="consult-form__btn consult-form__btn--next" type="button" (click)="nextStep()">مرحله بعد ←</button></div>
+        </fieldset>
+
+        <fieldset class="consult-form__step" [hidden]="currentStep !== 3"><legend><span>مرحله سوم</span><strong>جزئیات و تصاویر مدل</strong></legend>
+          @if (type === 'veil') {
+            <div class="consult-form__row"><label class="consult-form__field"><span>رنگ موردنظر</span><input name="color" [(ngModel)]="model.color" maxlength="80"></label><label class="consult-form__field"><span>جنس تور یا تزئینات</span><input name="fabric" [(ngModel)]="model.fabric" maxlength="120"></label></div>
+            <div class="consult-form__row"><label class="consult-form__field"><span>{{ sizeLabel }}</span><input name="sizeOrLength" [(ngModel)]="model.sizeOrLength" maxlength="80"></label><label class="consult-form__field"><span>محدوده بودجه</span><input name="budget" [(ngModel)]="model.budget" maxlength="120" placeholder="اختیاری"></label></div>
+          }
+          <label class="consult-form__field"><span>توضیحات کامل درخواست</span><textarea name="description" [(ngModel)]="model.description" maxlength="2000" rows="5" placeholder="تمام جزئیات مدل، جنس، تزئینات و تغییرات موردنظر را بنویسید"></textarea></label>
+          <label class="consult-form__field custom-form__upload"><span>تصاویر مدل درخواستی <small>(اختیاری، حداکثر ۵ تصویر)</small></span><input type="file" accept="image/jpeg,image/png,image/webp" multiple (change)="selectImages($event)"><small>JPG، PNG یا WebP؛ حداکثر ۵ مگابایت برای هر تصویر</small></label>
+          @if (previews.length) { <div class="custom-form__previews">@for (preview of previews; track preview) { <img [src]="preview" alt="پیش‌نمایش تصویر انتخابی" width="120" height="120" loading="lazy" decoding="async"> }</div> }
+          <label class="consult-form__consent"><input type="checkbox" name="consent" [(ngModel)]="consent"><span>با تماس گالری مظهری و پردازش اطلاعات و تصاویر برای پیگیری درخواست موافقم.</span></label>
+          <p class="custom-form__notice">همکاران ما بعد از برآورد هزینه برای هماهنگی بیشتر با شما تماس می‌گیرند.</p>
+          <div class="consult-form__actions"><button class="consult-form__btn consult-form__btn--back" type="button" (click)="prevStep()">→ مرحله قبل</button><button class="consult-form__btn consult-form__btn--submit" type="submit" [disabled]="submitting"><span>{{ submitting ? 'در حال ثبت درخواست…' : 'ثبت درخواست سفارشی' }}</span><span>←</span></button></div>
+        </fieldset>
+      </form>
+    </section>
+  }
+</main>

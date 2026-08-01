@@ -63,8 +63,11 @@ export class ApiInterceptor implements HttpInterceptor {
   private addHeaders(req: HttpRequest<any>): HttpRequest<any> {
     let headers = req.headers;
 
-    // Add content type for JSON
-    if (!headers.has('Content-Type') && req.method !== 'GET') {
+    // Never set Content-Type for FormData. The browser must generate the
+    // multipart boundary; forcing application/json makes ZIP/image uploads fail.
+    const isFormData =
+      typeof FormData !== 'undefined' && req.body instanceof FormData;
+    if (!headers.has('Content-Type') && req.method !== 'GET' && !isFormData) {
       headers = headers.set('Content-Type', 'application/json');
     }
 
@@ -82,7 +85,10 @@ export class ApiInterceptor implements HttpInterceptor {
       headers = headers.set('Authorization', `Bearer ${token}`);
     }
 
-    return req.clone({ headers });
+    return req.clone({
+      headers,
+      withCredentials: this.isBackendUrl(req.url) ? true : req.withCredentials
+    });
   }
 
   /**
@@ -183,12 +189,6 @@ export class ApiInterceptor implements HttpInterceptor {
    */
   private getAuthToken(): string | null {
     try {
-      const adminSession = sessionStorage.getItem(environment.storageKeys.adminSession);
-      if (adminSession) {
-        const parsed = JSON.parse(adminSession) as { accessToken?: string };
-        if (parsed.accessToken) return parsed.accessToken;
-      }
-
       const auth = localStorage.getItem('auth_token');
       return auth ? JSON.parse(auth).token : null;
     } catch {

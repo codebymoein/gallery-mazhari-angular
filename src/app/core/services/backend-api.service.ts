@@ -8,7 +8,9 @@ export interface BackendAuthResponse {
   user: {
     id: string;
     email: string;
-    role: 'admin' | 'customer';
+    role: 'admin' | 'staff' | 'customer';
+    fullName?: string;
+    permissions?: string[];
   };
 }
 
@@ -47,6 +49,18 @@ export class BackendApiService {
     password: string;
   }): Observable<BackendAuthResponse> {
     return this.http.post<BackendAuthResponse>(`${this.baseUrl}/auth/bootstrap-admin`, payload);
+  }
+
+  forgotPassword(email: string): Observable<{ accepted: true }> {
+    return this.http.post<{ accepted: true }>(`${this.baseUrl}/auth/forgot-password`, { email });
+  }
+
+  resetPassword(token: string, password: string): Observable<{ reset: true }> {
+    return this.http.post<{ reset: true }>(`${this.baseUrl}/auth/reset-password`, { token, password });
+  }
+
+  logout(): Observable<{ loggedOut: true }> {
+    return this.http.post<{ loggedOut: true }>(`${this.baseUrl}/auth/logout`, {});
   }
 
   getGallery(params?: { page?: number; limit?: number; search?: string }): Observable<GalleryListResponse> {

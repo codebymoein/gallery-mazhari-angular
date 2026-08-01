@@ -50,6 +50,9 @@
   font-family: var(--font-english);
   font-size: clamp(.52rem, 1vw, .65rem);
   letter-spacing: .18em;
+  line-height: 1.5;
+  overflow: visible;
+  white-space: nowrap;
 }
 
 /* ── Desktop Nav (right side in RTL = left visually) ── */
@@ -467,7 +470,11 @@
 }
 .luxury-nav__drawer-nav summary::-webkit-details-marker { display: none; }
 .luxury-nav__drawer-nav summary span { color: var(--mds-color-primary-hover); font-size: 1.4rem; line-height: 1; }
-.luxury-nav__drawer-nav details[open] summary span { transform: rotate(45deg); display: inline-block; transition: transform var(--transition-smooth); }
+.luxury-nav__drawer-nav details[open] > summary span { transform: rotate(45deg); display: inline-block; transition: transform var(--transition-smooth); }
+
+.luxury-nav__drawer-group > .luxury-nav__drawer-submenu {
+  padding-inline-start: 0.15rem;
+}
 
 .luxury-nav__drawer-submenu {
   padding-block-end: 0.75rem;
@@ -498,6 +505,10 @@
   text-align: start;
   text-decoration: none;
   transition: color var(--mds-transition-fast), background var(--mds-transition-fast);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .luxury-nav__drawer-submenu-link:hover {
   color: var(--mds-color-primary-hover);
@@ -582,6 +593,7 @@
   .luxury-nav__brand small {
     font-size: 0.42rem;
     letter-spacing: 0.14em;
+    line-height: 1.6;
   }
 
   .luxury-nav__actions {
@@ -611,9 +623,26 @@
     font-size: 0.55rem;
   }
 
-  /* Mobile: keep ONLY the search icon — hide the top search bar input */
-  .luxury-nav__search-panel {
-    display: none !important;
+  .luxury-nav__search-panel:not([hidden]) {
+    display: block !important;
+    padding-block: .55rem;
+  }
+  .luxury-nav__search-form {
+    width: calc(100% - 1rem);
+  }
+  .luxury-nav__search-form > label { display:none; }
+  .luxury-nav__search-field {
+    min-height:2.55rem;
+    grid-template-columns:1rem minmax(0,1fr) auto;
+    gap:.4rem;
+    padding-inline-start:.65rem;
+  }
+  .luxury-nav__search-field input { height:2.55rem; font-size:.75rem; }
+  .luxury-nav__search-field button {
+    min-width:4.2rem;
+    height:2.55rem;
+    padding-inline:.65rem;
+    font-size:.72rem;
   }
 
   /* Compact drawer */
@@ -685,4 +714,10 @@
   .luxury-nav *, .luxury-nav *::before, .luxury-nav *::after {
     transition-duration: .01ms !important;
   }
+}
+/* Navigation labels must stay on one line in every menu. */
+.luxury-nav a,
+.luxury-nav summary,
+.luxury-nav__drawer a {
+  white-space: nowrap;
 }

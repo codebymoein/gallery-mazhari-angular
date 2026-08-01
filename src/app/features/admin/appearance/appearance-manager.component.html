@@ -1,0 +1,268 @@
+<main class="appearance" dir="rtl">
+  <header class="head"><div><span>SITE MANAGEMENT CENTER</span><h1>مرکز مدیریت سایت</h1><p>ظاهر، محتوای تصویری، پرداخت، اعلان‌ها و استایل‌های سایت را یکجا مدیریت کنید.</p></div><button (click)="save()" [disabled]="saving">{{ saving ? 'در حال ذخیره…' : 'ذخیره تغییرات ظاهری' }}</button></header>
+  <nav class="appearance-nav" aria-label="دسترسی سریع به بخش‌های مدیریت سایت">
+    <a href="#commerce-settings"><span>۰۱</span> پرداخت و اعلان‌ها</a>
+    <a href="#home-visuals"><span>۰۲</span> تصاویر صفحه اصلی</a>
+    <a href="#customer-stories"><span>۰۳</span> خاطرات عروس‌ها</a>
+    <a href="#catalog-visuals"><span>۰۴</span> تصاویر دسته‌بندی</a>
+    <a href="#style-studio"><span>۰۵</span> استودیو استایل</a>
+  </nav>
+  @if (message) {
+    <p class="notice success">{{ message }}</p>
+    }@if (error) {
+    <p class="notice error">{{ error }}</p>
+  }
+
+  <section id="commerce-settings" class="panel payment-settings panel--featured">
+    <div class="section-title">
+      <h2>درگاه پرداخت و واحد پول</h2>
+      <p>تمام قیمت‌ها به ریال نمایش داده می‌شوند و مبلغ محصول هنگام پرداخت از قیمت قطعی فایل اکسل انبار دوباره محاسبه می‌شود.</p>
+    </div>
+    <div class="style-fields">
+      <label>درگاه فعال
+        <select [(ngModel)]="payment.provider">
+          <option value="disabled">غیرفعال</option>
+          <option value="zarinpal">زرین‌پال</option>
+          <option value="custom">درگاه سفارشی</option>
+        </select>
+      </label>
+      <label>عنوان دکمه پرداخت
+        <input [(ngModel)]="payment.displayName" maxlength="100" placeholder="پرداخت امن با زرین‌پال">
+      </label>
+      <label class="payment-check">
+        <input type="checkbox" [(ngModel)]="payment.enabled">
+        فعال‌کردن پرداخت آنلاین
+      </label>
+      @if (payment.provider === 'zarinpal') {
+        <label class="payment-check">
+          <input type="checkbox" [(ngModel)]="payment.sandbox">
+          حالت آزمایشی زرین‌پال
+        </label>
+      }
+      @if (payment.provider === 'zarinpal') {
+        <label>Merchant ID زرین‌پال
+          <input [(ngModel)]="payment.merchantId" dir="ltr" autocomplete="off" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+        </label>
+      }
+      @if (payment.provider === 'custom') {
+        <label>آدرس ایجاد پرداخت
+          <input [(ngModel)]="payment.customRequestUrl" dir="ltr" placeholder="https://gateway.example/api/payment">
+        </label>
+        <label>آدرس تأیید پرداخت
+          <input [(ngModel)]="payment.customVerifyUrl" dir="ltr" placeholder="https://gateway.example/api/verify">
+        </label>
+        <label>قالب آدرس انتقال مشتری
+          <input [(ngModel)]="payment.customPaymentUrlTemplate" dir="ltr" placeholder="https://gateway.example/pay/{authority}">
+        </label>
+        <label>کلید API
+          <input [(ngModel)]="payment.customApiKey" dir="ltr" type="password" autocomplete="new-password">
+        </label>
+      }
+    </div>
+    <button type="button" (click)="savePaymentSettings()" [disabled]="paymentSaving">
+      {{ paymentSaving ? 'در حال ذخیره…' : 'ذخیره تنظیمات درگاه' }}
+    </button>
+  </section>
+
+  <section class="panel payment-settings panel--featured" aria-labelledby="notification-settings-title">
+    <div class="section-title">
+      <h2 id="notification-settings-title">بات تلگرام و پیامک مسئولان</h2>
+      <p>در حالت خودکار، ابتدا تلگرام ارسال می‌شود و در صورت خطا یا قطعی اینترنت بین‌الملل، SMS جایگزین می‌شود.</p>
+    </div>
+    <div class="style-fields">
+      <label>روش ارسال
+        <select [(ngModel)]="notification.mode">
+          <option value="disabled">غیرفعال</option><option value="auto">خودکار: تلگرام سپس SMS</option>
+          <option value="telegram">فقط تلگرام</option><option value="sms">فقط SMS</option><option value="both">هر دو</option>
+        </select>
+      </label>
+      <label class="payment-check"><input type="checkbox" [(ngModel)]="notification.enabled"> فعال‌بودن اعلان‌ها</label>
+      <label>توکن BotFather<input type="password" autocomplete="new-password" [(ngModel)]="notification.telegramBotToken" dir="ltr"></label>
+      <label>Chat ID مسئولان، هر مورد یک خط<textarea rows="3" [(ngModel)]="telegramChatIdsText" dir="ltr"></textarea></label>
+      <label>آدرس HTTPS API پنل SMS<input [(ngModel)]="notification.smsApiUrl" dir="ltr" placeholder="https://sms-provider.ir/api/send"></label>
+      <label>کلید API پنل SMS<input type="password" autocomplete="new-password" [(ngModel)]="notification.smsApiKey" dir="ltr"></label>
+      <label>شماره/خط ارسال‌کننده<input [(ngModel)]="notification.smsSender" dir="ltr"></label>
+      <label>شماره مسئولان، هر مورد یک خط<textarea rows="3" [(ngModel)]="smsRecipientsText" dir="ltr" placeholder="09xxxxxxxxx"></textarea></label>
+      <label>نام Header احراز<input [(ngModel)]="notification.smsAuthHeader" dir="ltr" placeholder="Authorization"></label>
+      <label>پیشوند کلید<input [(ngModel)]="notification.smsAuthScheme" dir="ltr" placeholder="Bearer"></label>
+      <label>مهلت پاسخ (میلی‌ثانیه)<input type="number" min="2000" max="30000" [(ngModel)]="notification.timeoutMs"></label>
+    </div>
+    <div class="payment-settings__actions">
+      <button type="button" (click)="saveNotificationSettings()" [disabled]="notificationSaving">{{ notificationSaving ? 'در حال ذخیره…' : 'ذخیره تنظیمات اعلان' }}</button>
+      <button type="button" (click)="testNotification('telegram')" [disabled]="!!notificationTesting">تست تلگرام</button>
+      <button type="button" (click)="testNotification('sms')" [disabled]="!!notificationTesting">تست SMS</button>
+    </div>
+  </section>
+
+  <section id="home-visuals" class="panel"><div class="section-title"><h2>بنرهای اصلی</h2><p>تصاویر عمودی و باکیفیت برای نتیجه بهتر پیشنهاد می‌شود.</p></div>
+  <div class="hero-grid">
+    <article><img [src]="image('bridal')" alt="بنر پوشاک عروس"><div><strong>بنر پوشاک عروس</strong><label>انتخاب تصویر<input type="file" accept="image/jpeg,image/png,image/webp,image/avif" (change)="choose($event,'bridal')"></label><button (click)="reset('bridal')">بازگشت به پیش‌فرض</button></div></article>
+    <article><img [src]="image('accessory')" alt="بنر اکسسوری"><div><strong>بنر اکسسوری</strong><label>انتخاب تصویر<input type="file" accept="image/jpeg,image/png,image/webp,image/avif" (change)="choose($event,'accessory')"></label><button (click)="reset('accessory')">بازگشت به پیش‌فرض</button></div></article>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="section-title"><h2>تصویر بخش مشاوره</h2><p>تصویری مرتبط با انتخاب و هماهنگی محصولات عروس انتخاب کنید.</p></div>
+  <div class="hero-grid">
+    <article><img [src]="image('consultation')" alt="تصویر بخش مشاوره"><div><strong>تصویر معرفی مشاوره</strong><label>تعویض تصویر<input type="file" accept="image/jpeg,image/png,image/webp,image/avif" (change)="choose($event,'consultation')"></label><button (click)="reset('consultation')">بازگشت به پیش‌فرض</button></div></article>
+  </div>
+</section>
+
+<section id="customer-stories" class="panel">
+  <div class="section-title"><h2>خاطرات عروس‌ها</h2><p>عکس، نام، محل و متن هر خاطره مستقیماً در صفحه اصلی نمایش داده می‌شود.</p></div>
+  <button type="button" (click)="addMemory()" [disabled]="(model.memories?.length || 0) >= 12">افزودن خاطره</button>
+  <div class="memory-grid">
+    @for (memory of model.memories; track memory; let i = $index) {
+      <article class="memory-editor">
+        @if (memory.image) {
+          <img [src]="memory.image" [alt]="memory.name">
+        }
+        <label>عکس<input type="file" accept="image/jpeg,image/png,image/webp,image/avif" (change)="chooseMemory($event,memory)"></label>
+        <label>نام<input [(ngModel)]="memory.name" maxlength="120"></label>
+        <label>محل مراسم<input [(ngModel)]="memory.venue" maxlength="160"></label>
+        <label>متن خاطره<textarea [(ngModel)]="memory.quote" rows="4" maxlength="1000"></textarea></label>
+        <label>چیدمان<select [(ngModel)]="memory.span"><option value="square">مربع</option><option value="tall">عمودی</option><option value="wide">افقی</option></select></label>
+        <p class="memory-status" [class.live]="memory.active">{{ memory.active ? 'منتشرشده روی سایت' : 'پیش‌نویس و پنهان' }}</p>
+        @if (!memory.active) {
+          <button type="button" class="memory-publish" (click)="publishMemory(i,true)" [disabled]="saving">انتشار روی بخش خاطرات سایت</button>
+        }
+        @if (memory.active) {
+          <button type="button" class="memory-unpublish" (click)="publishMemory(i,false)" [disabled]="saving">برداشتن از سایت</button>
+        }
+        <button type="button" (click)="removeMemory(i)">حذف خاطره</button>
+      </article>
+    }
+  </div>
+</section>
+
+<section id="catalog-visuals" class="panel"><div class="section-title"><h2>تصاویر دسته‌بندی‌های اصلی</h2><p>این تصاویر در صفحه اصلی و سربرگ دسته استفاده می‌شوند.</p></div>
+<div class="image-grid">
+  @for (category of categories; track category; let first = $first; let last = $last) {
+    <article><img [src]="image('category',category.slug)" [alt]="category.title"><div><strong>{{ category.title }}</strong><span class="priority-actions"><button type="button" [disabled]="first" (click)="moveCategory(category.slug,-1)">اولویت بالاتر</button><button type="button" [disabled]="last" (click)="moveCategory(category.slug,1)">اولویت پایین‌تر</button></span><label>تعویض<input type="file" accept="image/jpeg,image/png,image/webp,image/avif" (change)="choose($event,'category',category.slug)"></label><button (click)="reset('category',category.slug)">پیش‌فرض</button></div></article>
+  }
+</div>
+</section>
+
+<section class="panel"><div class="section-title"><h2>تصاویر زیرمجموعه‌ها</h2><p>برای هر زیرمجموعه تصویر مستقل انتخاب کنید؛ در صورت خالی بودن، تصویر دسته اصلی نمایش داده می‌شود.</p></div>
+@for (category of categories; track category) {
+  @if (category.subcategories.length) {
+    <h3 class="category-title">{{ category.title }}</h3>
+  }
+  @if (category.subcategories.length) {
+    <div class="image-grid compact">
+      @for (sub of orderedSubcategories(category); track sub; let first = $first; let last = $last) {
+        <article><img [src]="image('subcategory',sub.slug)" [alt]="sub.label"><div><strong>{{ sub.label }}</strong><span class="priority-actions"><button type="button" [disabled]="first" (click)="moveSubcategory(category.slug,sub.slug,-1)">بالاتر</button><button type="button" [disabled]="last" (click)="moveSubcategory(category.slug,sub.slug,1)">پایین‌تر</button></span><label>تعویض<input type="file" accept="image/jpeg,image/png,image/webp,image/avif" (change)="choose($event,'subcategory',sub.slug)"></label><button (click)="reset('subcategory',sub.slug)">پیش‌فرض</button></div></article>
+      }
+    </div>
+  }
+}
+</section>
+
+<section id="style-studio" class="panel style-manager">
+  <div class="section-title">
+    <h2>ساخت و انتشار استایل</h2>
+    <p>تصاویر استایل، متن‌ها، محصولات و محل دکمه‌های پنهان روی عکس را از همین بخش تنظیم کنید.</p>
+  </div>
+
+  <div class="style-toolbar">
+    <button type="button" (click)="newStyle()">ساخت استایل جدید</button>
+    <a routerLink="/looks" target="_blank">مشاهده صفحه استایل‌ها</a>
+  </div>
+
+  <div class="style-layout">
+    <div class="style-editor">
+      <div class="style-fields">
+        <label>نام استایل *<input [(ngModel)]="styleDraft.name"></label>
+        <label>نشانی صفحه<input [(ngModel)]="styleDraft.slug" placeholder="ivory-dream"></label>
+        <label>عنوان کوتاه<input [(ngModel)]="styleDraft.subtitle"></label>
+        <label>نوع استایل<input [(ngModel)]="styleDraft.style"></label>
+        <label>حال‌وهوا<input [(ngModel)]="styleDraft.mood"></label>
+        <label>مناسب مراسم<input [(ngModel)]="styleDraft.ceremony"></label>
+        <label>اولویت نمایش<input type="number" [(ngModel)]="styleDraft.displayPriority"></label>
+      </div>
+      <label class="full-field">توضیحات کامل<textarea rows="4" [(ngModel)]="styleDraft.story"></textarea></label>
+
+      <div class="style-upload">
+        <strong>تصاویر استایل — حداکثر ۵ عکس</strong>
+        <label>انتخاب تصاویر<input type="file" multiple accept="image/jpeg,image/png,image/webp,image/avif" (change)="chooseStyleImages($event)"></label>
+      </div>
+      @if (hotspotProductCode) {
+        <p class="point-guide">محصول انتخاب شده است؛ اکنون دقیقاً روی محل آن در یکی از عکس‌ها بزنید.</p>
+      }
+      <div class="style-images">
+        @for (image of styleDraft.images; track image; let imageIndex = $index) {
+          <figure role="button" tabindex="0" aria-label="ثبت نقطه محصول روی تصویر"
+            (click)="placeStyleHotspot($event,imageIndex)"
+            (keydown.enter)="placeStyleHotspot($event,imageIndex)">
+            <img [src]="image" [alt]="styleDraft.name">
+            @for (point of styleDraft.hotspots; track point) {
+              <i
+                class="admin-point" [hidden]="point.imageIndex !== imageIndex"
+                [style.left.%]="point.x" [style.top.%]="point.y"
+              [title]="point.label"></i>
+            }
+            <button type="button" (click)="$event.stopPropagation();removeStyleImage(imageIndex)">حذف عکس</button>
+          </figure>
+        }
+      </div>
+
+      <h3>محصولات منتشرشده داخل استایل</h3>
+      <p class="muted">محصول را فعال کنید. برای لینک‌کردن قسمتی از عکس، روی «تعیین نقطه» و سپس محل محصول در عکس بزنید.</p>
+      <div class="product-search">
+        <input [(ngModel)]="styleProductQuery" placeholder="جست‌وجو با نام، کد یا دسته‌بندی…" aria-label="جست‌وجوی محصولات منتشرشده">
+        <span>{{ publishedProducts.length }} محصول</span>
+        @if (styleProductQuery) {
+          <button type="button" (click)="styleProductQuery=''">پاک‌کردن</button>
+        }
+      </div>
+      <div class="style-products">
+        @for (product of publishedProducts; track product) {
+          <article>
+            <input type="checkbox" [checked]="hasStyleProduct(product.code)"
+              (change)="toggleStyleProduct(product.code,$any($event.target).checked)">
+            @if (product.photoUrl) {
+              <img [src]="product.photoUrl" [alt]="product.name">
+            }
+            <div><strong>{{ product.name }}</strong><small>{{ product.category }} — {{ product.code }}</small></div>
+            <button type="button" (click)="selectHotspotProduct(product.code)">تعیین نقطه</button>
+          </article>
+        }
+        @if (!publishedProducts.length) {
+          <p class="no-product">محصول منتشرشده‌ای با این جست‌وجو پیدا نشد.</p>
+        }
+      </div>
+
+      @if (styleDraft.hotspots.length) {
+        <div class="registered-points">
+          <strong>دکمه‌های پنهان تعریف‌شده</strong>
+          @for (point of styleDraft.hotspots; track point; let i = $index) {
+            <button type="button" (click)="removeStyleHotspot(i)">
+              عکس {{ point.imageIndex + 1 }} — {{ point.label }} ×
+            </button>
+          }
+        </div>
+      }
+
+      <div class="publish-actions">
+        <button type="button" (click)="saveStyle(false)" [disabled]="styleSaving">ذخیره پیش‌نویس</button>
+        <button type="button" class="publish" (click)="saveStyle(true)" [disabled]="styleSaving">
+          {{ styleSaving ? 'در حال ذخیره…' : 'انتشار در بخش استایل‌ها' }}
+        </button>
+      </div>
+    </div>
+
+    <aside class="saved-styles">
+      <h3>استایل‌های ساخته‌شده</h3>
+      @for (style of styles; track style) {
+        <button type="button" (click)="editStyle(style)">
+          @if ($any(style).images?.[0] || $any(style).coverImageUrl) {
+            <img
+              [src]="$any(style).images?.[0] || $any(style).coverImageUrl" alt="">
+          }
+          <span><strong>{{ $any(style).name }}</strong><small>{{ $any(style).status === 'published' ? 'منتشرشده' : 'پیش‌نویس' }}</small></span>
+        </button>
+      }
+    </aside>
+  </div>
+</section>
+</main>

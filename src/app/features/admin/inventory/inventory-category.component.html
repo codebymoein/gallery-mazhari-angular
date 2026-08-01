@@ -1,74 +1,78 @@
-<section class="adm adm-page" dir="rtl" *ngIf="category() as cat; else missing">
-  <header class="adm-page__head">
-    <div>
-      <p class="adm-page__eyebrow" lang="en" dir="ltr">{{ cat.subtitle }}</p>
-      <h1 class="adm-page__title">{{ cat.title }}</h1>
-      <p class="adm-page__lead">
-        {{ products().length | number:'1.0-0':'fa-IR' }} محصول در این دسته
-      </p>
-    </div>
-    <div class="adm-page__actions">
-      <a class="adm-btn adm-btn--ghost" routerLink="/admin/inventory">بازگشت به هاب</a>
-      <a class="adm-btn adm-btn--soft adm-btn--sm" [routerLink]="['/shop', cat.slug]" target="_blank" rel="noopener">
-        مشاهده در فروشگاه
-      </a>
-    </div>
-  </header>
-
-  <div class="inv-cat-hero">
-    <img [src]="heroImage()" [alt]="cat.title" (error)="onImgError($event)" />
-  </div>
-
-  <div class="adm-card">
-    <div class="adm-table-wrap" *ngIf="products().length; else empty">
-      <table class="adm-table">
-        <thead>
-          <tr>
-            <th>عکس</th>
-            <th>کد</th>
-            <th>نام</th>
-            <th>زیردسته</th>
-            <th>قیمت</th>
-            <th>موجودی</th>
-            <th>وضعیت</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let item of products()">
-            <td>
-              <img
-                *ngIf="item.photoUrl"
-                class="adm-thumb"
-                [src]="item.photoUrl"
-                [alt]="item.code"
-                width="44"
-                height="44"
-                (error)="onImgError($event)"
-              />
-              <span *ngIf="!item.photoUrl" class="adm-status adm-status--waiting_photo">—</span>
-            </td>
-            <td class="adm-table__code" dir="ltr">{{ item.code }}</td>
-            <td>{{ item.name }}</td>
-            <td>{{ item.category }}</td>
-            <td>{{ formatToman(item.price) }}</td>
-            <td>{{ item.stock | number:'1.0-0':'fa-IR' }}</td>
-            <td>{{ item.status }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    <ng-template #empty>
-      <div class="adm-empty">
-        <strong>محصولی در این دسته نیست</strong>
-        <p>پس از انتشار از صف Staging، اینجا نمایش داده می‌شود.</p>
+@if (category(); as cat) {
+  <section class="adm adm-page" dir="rtl">
+    <header class="adm-page__head">
+      <div>
+        <p class="adm-page__eyebrow" lang="en" dir="ltr">{{ cat.subtitle }}</p>
+        <h1 class="adm-page__title">{{ cat.title }}</h1>
+        <p class="adm-page__lead">
+          {{ products().length | number:'1.0-0':'fa-IR' }} محصول در این دسته
+        </p>
       </div>
-    </ng-template>
-  </div>
-</section>
-
-<ng-template #missing>
+      <div class="adm-page__actions">
+        <a class="adm-btn adm-btn--ghost" routerLink="/admin/inventory">بازگشت به هاب</a>
+        <a class="adm-btn adm-btn--soft adm-btn--sm" [routerLink]="['/shop', cat.slug]" target="_blank" rel="noopener">
+          مشاهده در فروشگاه
+        </a>
+      </div>
+    </header>
+    <div class="inv-cat-hero">
+      <img [src]="heroImage()" [alt]="cat.title" (error)="onImgError($event)" />
+    </div>
+    <div class="adm-card">
+      @if (products().length) {
+        <div class="adm-table-wrap">
+          <table class="adm-table">
+            <thead>
+              <tr>
+                <th>عکس</th>
+                <th>کد</th>
+                <th>نام</th>
+                <th>زیردسته</th>
+                <th>قیمت</th>
+                <th>موجودی</th>
+                <th>وضعیت</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (item of products(); track item) {
+                <tr>
+                  <td>
+                    @if (item.photoUrl) {
+                      <img
+                        class="adm-thumb"
+                        [src]="item.photoUrl"
+                        [alt]="item.code"
+                        width="44"
+                        height="44"
+                        (error)="onImgError($event)"
+                        />
+                    }
+                    @if (!item.photoUrl) {
+                      <span class="adm-status adm-status--waiting_photo">—</span>
+                    }
+                  </td>
+                  <td class="adm-table__code" dir="ltr">{{ item.code }}</td>
+                  <td>{{ item.name }}</td>
+                  <td>{{ item.category }}</td>
+                  <td>{{ formatToman(item.price) }}</td>
+                  <td>{{ item.stock | number:'1.0-0':'fa-IR' }}</td>
+                  <td>{{ item.status }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        <div class="adm-empty">
+          <strong>محصولی در این دسته نیست</strong>
+          <p>پس از انتشار از صف Staging، اینجا نمایش داده می‌شود.</p>
+        </div>
+      }
+    </div>
+  </section>
+} @else {
   <div class="adm-empty">
     <strong>دسته یافت نشد</strong>
     <a class="adm-btn adm-btn--gold adm-btn--sm" routerLink="/admin/inventory">بازگشت</a>
   </div>
-</ng-template>
+}

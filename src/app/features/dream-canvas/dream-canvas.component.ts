@@ -1,12 +1,12 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { RouterLink } from '@angular/router';
 import { DreamCanvasService } from '@core/services/dream-canvas.service';
 
 @Component({
   selector: 'app-dream-canvas',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [RouterLink],
   template: `
     <section class="dream-page" dir="rtl">
       <div class="dream-page__inner">

@@ -473,3 +473,59 @@
     transition: none;
   }
 }
+
+/* Final mobile override: the base calendar rules are declared later in this file. */
+@media (max-width: 560px) {
+  .wedding-timeline__dialog {
+    width: min(calc(100vw - 1rem), 22rem);
+    max-height: calc(100dvh - 1rem);
+    overflow-y: auto;
+  }
+
+  .wedding-timeline__form {
+    padding: .4rem .65rem .7rem;
+    gap: .5rem;
+  }
+
+  .wedding-timeline__calendar {
+    width: 100%;
+    max-width: 16rem;
+    margin-inline: auto;
+    padding: .4rem;
+    border-radius: 9px;
+  }
+
+  .wedding-timeline__calendar-header { margin-block-end:.25rem; }
+  .wedding-timeline__cal-title { font-size:.76rem; }
+  .wedding-timeline__cal-nav {
+    inline-size:1.85rem;
+    block-size:1.85rem;
+    border-radius:7px;
+    font-size:.85rem;
+  }
+
+  .wedding-timeline__weekdays,
+  .wedding-timeline__grid { gap:.06rem; }
+  .wedding-timeline__weekdays span {
+    min-block-size:1.05rem;
+    font-size:.55rem;
+  }
+  .wedding-timeline__day {
+    min-block-size:1.65rem;
+    border-radius:6px;
+    font-size:.66rem;
+  }
+  .wedding-timeline__selected { font-size:.68rem; }
+  .wedding-timeline__consent {
+    gap:.35rem;
+    font-size:.67rem;
+    line-height:1.55;
+  }
+  .wedding-timeline__privacy { font-size:.61rem; line-height:1.5; }
+  .wedding-timeline__actions { gap:.4rem; }
+  .wedding-timeline__button {
+    min-block-size:2.25rem;
+    padding-inline:.65rem;
+    font-size:.7rem;
+  }
+}

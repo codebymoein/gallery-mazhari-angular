@@ -1,14 +1,16 @@
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  inject,
-  signal
-} from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { AdminMarketingService } from '@core/services/admin-marketing.service';
-import { formatFaDate, formatToman } from '../shared/admin-format';
+import {
+  DiscountRule,
+  DiscountRulePayload,
+  DiscountScope,
+  DiscountsApiService
+} from '@core/services/discounts-api.service';
+import { BackendProduct, ProductsApiService } from '@core/services/products-api.service';
+import { CATALOG_CATEGORIES } from '@shared/data/catalog-categories';
+import { finalize } from 'rxjs';
 
 @Component({
   selector: 'app-marketing-hub',
@@ -19,68 +21,148 @@ import { formatFaDate, formatToman } from '../shared/admin-format';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class MarketingHubComponent {
-  private readonly marketing = inject(AdminMarketingService);
+  private readonly api = inject(DiscountsApiService);
+  private readonly productsApi = inject(ProductsApiService);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly destroyRef = inject(DestroyRef);
 
-  readonly promos = this.marketing.promos;
-  readonly carts = this.marketing.abandonedCarts;
-  readonly toast = signal('');
+  readonly categories = CATALOG_CATEGORIES;
+  rules: DiscountRule[] = [];
+  products: BackendProduct[] = [];
+  loading = true;
+  saving = false;
+  error = '';
+  message = '';
+  editingId: string | null = null;
 
-  readonly formatToman = formatToman;
-  readonly formatFaDate = formatFaDate;
+  form: DiscountRulePayload = this.emptyForm();
 
-  code = '';
-  type: 'percent' | 'fixed' = 'percent';
-  value = 10;
-  usageLimit = 50;
-  startsAt = this.toInputDate(new Date());
-  endsAt = this.toInputDate(new Date(Date.now() + 86400000 * 30));
-  note = '';
+  constructor() {
+    this.reload();
+    this.productsApi.getQueue()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({ next: products => { this.products = products; this.cdr.markForCheck(); } });
+  }
 
-  create(): void {
-    if (!this.code.trim() || this.value <= 0) {
-      this.showToast('کد و مقدار تخفیف را کامل وارد کنید.');
+  get targets(): Array<{ key: string; label: string }> {
+    if (this.form.scopeType === 'category') {
+      return this.categories.map(category => ({ key: category.slug, label: category.title }));
+    }
+    if (this.form.scopeType === 'subcategory') {
+      return this.categories.flatMap(category => category.subcategories.map(sub => ({
+        key: sub.slug,
+        label: `${category.title} / ${sub.label}`
+      })));
+    }
+    return this.products.map(product => ({
+      key: product.id,
+      label: `${product.name} — ${product.code}`
+    }));
+  }
+
+  scopeChanged(): void {
+    this.form.targetKey = '';
+    this.form.targetLabel = '';
+  }
+
+  targetChanged(): void {
+    this.form.targetLabel = this.targets.find(item => item.key === this.form.targetKey)?.label ?? '';
+  }
+
+  submit(): void {
+    this.error = '';
+    this.message = '';
+    this.targetChanged();
+    if (!this.form.title.trim() || !this.form.targetKey || this.form.percent < 1 || this.form.percent > 99) {
+      this.error = 'عنوان، هدف تخفیف و درصد معتبر را کامل کنید.';
       return;
     }
-    this.marketing.createPromo({
-      code: this.code.trim().toUpperCase(),
-      type: this.type,
-      value: this.type === 'percent' ? this.value : this.value * 1_000_000,
-      startsAt: new Date(this.startsAt).toISOString(),
-      endsAt: new Date(this.endsAt).toISOString(),
-      usageLimit: this.usageLimit,
-      note: this.note.trim() || undefined
-    });
-    this.code = '';
-    this.note = '';
-    this.showToast('کد تخفیف ساخته شد.');
+    const payload: DiscountRulePayload = {
+      ...this.form,
+      title: this.form.title.trim(),
+      subtitle: this.form.subtitle?.trim() || null,
+      badgeText: this.form.badgeText?.trim() || null,
+      startsAt: this.form.startsAt ? new Date(this.form.startsAt).toISOString() : null,
+      endsAt: this.form.endsAt ? new Date(`${this.form.endsAt}T23:59:59`).toISOString() : null
+    };
+    this.saving = true;
+    const request = this.editingId ? this.api.update(this.editingId, payload) : this.api.create(payload);
+    request.pipe(finalize(() => { this.saving = false; this.cdr.markForCheck(); }), takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.message = this.editingId ? 'قانون تخفیف ویرایش شد.' : 'قانون تخفیف ساخته شد.';
+          this.cancelEdit();
+          this.reload();
+        },
+        error: err => { this.error = err?.error?.message || 'ذخیره تخفیف انجام نشد.'; }
+      });
   }
 
-  toggle(id: string): void {
-    this.marketing.togglePromo(id);
+  edit(rule: DiscountRule): void {
+    this.editingId = rule.id;
+    this.form = {
+      title: rule.title,
+      subtitle: rule.subtitle,
+      scopeType: rule.scopeType,
+      targetKey: rule.targetKey,
+      targetLabel: rule.targetLabel,
+      percent: rule.percent,
+      badgeText: rule.badgeText,
+      priority: rule.priority,
+      active: rule.active,
+      showOnHome: rule.showOnHome,
+      startsAt: rule.startsAt?.slice(0, 10) || null,
+      endsAt: rule.endsAt?.slice(0, 10) || null
+    };
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  remind(id: string): void {
-    const result = this.marketing.sendCartReminder(id);
-    this.showToast(result.message);
+  toggle(rule: DiscountRule): void {
+    this.api.update(rule.id, this.rulePayload(rule, { active: !rule.active }))
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({ next: () => this.reload(), error: () => { this.error = 'تغییر وضعیت انجام نشد.'; this.cdr.markForCheck(); } });
   }
 
-  valueLabel(type: string, value: number): string {
-    return type === 'percent'
-      ? `${new Intl.NumberFormat('fa-IR').format(value)}٪`
-      : formatToman(value);
+  remove(rule: DiscountRule): void {
+    if (!window.confirm(`قانون «${rule.title}» حذف شود؟`)) return;
+    this.api.remove(rule.id).pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({ next: () => { this.message = 'قانون تخفیف حذف شد.'; this.reload(); } });
   }
 
-  private toInputDate(d: Date): string {
-    return d.toISOString().slice(0, 10);
+  cancelEdit(): void {
+    this.editingId = null;
+    this.form = this.emptyForm();
   }
 
-  private showToast(message: string): void {
-    this.toast.set(message);
-    this.cdr.markForCheck();
-    window.setTimeout(() => {
-      this.toast.set('');
-      this.cdr.markForCheck();
-    }, 3500);
+  scopeLabel(scope: DiscountScope): string {
+    return scope === 'category' ? 'دسته‌بندی' : scope === 'subcategory' ? 'زیرمجموعه' : 'محصول تکی';
+  }
+
+  private reload(): void {
+    this.loading = true;
+    this.api.getRules().pipe(finalize(() => { this.loading = false; this.cdr.markForCheck(); }), takeUntilDestroyed(this.destroyRef))
+      .subscribe({ next: rules => { this.rules = rules; }, error: () => { this.error = 'دریافت تخفیف‌ها انجام نشد.'; } });
+  }
+
+  private rulePayload(rule: DiscountRule, patch: Partial<DiscountRulePayload> = {}): DiscountRulePayload {
+    const { id: _id, createdAt: _createdAt, updatedAt: _updatedAt, ...payload } = rule;
+    return { ...payload, ...patch };
+  }
+
+  private emptyForm(): DiscountRulePayload {
+    return {
+      title: '',
+      subtitle: '',
+      scopeType: 'category',
+      targetKey: '',
+      targetLabel: '',
+      percent: 10,
+      badgeText: 'فروش ویژه',
+      priority: 0,
+      active: true,
+      showOnHome: true,
+      startsAt: null,
+      endsAt: null
+    };
   }
 }

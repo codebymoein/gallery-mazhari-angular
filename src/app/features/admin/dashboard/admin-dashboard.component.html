@@ -9,6 +9,7 @@
     </div>
     <div class="adm-page__actions">
       <a class="adm-btn adm-btn--gold" routerLink="/admin/orders">کانبان سفارش‌ها</a>
+      <a class="adm-btn adm-btn--ghost" routerLink="/admin/client-insights">درخواست‌های مشاوره</a>
       <a class="adm-btn adm-btn--ghost" routerLink="/admin/crm">مشتریان</a>
     </div>
   </header>
@@ -41,14 +42,14 @@
       <div class="adm-card__head">
         <div>
           <h2 class="adm-card__title">درآمد در طول زمان</h2>
-          <p class="adm-card__sub">روند فروش ماهانه (میلیون تومان)</p>
+          <p class="adm-card__sub">روند فروش ماهانه (میلیون ریال)</p>
         </div>
       </div>
       <div class="adm-card__body">
         <app-adm-chart
           type="line"
           title="درآمد"
-          unit="میلیون تومان"
+          unit="میلیون ریال"
           [points]="snapshot().revenueSeries"
           color="#b8973e"
         ></app-adm-chart>
@@ -102,14 +103,16 @@
         <span class="cmd__live"><i></i> زنده</span>
       </div>
       <ul class="adm-list">
-        <li class="adm-list__item" *ngFor="let row of feed()">
-          <span class="adm-list__dot" [ngClass]="feedDot(row.kind)"></span>
-          <div>
-            <p class="adm-list__title">{{ row.summary }}</p>
-            <p class="adm-list__meta">{{ row.actor }}</p>
-          </div>
-          <time class="adm-list__time">{{ formatFaDate(row.at) }}</time>
-        </li>
+        @for (row of feed(); track row) {
+          <li class="adm-list__item">
+            <span class="adm-list__dot" [ngClass]="feedDot(row.kind)"></span>
+            <div>
+              <p class="adm-list__title">{{ row.summary }}</p>
+              <p class="adm-list__meta">{{ row.actor }}</p>
+            </div>
+            <time class="adm-list__time">{{ formatFaDate(row.at) }}</time>
+          </li>
+        }
       </ul>
     </section>
 
@@ -126,6 +129,10 @@
             <strong>گردش‌کار سفارش عروس</strong>
             <span>{{ orders.orders().length | number:'1.0-0':'fa-IR' }} سفارش فعال در کانبان</span>
           </a>
+          <a class="adm-quick__item" routerLink="/admin/client-insights">
+            <strong>درخواست‌های مشاوره</strong>
+            <span>انتخاب بر اساس وضعیت و تهیه خروجی PDF برای مشاور تلفنی</span>
+          </a>
           <a class="adm-quick__item" routerLink="/admin/inventory">
             <strong>هاب انبار و رسانه</strong>
             <span>ویرایش گروهی، فیلتر هوشمند، اتصال به صف عکس</span>
@@ -138,10 +145,12 @@
             <strong>بازاریابی و بازگشت</strong>
             <span>کد تخفیف و سبدهای رهاشده</span>
           </a>
-          <a class="adm-quick__item" *ngIf="isManager()" routerLink="/admin/activity">
-            <strong>لاگ حسابرسی</strong>
-            <span>نظارت بر اقدامات کارکنان</span>
-          </a>
+          @if (isManager()) {
+            <a class="adm-quick__item" routerLink="/admin/activity">
+              <strong>لاگ حسابرسی</strong>
+              <span>نظارت بر اقدامات کارکنان</span>
+            </a>
+          }
           <a class="adm-quick__item" routerLink="/admin/crm">
             <strong>Customer 360</strong>
             <span>LTV، نوبت‌ها و بوم رویایی</span>

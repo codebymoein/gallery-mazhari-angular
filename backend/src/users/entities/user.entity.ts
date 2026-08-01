@@ -8,6 +8,7 @@ import {
 
 export enum UserRole {
   ADMIN = 'admin',
+  STAFF = 'staff',
   CUSTOMER = 'customer',
 }
 
@@ -28,6 +29,12 @@ export class UserEntity {
   // varchar به‌جای enum دیتابیسی تا روی SQLite (توسعه محلی) هم کار کند.
   @Column({ type: 'varchar', length: 20, default: UserRole.CUSTOMER })
   role: UserRole;
+
+  @Column({ type: 'simple-json', default: '[]' })
+  permissions: string[];
+
+  @Column({ default: true })
+  isActive: boolean;
 
   @CreateDateColumn()
   createdAt: Date;

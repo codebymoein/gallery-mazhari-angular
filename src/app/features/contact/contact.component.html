@@ -14,75 +14,100 @@
 
   <!-- Branch cards -->
   <div class="contact__branches">
-    <article
-      class="contact__branch"
-      *ngFor="let branch of branches; let i = index"
-      [attr.aria-labelledby]="'branch-' + branch.id"
-    >
-      <div class="contact__branch-header">
-        <span class="contact__branch-num" aria-hidden="true">{{ (i + 1) | number:'2.0-0':'fa' }}</span>
-        <h2 [id]="'branch-' + branch.id" class="contact__branch-name">{{ branch.name }}</h2>
-      </div>
-
-      <address class="contact__address">
-        <svg class="contact__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-          <path fill="currentColor" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/>
-        </svg>
-        <span>{{ branch.address }}</span>
-      </address>
-
-      <p class="contact__metro">
-        <svg class="contact__icon contact__icon--metro" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-          <path fill="currentColor" d="M4 16c0 .88.39 1.67 1 2.22V20a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-1h8v1a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-1.78c.61-.55 1-1.34 1-2.22V6c0-3.5-3.58-4-8-4S4 2.5 4 6v10zm3.5 1c-.83 0-1.5-.67-1.5-1.5S6.67 14 7.5 14s1.5.67 1.5 1.5S8.33 17 7.5 17zm9 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm1.5-6H6V6h12v5z"/>
-        </svg>
-        {{ branch.metroHint }}
-      </p>
-
-      <div class="contact__branch-actions">
-        <a class="contact__phone" [href]="'tel:' + branch.phone">
-          <svg class="contact__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            <path fill="currentColor" d="M6.62 10.79a15.05 15.05 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.01-.24c1.12.37 2.33.57 3.58.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1C10.07 21 3 13.93 3 5a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.46.57 3.58a1 1 0 0 1-.25 1.01l-2.2 2.2z"/>
-          </svg>
-          <bdi lang="en" dir="ltr">{{ branch.phoneDisplay }}</bdi>
-        </a>
-        <a
-          class="contact__maps"
-          [href]="branch.googleMaps"
-          target="_blank"
-          rel="noopener noreferrer"
+    @for (branch of branches; track branch; let i = $index) {
+      <article
+        class="contact__branch"
+        [attr.aria-labelledby]="'branch-' + branch.id"
         >
-          مسیریابی در نقشه ↗
-        </a>
-      </div>
-    </article>
+        <div class="contact__branch-header">
+          <span class="contact__branch-num" aria-hidden="true">{{ (i + 1) | number:'2.0-0':'fa' }}</span>
+          <h2 [id]="'branch-' + branch.id" class="contact__branch-name">{{ branch.name }}</h2>
+        </div>
+        <address class="contact__address">
+          <svg class="contact__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path fill="currentColor" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/>
+          </svg>
+          <span>{{ branch.address }}</span>
+        </address>
+        <p class="contact__metro">
+          <svg class="contact__icon contact__icon--metro" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path fill="currentColor" d="M4 16c0 .88.39 1.67 1 2.22V20a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-1h8v1a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-1.78c.61-.55 1-1.34 1-2.22V6c0-3.5-3.58-4-8-4S4 2.5 4 6v10zm3.5 1c-.83 0-1.5-.67-1.5-1.5S6.67 14 7.5 14s1.5.67 1.5 1.5S8.33 17 7.5 17zm9 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm1.5-6H6V6h12v5z"/>
+          </svg>
+          {{ branch.metroHint }}
+        </p>
+        <p class="contact__branch-hours">
+          <strong>ساعت کاری شعبه:</strong>
+          <span>{{ branch.hours }}</span>
+        </p>
+        <div class="contact__branch-actions">
+          <a class="contact__phone" [href]="'tel:' + branch.phone">
+            <svg class="contact__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path fill="currentColor" d="M6.62 10.79a15.05 15.05 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.01-.24c1.12.37 2.33.57 3.58.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1C10.07 21 3 13.93 3 5a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.46.57 3.58a1 1 0 0 1-.25 1.01l-2.2 2.2z"/>
+            </svg>
+            <bdi lang="en" dir="ltr">{{ branch.phoneDisplay }}</bdi>
+          </a>
+          <a class="contact__maps contact__maps--google" [href]="branch.googleMaps"
+            target="_blank" rel="noopener noreferrer" aria-label="مسیریابی با گوگل مپ">
+            <svg class="contact__map-logo" viewBox="0 0 24 24" aria-hidden="true">
+              <path fill="none" stroke="currentColor" stroke-width="1.7" d="M12 21s6.3-6.8 6.3-12A6.3 6.3 0 1 0 5.7 9c0 5.2 6.3 12 6.3 12Z"/>
+              <circle cx="12" cy="9" r="2.25" fill="none" stroke="currentColor" stroke-width="1.7"/>
+            </svg>
+            گوگل مپ
+          </a>
+          <a class="contact__maps contact__maps--neshan" [href]="branch.neshanMaps"
+            target="_blank" rel="noopener noreferrer" aria-label="مسیریابی با نشان">
+            <svg class="contact__map-logo" viewBox="0 0 24 24" aria-hidden="true">
+              <path fill="#d9b84f" d="M12 2.3a7 7 0 0 0-7 7C5 14.7 12 22 12 22s7-7.3 7-12.7a7 7 0 0 0-7-7Z"/>
+              <path fill="#211d18" d="M8.3 7.2h2.1l3.3 5V7.2h2v9.1h-2l-3.4-5.1v5.1h-2V7.2Z"/>
+            </svg>
+            نشان
+          </a>
+        </div>
+      </article>
+    }
   </div>
 
   <!-- Hours & support -->
   <div class="contact__info-grid">
 
     <section class="contact__panel contact__hours" aria-labelledby="contact-hours-title">
-      <h2 id="contact-hours-title" class="contact__panel-title">ساعات کاری</h2>
-      <ul class="contact__hours-list">
-        <li>
-          <span>شنبه تا پنجشنبه</span>
-          <time datetime="10:00/20:00">۱۰:۰۰ – ۲۰:۰۰</time>
-        </li>
-        <li>
-          <span>جمعه</span>
-          <time datetime="11:00/19:00">۱۱:۰۰ – ۱۹:۰۰</time>
-        </li>
-      </ul>
+      <h2 id="contact-hours-title" class="contact__panel-title">راهنمای انتخاب شعبه</h2>
+      @for (branch of branches; track branch) {
+        <div class="contact__branch-guide">
+          <strong>{{ branch.name }}</strong>
+          <p>{{ branch.specialty }}</p>
+        </div>
+      }
     </section>
 
     <section class="contact__panel contact__support" aria-labelledby="contact-support-title">
       <h2 id="contact-support-title" class="contact__panel-title">پشتیبانی تلفنی</h2>
       <ul class="contact__support-list">
-        <li *ngFor="let line of supportLines">
-          <span class="contact__support-label">{{ line.label }}</span>
-          <a class="contact__support-phone" [href]="'tel:' + line.phone">
-            <bdi lang="en" dir="ltr">{{ line.phoneDisplay }}</bdi>
-          </a>
-        </li>
+        @for (line of supportLines; track line) {
+          <li>
+            <div class="contact__support-copy">
+              <span class="contact__support-label">{{ line.label }}</span>
+              <a class="contact__support-phone" [href]="'tel:' + line.phone">
+                <bdi lang="en" dir="ltr">{{ line.phoneDisplay }}</bdi>
+              </a>
+              <small class="contact__support-hours">همه‌روزه، ساعت ۱۰ الی ۲۱</small>
+            </div>
+            <nav class="contact__line-socials" [attr.aria-label]="'راه‌های ارتباطی ' + line.label">
+              <a [href]="'tel:' + line.phone" class="contact__social" [attr.aria-label]="'تماس مستقیم با ' + line.label">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path fill="currentColor" d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.2c1.1.4 2.3.6 3.6.6a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1C10.1 21 3 13.9 3 5a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.3.2 2.5.6 3.6a1 1 0 0 1-.3 1l-2.2 2.2Z"/>
+                </svg>
+              </a>
+              <a [href]="whatsappUrl(line.phone)" target="_blank" rel="noopener" class="contact__social" [attr.aria-label]="'واتساپ ' + line.label">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 0 0-8.7 14.9L2 22l5.3-1.4A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.1l-.3-.2-3.1.8.8-3-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.4-.7-1.6-.8-.2-.1-.4-.1-.5.1l-.8 1c-.1.1-.3.2-.5.1a6.7 6.7 0 0 1-2-1.2 7.4 7.4 0 0 1-1.4-1.7c-.1-.3 0-.4.1-.5l.4-.5c.2-.3.2-.5.1-.8l-.8-1.9c-.2-.5-.4-.4-.7-.4-.2 0-.5.1-.7.3-.8.8-1.1 1.8-.5 3.2.8 2 2.4 3.7 4.4 4.7 1.6.8 3.5 1.4 4.8.4.5-.4.8-1.2.7-1.7 0-.2-.2-.3-.4-.4Z"/></svg>
+              </a>
+              <a [href]="telegramUrl(line.phone)" class="contact__social" [attr.aria-label]="'تلگرام ' + line.label">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M21.8 4.3 2.9 11.6c-1.3.5-1.3 1.2-.2 1.5l4.8 1.5 1.8 5.6c.2.7.4.9 1 .9.6 0 .9-.3 1.2-.6l2.8-2.7 5.8 4.3c1.1.6 1.8.3 2.1-1l3.5-16.4c.4-1.4-.5-2-1.7-1.6Z"/></svg>
+              </a>
+              <a [href]="baleUrl(line.phone)" target="_blank" rel="noopener" class="contact__social contact__social--bale" [attr.aria-label]="'بله ' + line.label">بله</a>
+            </nav>
+          </li>
+        }
       </ul>
     </section>
 

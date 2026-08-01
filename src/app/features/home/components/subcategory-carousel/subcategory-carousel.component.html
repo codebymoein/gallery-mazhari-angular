@@ -1,0 +1,41 @@
+<section class="discover" dir="rtl" aria-labelledby="discover-title">
+  <div class="discover__heading">
+    <div>
+      <p class="discover__eyebrow" lang="en" dir="ltr">DISCOVER SOMETHING BEAUTIFUL</p>
+      <h2 id="discover-title">کشف دسته‌بندی‌ها</h2>
+      <p class="discover__description">هر بار مجموعه‌ای تازه و تصادفی برای کشف شما</p>
+    </div>
+
+    <div class="discover__controls" aria-label="پیمایش دسته‌بندی‌ها">
+      <button type="button" (click)="scroll(1)" aria-label="موارد قبلی">→</button>
+      <button type="button" (click)="scroll(-1)" aria-label="موارد بعدی">←</button>
+    </div>
+  </div>
+
+  <div #track class="discover__track" role="list" aria-label="زیردسته‌های پیشنهادی">
+    @for (item of items; track item.link.join('/')) {
+      <a class="discover-card" [routerLink]="item.link" role="listitem">
+        <div class="discover-card__media">
+          <img
+            [src]="item.image"
+            [alt]="item.title"
+            width="360"
+            height="500"
+            loading="lazy"
+            decoding="async"
+            (error)="hideBrokenImage($event)"
+          >
+          <span class="discover-card__fallback" aria-hidden="true"></span>
+          <span class="discover-card__number" aria-hidden="true">{{ ($index + 1).toString().padStart(2, '0') }}</span>
+        </div>
+        <div class="discover-card__body">
+          <small>{{ item.parentTitle }}</small>
+          <h3>{{ item.title }}</h3>
+          <span class="discover-card__link">مشاهده مجموعه <b aria-hidden="true">←</b></span>
+        </div>
+      </a>
+    }
+  </div>
+
+  <p class="discover__hint">برای دیدن دسته‌های بیشتر، به طرفین بکشید</p>
+</section>

@@ -9,134 +9,150 @@
   </header>
 
   <!-- Empty state -->
-  <div class="orders__empty" *ngIf="(orders$ | async)?.length === 0">
-    <div class="orders__empty-icon" aria-hidden="true">
-      <svg viewBox="0 0 24 24" focusable="false">
-        <path fill="currentColor" d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14H8v-2h4v2zm4-4H8v-2h8v2zm0-4H8V7h8v2z"/>
-      </svg>
+  @if ((orders$ | async)?.length === 0) {
+    <div class="orders__empty">
+      <div class="orders__empty-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" focusable="false">
+          <path fill="currentColor" d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14H8v-2h4v2zm4-4H8v-2h8v2zm0-4H8V7h8v2z"/>
+        </svg>
+      </div>
+      <p class="orders__empty-text">هنوز سفارشی ثبت نکرده‌اید.</p>
+      <a [routerLink]="shopLink()" class="orders__btn orders__btn--primary">مشاهده فروشگاه</a>
     </div>
-    <p class="orders__empty-text">هنوز سفارشی ثبت نکرده‌اید.</p>
-    <a [routerLink]="shopLink()" class="orders__btn orders__btn--primary">مشاهده فروشگاه</a>
-  </div>
+  }
 
   <!-- Orders list -->
-  <ul class="orders__list" *ngIf="orders$ | async as orderList" [hidden]="orderList.length === 0">
-    <li
-      class="orders__card"
-      *ngFor="let order of orderList; trackBy: trackByOrderId"
-      [class.orders__card--expanded]="isExpanded(order)"
-    >
-      <button
-        type="button"
-        class="orders__summary"
-        (click)="toggleOrder(order)"
-        [attr.aria-expanded]="isExpanded(order)"
-        [attr.aria-controls]="'order-detail-' + order.id"
-      >
-        <div class="orders__summary-main">
-          <span class="orders__number">{{ order.number }}</span>
-          <time class="orders__date">{{ formatDate(order.createdAt) }}</time>
-        </div>
-        <div class="orders__summary-side">
-          <span class="orders__badge" [ngClass]="statusClass(order.status)">
-            {{ statusLabel(order.status) }}
-          </span>
-          <span class="orders__total">{{ formatPrice(order.total) }}</span>
-          <span class="orders__chevron" aria-hidden="true"></span>
-        </div>
-      </button>
-
-      <div
-        class="orders__detail"
-        [id]="'order-detail-' + order.id"
-        *ngIf="isExpanded(order)"
-      >
-        <div class="orders__detail-grid">
-
-          <!-- Line items -->
-          <div class="orders__detail-block">
-            <h2 class="orders__detail-title">اقلام سفارش</h2>
-            <ul class="orders__items">
-              <li class="orders__item" *ngFor="let item of order.items; trackBy: trackByProductId">
-                <div class="orders__item-image-wrap">
-                  <img
-                    *ngIf="item.product_image"
-                    class="orders__item-image"
-                    [src]="item.product_image"
-                    [alt]="item.product_name || 'محصول'"
-                    loading="lazy"
-                    (error)="onImageError($event)"
-                  />
+  @if (orders$ | async; as orderList) {
+    <ul class="orders__list" [hidden]="orderList.length === 0">
+      @for (order of orderList; track trackByOrderId($index, order)) {
+        <li
+          class="orders__card"
+          [class.orders__card--expanded]="isExpanded(order)"
+          >
+          <button
+            type="button"
+            class="orders__summary"
+            (click)="toggleOrder(order)"
+            [attr.aria-expanded]="isExpanded(order)"
+            [attr.aria-controls]="'order-detail-' + order.id"
+            >
+            <div class="orders__summary-main">
+              <span class="orders__number">{{ order.number }}</span>
+              <time class="orders__date">{{ formatDate(order.createdAt) }}</time>
+            </div>
+            <div class="orders__summary-side">
+              <span class="orders__badge" [ngClass]="statusClass(order.status)">
+                {{ statusLabel(order.status) }}
+              </span>
+              <span class="orders__total">{{ formatPrice(order.total) }}</span>
+              <span class="orders__chevron" aria-hidden="true"></span>
+            </div>
+          </button>
+          @if (isExpanded(order)) {
+            <div
+              class="orders__detail"
+              [id]="'order-detail-' + order.id"
+              >
+              <div class="orders__detail-grid">
+                <!-- Line items -->
+                <div class="orders__detail-block">
+                  <h2 class="orders__detail-title">اقلام سفارش</h2>
+                  <ul class="orders__items">
+                    @for (item of order.items; track trackByProductId($index, item)) {
+                      <li class="orders__item">
+                        <div class="orders__item-image-wrap">
+                          @if (item.product_image) {
+                            <img
+                              class="orders__item-image"
+                              [src]="item.product_image"
+                              [alt]="item.product_name || 'محصول'"
+                              loading="lazy"
+                              (error)="onImageError($event)"
+                              />
+                          }
+                        </div>
+                        <div class="orders__item-body">
+                          <span class="orders__item-name">{{ item.product_name || 'محصول #' + item.product_id }}</span>
+                          <span class="orders__item-qty">تعداد: {{ item.quantity | number:'1.0-0':'fa' }}</span>
+                        </div>
+                        <span class="orders__item-price">{{ formatPrice(lineTotal(item)) }}</span>
+                      </li>
+                    }
+                  </ul>
+                  <dl class="orders__totals">
+                    <div class="orders__totals-row">
+                      <dt>جمع جزء</dt>
+                      <dd>{{ formatPrice(order.subtotal) }}</dd>
+                    </div>
+                    <div class="orders__totals-row">
+                      <dt>هزینه ارسال</dt>
+                      <dd>{{ order.shipping === 0 ? 'رایگان' : formatPrice(order.shipping) }}</dd>
+                    </div>
+                    <div class="orders__totals-row orders__totals-row--total">
+                      <dt>مجموع</dt>
+                      <dd>{{ formatPrice(order.total) }}</dd>
+                    </div>
+                  </dl>
                 </div>
-                <div class="orders__item-body">
-                  <span class="orders__item-name">{{ item.product_name || 'محصول #' + item.product_id }}</span>
-                  <span class="orders__item-qty">تعداد: {{ item.quantity | number:'1.0-0':'fa' }}</span>
+                <!-- Shipping & customer -->
+                <div class="orders__detail-block">
+                  <h2 class="orders__detail-title">آدرس و ارسال</h2>
+                  <dl class="orders__meta">
+                    <div class="orders__meta-row">
+                      <dt>گیرنده</dt>
+                      <dd>{{ customerName(order) }}</dd>
+                    </div>
+                    <div class="orders__meta-row">
+                      <dt>موبایل</dt>
+                      <dd><bdi lang="en" dir="ltr">{{ order.customer.phone }}</bdi></dd>
+                    </div>
+                    <div class="orders__meta-row">
+                      <dt>ایمیل</dt>
+                      <dd><bdi lang="en" dir="ltr">{{ order.customer.email }}</bdi></dd>
+                    </div>
+                    <div class="orders__meta-row">
+                      <dt>شهر</dt>
+                      <dd>{{ order.customer.city }}</dd>
+                    </div>
+                    <div class="orders__meta-row">
+                      <dt>آدرس</dt>
+                      <dd>{{ order.customer.address }}</dd>
+                    </div>
+                    <div class="orders__meta-row">
+                      <dt>کد پستی</dt>
+                      <dd>{{ order.customer.postalCode }}</dd>
+                    </div>
+                    <div class="orders__meta-row">
+                      <dt>روش ارسال</dt>
+                      <dd>{{ order.shippingMethod }}</dd>
+                    </div>
+                    <div class="orders__meta-row">
+                      <dt>روش پرداخت</dt>
+                      <dd>{{ order.paymentMethod }}</dd>
+                    </div>
+                    @if (order.note) {
+                      <div class="orders__meta-row">
+                        <dt>یادداشت</dt>
+                        <dd>{{ order.note }}</dd>
+                      </div>
+                    }
+                  </dl>
+                  @if (order.status === 'pending-payment') {
+                    <button
+                      type="button"
+                      class="orders__pay-btn"
+                      (click)="payOrder(order)"
+                      >
+                      پرداخت سفارش
+                    </button>
+                  }
                 </div>
-                <span class="orders__item-price">{{ formatPrice(lineTotal(item)) }}</span>
-              </li>
-            </ul>
-            <dl class="orders__totals">
-              <div class="orders__totals-row">
-                <dt>جمع جزء</dt>
-                <dd>{{ formatPrice(order.subtotal) }}</dd>
               </div>
-              <div class="orders__totals-row">
-                <dt>هزینه ارسال</dt>
-                <dd>{{ order.shipping === 0 ? 'رایگان' : formatPrice(order.shipping) }}</dd>
-              </div>
-              <div class="orders__totals-row orders__totals-row--total">
-                <dt>مجموع</dt>
-                <dd>{{ formatPrice(order.total) }}</dd>
-              </div>
-            </dl>
-          </div>
-
-          <!-- Shipping & customer -->
-          <div class="orders__detail-block">
-            <h2 class="orders__detail-title">آدرس و ارسال</h2>
-            <dl class="orders__meta">
-              <div class="orders__meta-row">
-                <dt>گیرنده</dt>
-                <dd>{{ customerName(order) }}</dd>
-              </div>
-              <div class="orders__meta-row">
-                <dt>موبایل</dt>
-                <dd><bdi lang="en" dir="ltr">{{ order.customer.phone }}</bdi></dd>
-              </div>
-              <div class="orders__meta-row">
-                <dt>ایمیل</dt>
-                <dd><bdi lang="en" dir="ltr">{{ order.customer.email }}</bdi></dd>
-              </div>
-              <div class="orders__meta-row">
-                <dt>شهر</dt>
-                <dd>{{ order.customer.city }}</dd>
-              </div>
-              <div class="orders__meta-row">
-                <dt>آدرس</dt>
-                <dd>{{ order.customer.address }}</dd>
-              </div>
-              <div class="orders__meta-row">
-                <dt>کد پستی</dt>
-                <dd>{{ order.customer.postalCode }}</dd>
-              </div>
-              <div class="orders__meta-row">
-                <dt>روش ارسال</dt>
-                <dd>{{ order.shippingMethod }}</dd>
-              </div>
-              <div class="orders__meta-row">
-                <dt>روش پرداخت</dt>
-                <dd>{{ order.paymentMethod }}</dd>
-              </div>
-              <div class="orders__meta-row" *ngIf="order.note">
-                <dt>یادداشت</dt>
-                <dd>{{ order.note }}</dd>
-              </div>
-            </dl>
-          </div>
-
-        </div>
-      </div>
-    </li>
-  </ul>
+            </div>
+          }
+        </li>
+      }
+    </ul>
+  }
 
 </section>
