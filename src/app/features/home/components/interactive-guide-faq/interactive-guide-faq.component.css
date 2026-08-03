@@ -3,6 +3,8 @@
    Body-shape chips · details/summary accordion · mobile-first
    ================================================================ */
 
+:host { display: block; }
+
 .guide-faq {
   position: relative;
   isolation: isolate;

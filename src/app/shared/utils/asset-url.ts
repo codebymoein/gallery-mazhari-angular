@@ -3,6 +3,10 @@
  */
 import { environment } from '@env/environment';
 
+// Bump when bundled visual assets are redeployed. This also recovers clients
+// that cached an interrupted/empty image response on unreliable mobile links.
+const BUNDLED_ASSET_VERSION = '20260803-mobile-2';
+
 export function assetUrl(path: string | undefined | null): string {
   if (!path) return '';
   const trimmed = path.trim();
@@ -16,13 +20,16 @@ export function assetUrl(path: string | undefined | null): string {
     return trimmed;
   }
   const localPath = `/${trimmed.replace(/^\.?\//, '')}`;
+  const versionedLocalPath = localPath.startsWith('/assets/')
+    ? `${localPath}${localPath.includes('?') ? '&' : '?'}v=${BUNDLED_ASSET_VERSION}`
+    : localPath;
   // Bundled application assets are served by the frontend host. Only uploaded
   // media belongs to the optional media host.
   const isUpload = localPath.startsWith('/uploads/');
   const mediaBase = isUpload
     ? environment.mediaBaseUrl?.replace(/\/+$/, '') || ''
     : '';
-  return mediaBase ? `${mediaBase}${localPath}` : localPath;
+  return mediaBase ? `${mediaBase}${localPath}` : versionedLocalPath;
 }
 
 /** Fallback gradient poster when an image fails to load (inline SVG). */

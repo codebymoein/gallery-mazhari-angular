@@ -6,7 +6,7 @@ import {
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { CATALOG_CATEGORIES } from '@shared/data/catalog-categories';
-import { assetUrl } from '@shared/utils/asset-url';
+import { assetUrl, onImgErrorUseFallback } from '@shared/utils/asset-url';
 
 interface DiscoveryCategory {
   title: string;
@@ -56,7 +56,7 @@ export class SubcategoryCarouselComponent {
   }
 
   hideBrokenImage(event: Event): void {
-    (event.currentTarget as HTMLImageElement).hidden = true;
+    onImgErrorUseFallback(event);
   }
 
   private shuffle<T>(values: T[]): T[] {

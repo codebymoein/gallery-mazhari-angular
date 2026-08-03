@@ -6,7 +6,7 @@ import {
   CatalogCategory
 } from '@shared/data/catalog-categories';
 import { AppearanceApiService } from '@core/services/appearance-api.service';
-import { assetUrl } from '@shared/utils/asset-url';
+import { assetUrl, onImgErrorUseFallback } from '@shared/utils/asset-url';
 
 @Component({
   selector: 'app-category-showcase',
@@ -35,6 +35,6 @@ export class CategoryShowcaseComponent {
   }
 
   hideBrokenImage(event: Event): void {
-    (event.currentTarget as HTMLImageElement).hidden = true;
+    onImgErrorUseFallback(event);
   }
 }

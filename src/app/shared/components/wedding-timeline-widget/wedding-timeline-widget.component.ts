@@ -66,9 +66,6 @@ export class WeddingTimelineWidgetComponent implements AfterViewInit, OnDestroy 
   private routeSub: Subscription;
   private openSub?: Subscription;
   private stateSub: Subscription;
-  private autoTimer: ReturnType<typeof setTimeout> | null = null;
-  private scrolledEnough = false;
-  private autoOpened = false;
   private viewReady = false;
 
   readonly minDate = this.timeline.minDate();
@@ -107,7 +104,6 @@ export class WeddingTimelineWidgetComponent implements AfterViewInit, OnDestroy 
       this.cdr.markForCheck();
     });
 
-    this.scheduleAutoPrompt();
   }
 
   ngAfterViewInit(): void {
@@ -123,9 +119,6 @@ export class WeddingTimelineWidgetComponent implements AfterViewInit, OnDestroy 
     this.routeSub.unsubscribe();
     this.openSub?.unsubscribe();
     this.stateSub.unsubscribe();
-    if (this.autoTimer) {
-      clearTimeout(this.autoTimer);
-    }
   }
 
   get monthTitle(): string {
@@ -247,16 +240,6 @@ export class WeddingTimelineWidgetComponent implements AfterViewInit, OnDestroy 
   @HostListener('window:scroll')
   onScroll(): void {
     this.updateDockVisibility();
-
-    if (this.scrolledEnough || this.hiddenOnRoute) {
-      return;
-    }
-    const doc = document.documentElement;
-    const maxScroll = Math.max(doc.scrollHeight - window.innerHeight, 1);
-    if (window.scrollY / maxScroll >= 0.25) {
-      this.scrolledEnough = true;
-      this.tryAutoOpen();
-    }
   }
 
   @HostListener('document:keydown.escape')
@@ -264,26 +247,6 @@ export class WeddingTimelineWidgetComponent implements AfterViewInit, OnDestroy 
     if (this.timeline.isOpen()) {
       this.close();
     }
-  }
-
-  private scheduleAutoPrompt(): void {
-    this.autoTimer = setTimeout(() => {
-      this.tryAutoOpen();
-    }, 10000);
-  }
-
-  private tryAutoOpen(): void {
-    if (
-      this.autoOpened ||
-      this.hiddenOnRoute ||
-      !this.scrolledEnough ||
-      !this.dockVisible ||
-      !this.timeline.canAutoPrompt()
-    ) {
-      return;
-    }
-    this.autoOpened = true;
-    this.timeline.open();
   }
 
   private syncDialog(open: boolean): void {

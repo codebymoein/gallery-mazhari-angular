@@ -3,6 +3,8 @@
    Magazine masonry + cinematic theater mode · mobile-first
    ================================================================ */
 
+:host { display: block; }
+
 .real-brides {
   position: relative;
   padding-block: 1.35rem 1.55rem;

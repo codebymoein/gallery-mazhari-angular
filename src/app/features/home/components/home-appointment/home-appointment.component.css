@@ -2,6 +2,8 @@
    Home Appointment — consultation section (from WP home-appointment)
    ================================================================ */
 
+:host { display: block; }
+
 .home-appointment {
   padding-block: 2.5rem 3rem;
   background: var(--color-bg-cream);
