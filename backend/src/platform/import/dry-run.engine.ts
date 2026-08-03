@@ -85,6 +85,7 @@ export interface CommitRow {
   material: string | null;
   brand: string | null;
   description: string | null;
+  imageUrls: string[];
   branch: string | null;
   collection: string | null;
   internal: boolean;
@@ -104,6 +105,8 @@ export interface DryRunInput {
   fileBufferHash?: string;
   /** Product/model codes present in the last successfully committed file. */
   previousInStockProductCodes?: string[] | null;
+  /** Legacy catalog enrichment: warehouse inventory remains authoritative. */
+  preserveInventory?: boolean;
 }
 
 function isTruthyInternal(value: string): boolean {
@@ -111,6 +114,25 @@ function isTruthyInternal(value: string): boolean {
   return (
     v === 'بله' || v === '1' || v === 'true' || v === 'yes' || v === 'internal'
   );
+}
+
+function parseImageUrls(value: string): string[] {
+  if (!value?.trim()) return [];
+  const urls: string[] = [];
+  for (const candidate of value.split(/[,\n\r]+/)) {
+    const raw = candidate.trim();
+    if (!raw) continue;
+    try {
+      const parsed = new URL(raw);
+      if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') continue;
+      const normalized = parsed.toString();
+      if (!urls.includes(normalized)) urls.push(normalized);
+    } catch {
+      // Invalid legacy media references are ignored instead of breaking import.
+    }
+    if (urls.length >= 5) break;
+  }
+  return urls;
 }
 
 /**
@@ -132,6 +154,14 @@ export function runExcelDryRun(input: DryRunInput): DryRunReport {
   const existingByCode = new Map(
     input.existing.map((e) => [normalizeProductCode(e.code), e]),
   );
+  const existingNameBuckets = new Map<string, ExistingProductSnapshot[]>();
+  for (const product of input.existing) {
+    const key = normalizeText(product.name);
+    if (!key) continue;
+    const bucket = existingNameBuckets.get(key) ?? [];
+    bucket.push(product);
+    existingNameBuckets.set(key, bucket);
+  }
   const existingByBarcode = new Map<string, ExistingProductSnapshot>();
   for (const e of input.existing) {
     if (e.barcode) existingByBarcode.set(normalizeProductCode(e.barcode), e);
@@ -158,10 +188,20 @@ export function runExcelDryRun(input: DryRunInput): DryRunReport {
       ? normalizeProductCode(mapped.barcode)
       : null;
     const name = mapped.productName.trim();
-    const stock = parseNumberLoose(mapped.inventory);
-    const price = parseNumberLoose(mapped.price);
-    const salePrice = parseNumberLoose(mapped.salePrice);
+    const sourceStock = parseNumberLoose(mapped.inventory);
+    const sourcePrice = parseNumberLoose(mapped.price);
+    const sourceSalePrice = parseNumberLoose(mapped.salePrice);
     const category = (mapped.subcategory || mapped.category).trim();
+    const nameMatches = existingNameBuckets.get(normalizeText(name)) ?? [];
+    const existing = existingByCode.get(code) ||
+      (input.preserveInventory && nameMatches.length === 1 ? nameMatches[0] : undefined);
+    const stock = input.preserveInventory
+      ? existing?.stock ?? 0
+      : sourceStock;
+    const price = input.preserveInventory
+      ? existing?.price ?? sourcePrice
+      : sourcePrice;
+    const salePrice = input.preserveInventory ? null : sourceSalePrice;
 
     if (!code) {
       missingProductCodes += 1;
@@ -266,7 +306,6 @@ export function runExcelDryRun(input: DryRunInput): DryRunReport {
       unknownAttributes.add(`category:${category}`);
     }
 
-    const existing = existingByCode.get(code);
     if (
       barcode &&
       existingByBarcode.has(barcode) &&
@@ -326,6 +365,7 @@ export function runExcelDryRun(input: DryRunInput): DryRunReport {
       material: mapped.material || null,
       brand: mapped.brand || null,
       description: mapped.description || null,
+      imageUrls: parseImageUrls(mapped.images),
       branch: mapped.branch || null,
       collection: mapped.collection || null,
       internal: isTruthyInternal(mapped.internal),
@@ -430,12 +470,25 @@ export function runExcelDryRun(input: DryRunInput): DryRunReport {
     }
   }
 
-  const productRows = commitRows.filter(
-    (row, index, all) =>
-      !row.parentCode ||
-      all.findIndex((candidate) => candidate.parentCode === row.parentCode) ===
-        index,
+  const explicitParentCodes = new Set(
+    commitRows
+      .filter((row) => !row.parentCode)
+      .map((row) => normalizeProductCode(row.code)),
   );
+  const productRows = commitRows.filter((row, index, all) => {
+    if (!row.parentCode) return true;
+    const parentCode = normalizeProductCode(row.parentCode);
+    // When the workbook already has a parent row, its children are variations,
+    // not additional products. Only synthesize one parent from the first child
+    // when an explicit parent row is genuinely absent.
+    if (explicitParentCodes.has(parentCode)) return false;
+    return (
+      all.findIndex(
+        (candidate) =>
+          normalizeProductCode(candidate.parentCode || '') === parentCode,
+      ) === index
+    );
+  });
   const rejectedCodes = new Set(
     input.existing
       .filter((product) => product.status === 'rejected')
@@ -512,7 +565,7 @@ export function runExcelDryRun(input: DryRunInput): DryRunReport {
     missingProductCodes,
     missingPrices,
     missingCategories,
-    missingImages: 0,
+    missingImages: commitRows.filter((row) => row.imageUrls.length === 0).length,
     unknownAttributes: [...unknownAttributes],
     conflictingInventory,
     rowsRequiringReview,

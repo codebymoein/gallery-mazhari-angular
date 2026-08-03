@@ -13,6 +13,7 @@ import { fileToCompressedDataUrl } from '@shared/utils/image-compress';
 import { CATALOG_CATEGORIES } from '@shared/data/catalog-categories';
 import { StagingQueueService } from '@core/services/staging-queue.service';
 import { AdminAuthService } from '@core/services/admin-auth.service';
+import { productAttributeTemplate } from '@shared/utils/product-attribute-template';
 import {
   applyCatalogBackupLocally,
   downloadCatalogBackup,
@@ -109,18 +110,20 @@ export class PublishedProductsComponent implements OnInit {
 
   edit(product: BridalSampleProduct): void {
     const fresh = getBridalProductById(product.id) || product;
+    const attributeTemplate = productAttributeTemplate(fresh.categorySlug);
     this.editingId.set(product.id);
     this.draft = {
       name: fresh.name,
       description: fresh.description,
       additionalDescription: fresh.additionalDescription || '',
-      primaryAttributeLabel: fresh.primaryAttributeLabel || this.defaultPrimaryLabel(fresh),
+      primaryAttributeLabel: attributeTemplate.primary,
       primaryAttributeValue: fresh.primaryAttributeValue || fresh.heelHeight || fresh.platformHeight || fresh.silhouette,
-      secondaryAttributeLabel: fresh.secondaryAttributeLabel || this.defaultSecondaryLabel(fresh),
+      secondaryAttributeLabel: attributeTemplate.secondary,
       secondaryAttributeValue: fresh.secondaryAttributeValue || fresh.material || fresh.fabric,
       highlights: [...fresh.highlights],
       gallery: [...(fresh.gallery?.length ? fresh.gallery : [fresh.image])]
-      ,collectionSlugs: [...(fresh.collectionSlugs || [fresh.categorySlug])]
+      ,collectionSlugs: [...(fresh.collectionSlugs || [fresh.categorySlug])],
+      modelSelectionEnabled: !!fresh.modelSelectionEnabled
     };
   }
 
@@ -186,6 +189,16 @@ export class PublishedProductsComponent implements OnInit {
       gallery,
       image: gallery[0]
     });
+    if (item) {
+      await this.queue.updateCatalog(item.id, {
+        category: item.category,
+        categorySlug: item.categorySlug,
+        parentCategory: item.parentCategory,
+        parentCategorySlug: item.parentCategorySlug,
+        hiddenTags: item.hiddenTags,
+        modelSelectionEnabled: !!this.draft.modelSelectionEnabled
+      });
+    }
     this.revision.update(value => value + 1);
     this.editingId.set(null);
     this.toast.set('تغییرات محصول ذخیره و روی ویترین اعمال شد.');
@@ -222,14 +235,4 @@ export class PublishedProductsComponent implements OnInit {
     }
   }
 
-  private defaultPrimaryLabel(product: BridalSampleProduct): string {
-    if (product.categorySlug === 'bridal-shoes') return 'ارتفاع پاشنه';
-    if (product.categorySlug === 'bridal-sneakers') return 'ارتفاع لژ';
-    return 'ویژگی اصلی';
-  }
-
-  private defaultSecondaryLabel(product: BridalSampleProduct): string {
-    return product.categorySlug.includes('shoe') || product.categorySlug.includes('sneaker')
-      ? 'جنس رویه' : 'جنس / متریال';
-  }
 }

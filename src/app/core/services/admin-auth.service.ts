@@ -26,13 +26,10 @@ export class AdminAuthService {
     password: string
   ): Promise<{ ok: true } | { ok: false; message: string }> {
     const normalized = username.trim().toLowerCase();
-    const localAliases: Record<string, string> = {
-      admin: 'admin@test.local',
-      manager: 'manager@local.test'
-    };
-    const backendUsername = normalized.includes('@')
-      ? normalized
-      : localAliases[normalized] || `${normalized}@local.test`;
+    if (!normalized.includes('@')) {
+      return { ok: false, message: 'ایمیل معتبر مدیر را وارد کنید.' };
+    }
+    const backendUsername = normalized;
 
     // Primary path: new Nest backend auth.
     try {
@@ -51,6 +48,7 @@ export class AdminAuthService {
         username: response.user.email,
         displayName: response.user.fullName || response.user.email,
         role: response.user.role === 'admin' ? 'manager' : 'staff',
+        accessToken: response.accessToken,
         backendUserRole: response.user.role,
         permissions: response.user.permissions || []
       };

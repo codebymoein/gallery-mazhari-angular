@@ -22,6 +22,7 @@ import { fileToCompressedDataUrl } from '@shared/utils/image-compress';
 import { CatalogProductEdit, loadCatalogProductEdits, saveCatalogProductEdit } from '@shared/data/bridal-collection-categories';
 import { CATALOG_CATEGORIES } from '@shared/data/catalog-categories';
 import { internalTagsForCategory } from '@shared/data/product-internal-tags';
+import { productAttributeTemplate } from '@shared/utils/product-attribute-template';
 import {
   applyCatalogBackupLocally,
   downloadCatalogBackup,
@@ -63,6 +64,7 @@ export class StagingQueueComponent {
   readonly pageSize = 8;
   readonly page = signal(1);
   readonly statusFilter = signal<'all' | 'waiting_photo' | 'ready_for_approval'>('all');
+  readonly photoFilter = signal<'all' | 'with_photos' | 'without_photos'>('all');
   readonly categorySlug = signal<string>('all');
   readonly query = signal('');
   readonly toast = signal('');
@@ -133,7 +135,17 @@ export class StagingQueueComponent {
           i.parentCategory.toLowerCase().includes(q)
       );
     }
+    if (this.photoFilter() === 'with_photos') {
+      items = items.filter((item) => this.photoCount(item) > 0);
+    } else if (this.photoFilter() === 'without_photos') {
+      items = items.filter((item) => this.photoCount(item) === 0);
+    }
     return [...items].sort((a, b) => {
+      const categoryDifference = (a.parentCategory || a.category).localeCompare(
+        b.parentCategory || b.category,
+        'fa'
+      );
+      if (categoryDifference) return categoryDifference;
       const photoDifference = this.photoCount(b) - this.photoCount(a);
       if (photoDifference) return photoDifference;
       const aTime = Date.parse(a.processedAt || a.importedAt || '') || 0;
@@ -157,6 +169,11 @@ export class StagingQueueComponent {
     this.page.set(1);
   }
 
+  setPhotoFilter(value: 'all' | 'with_photos' | 'without_photos'): void {
+    this.photoFilter.set(value);
+    this.page.set(1);
+  }
+
   suggestedCatalog(item: StagingProduct): string {
     const text = `${item.name} ${item.code} ${item.category} ${(item.photos || []).map(photo => photo.fileName).join(' ')}`.toLowerCase();
     const scored = this.catalogOptions.map(option => {
@@ -169,10 +186,37 @@ export class StagingQueueComponent {
   }
 
   catalogValue(item: StagingProduct): string {
-    return this.catalogDrafts[item.id]
-      ?? (item.parentCategorySlug && item.categorySlug
-        ? `${item.parentCategorySlug}|${item.categorySlug}`
-        : this.suggestedCatalog(item));
+    const drafted = this.catalogDrafts[item.id];
+    if (drafted) return drafted;
+
+    // The inventory database contains a few legacy parent slugs (for example
+    // "bridal-jewelry") while the current storefront parent is "jewelry".
+    // The product's canonical subcategory is stable, so resolve by that first.
+    const exactSubcategory = this.catalogOptions.find(
+      option => option.sub.slug === item.categorySlug
+    );
+    if (exactSubcategory) return exactSubcategory.value;
+
+    const exactParent = this.catalogOptions.find(
+      option =>
+        option.parent.slug === item.parentCategorySlug &&
+        option.sub.slug === option.parent.slug
+    );
+    if (exactParent) return exactParent.value;
+
+    const labelMatch = this.catalogOptions.find(
+      option =>
+        option.sub.label.trim() === item.category.trim() ||
+        option.parent.title.trim() === item.parentCategory.trim()
+    );
+    return labelMatch?.value || this.suggestedCatalog(item) ||
+      (item.categorySlug
+        ? `${item.parentCategorySlug || item.categorySlug}|${item.categorySlug}`
+        : '');
+  }
+
+  catalogOptionExists(value: string): boolean {
+    return this.catalogOptions.some(option => option.value === value);
   }
 
   changeCatalog(item: StagingProduct, value: string): void {
@@ -290,21 +334,26 @@ export class StagingQueueComponent {
 
   openPreview(item: StagingProduct): void {
     const stored = loadCatalogProductEdits()[item.id] || {};
+    const attributeTemplate = productAttributeTemplate(item.categorySlug);
     this.previewDraft = {
       name: item.name,
-      description: item.notes || `${item.name}، کد کالا ${item.code}`,
-      additionalDescription: '',
-      primaryAttributeLabel: item.heelHeight ? 'ارتفاع پاشنه' : item.platformHeight ? 'ارتفاع لژ' : 'ویژگی اصلی',
+      primaryAttributeLabel: attributeTemplate.primary,
       primaryAttributeValue: normalizedFootwearHeight(
         item.heelHeight || item.platformHeight,
         item.name
       ),
-      secondaryAttributeLabel: 'جنس / متریال',
+      secondaryAttributeLabel: attributeTemplate.secondary,
       secondaryAttributeValue: item.material || '',
       highlights: [item.size ? `سایز ${item.size}` : '', `موجودی: ${item.stock}`].filter(Boolean),
       gallery: (item.photos || []).map(photo => photo.url),
-      ...stored
+      ...stored,
+      // Server descriptions are authoritative and must not be hidden by an
+      // empty/generated edit left in this browser before the migration.
+      description: item.description || stored.description || item.notes || `${item.name}، کد کالا ${item.code}`,
+      additionalDescription: item.additionalDescription || stored.additionalDescription || ''
     };
+    this.previewDraft.primaryAttributeLabel = attributeTemplate.primary;
+    this.previewDraft.secondaryAttributeLabel = attributeTemplate.secondary;
     this.selectedTags(item);
     this.previewId.set(item.id);
     this.cdr.detectChanges();
@@ -345,6 +394,7 @@ export class StagingQueueComponent {
         parentCategory: selected.parent.title,
         parentCategorySlug: selected.parent.slug,
         hiddenTags: [...this.selectedTags(item)]
+        ,modelSelectionEnabled: !!this.previewDraft.modelSelectionEnabled
       });
     }
     this.showToast('تمام تنظیمات محصول ذخیره شد.');

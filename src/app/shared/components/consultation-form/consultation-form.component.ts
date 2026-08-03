@@ -167,6 +167,12 @@ export class ConsultationFormComponent implements OnInit, OnChanges {
 
   nextStep(): void {
     this.phoneError = '';
+    if (this.currentStep === 2 && (!this.lastName.trim() || !this.contactTime)) {
+      this.noticeType = 'error';
+      this.noticeMessage = 'نام خانوادگی و زمان پیشنهادی تماس را کامل کنید.';
+      this.cdr.markForCheck();
+      return;
+    }
     if (this.currentStep < 3) {
       this.goToStep(this.currentStep + 1);
     }
@@ -229,6 +235,12 @@ export class ConsultationFormComponent implements OnInit, OnChanges {
     if (this.submitting) {
       return;
     }
+    if (!this.lastName.trim() || !this.contactTime) {
+      this.noticeType = 'error';
+      this.noticeMessage = 'نام خانوادگی و زمان پیشنهادی تماس الزامی است.';
+      this.goToStep(2);
+      return;
+    }
 
     if (!isValidIranMobile(this.phone)) {
       this.updatePhoneError();
@@ -240,7 +252,7 @@ export class ConsultationFormComponent implements OnInit, OnChanges {
     const productId = this.resolvedProductId;
 
     const payload: ConsultationFormPayload = {
-      last_name: this.lastName.trim() || 'ثبت نشده',
+      last_name: this.lastName.trim(),
       phone: this.phone,
       ceremony_date: this.ceremonyDate || new Date().toISOString().slice(0, 10),
       contact_time: this.contactTime || 'anytime',

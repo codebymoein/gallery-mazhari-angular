@@ -187,6 +187,8 @@
 }
 
 .dream-canvas__dialog {
+  position: fixed;
+  z-index: 1201;
   inline-size: clamp(18rem, 94vi, 48rem);
   max-block-size: calc(100dvb - (var(--space-sm) * 2));
   margin: auto;
@@ -200,8 +202,15 @@
   font-family: var(--font-persian);
 }
 
-.dream-canvas__dialog::backdrop {
+.dream-canvas__modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
   background: color-mix(in srgb, var(--color-dark-charcoal) 68%, transparent);
+}
+
+.dream-canvas__dialog::backdrop {
+  background: transparent;
 }
 
 .dream-canvas__header {
@@ -403,4 +412,29 @@
   .dream-canvas__trigger {
     transition: none;
   }
+}
+.dream-canvas__footer-tools { display: flex; flex-wrap: wrap; gap: .4rem; }
+.dream-canvas__footer-tools button { border: 1px solid #b89452; border-radius: .55rem; padding: .48rem .62rem; color: #604819; background: #fff; font: inherit; font-size: .74rem; cursor: pointer; }
+
+@media (max-width: 600px) {
+  .dream-canvas__dialog { position: fixed; top: .5rem; right: .5rem; bottom: auto; left: auto; width: 305px; inline-size: 305px; max-width: 305px; height: calc(100dvh - 1rem); max-height: calc(100dvh - 1rem); min-width: 0; margin: 0; box-sizing: border-box; overflow-x: hidden; transform: none; border-radius: .9rem; box-shadow: 0 0 0 100vmax rgba(31,28,25,.68), var(--shadow-luxury); }
+  .dream-canvas__header { padding: .8rem; gap: .6rem; }
+  .dream-canvas__eyebrow { font-size: .5rem; }
+  .dream-canvas__title { font-size: 1rem; }
+  .dream-canvas__description { margin-top: .2rem; font-size: .72rem; line-height: 1.5; }
+  .dream-canvas__close { width: 2rem; height: 2rem; flex: 0 0 2rem; }
+  .dream-canvas__body { padding: .65rem; }
+  .dream-canvas__grid { display: grid; grid-template-columns: 1fr; gap: .5rem; }
+  .dream-canvas__card { display: grid; grid-template-columns: 4.2rem minmax(0,1fr); min-height: 0; border-radius: .65rem; }
+  .dream-canvas__card-media { width: 4.2rem; height: 4.2rem; aspect-ratio: 1; }
+  .dream-canvas__card-body { min-width: 0; padding: .55rem; }
+  .dream-canvas__card-body h3 { font-size: .78rem; line-height: 1.45; }
+  .dream-canvas__card-body p { font-size: .72rem; }
+  .dream-canvas__card-actions { gap: .3rem; margin-top: .35rem; }
+  .dream-canvas__card-actions a,.dream-canvas__card-actions button { min-height: 1.8rem; padding: .3rem .5rem; font-size: .68rem; }
+  .dream-canvas__footer { padding: .65rem; gap: .45rem; }
+  .dream-canvas__footer p { margin: 0; font-size: .68rem; line-height: 1.55; }
+  .dream-canvas__footer a { font-size: .7rem; }
+  .dream-canvas__footer-tools { gap: .3rem; }
+  .dream-canvas__footer-tools button { padding: .4rem .5rem; font-size: .67rem; }
 }

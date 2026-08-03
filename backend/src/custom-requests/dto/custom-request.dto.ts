@@ -1,7 +1,7 @@
 import { IsIn, IsOptional, IsString, Matches, MaxLength } from 'class-validator';
 
 export class CreateCustomRequestDto {
-  @IsIn(['veil', 'dress']) type: 'veil' | 'dress';
+  @IsIn(['veil', 'dress', 'home-trial']) type: 'veil' | 'dress' | 'home-trial';
   @IsOptional() @IsString() @MaxLength(100) fullName?: string;
   @Matches(/^09\d{9}$/) phone: string;
   @IsOptional() @IsString() @MaxLength(160) email?: string;

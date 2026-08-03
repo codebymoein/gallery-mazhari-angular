@@ -150,6 +150,7 @@ export class StagingQueueService {
       parentCategorySlug: string;
       collection?: string;
       hiddenTags?: string[];
+      modelSelectionEnabled?: boolean;
     }
   ): Promise<boolean> {
     try {
@@ -159,7 +160,13 @@ export class StagingQueueService {
         this.itemsSignal.update(items => items.map(item => item.id === id ? next : item));
       } else {
         this.itemsSignal.update(items =>
-          items.map(item => item.id === id ? { ...item, ...catalog } : item)
+          items.map(item => item.id === id ? {
+            ...item,
+            ...catalog,
+            isNewImport: catalog.parentCategorySlug === NEW_PRODUCT_CATEGORY_SLUG
+              ? item.isNewImport
+              : false
+          } : item)
         );
       }
       this.persist();
@@ -212,22 +219,13 @@ export class StagingQueueService {
       return false;
     }
     try {
-      const localSnapshot = this.itemsSignal();
       const queue = await firstValueFrom(this.api.getQueue());
-      // An empty server must not erase a valid browser queue. This happens
-      // after a backend reset or when older imports only existed locally.
-      // Restore that snapshot to the server once, then use the persisted
-      // server response on all subsequent refreshes/devices.
-      if (!queue.length && localSnapshot.length) {
-        const restored = await firstValueFrom(this.api.restoreProducts(localSnapshot));
-        this.itemsSignal.set(collapseDuplicateProducts(
-          restored.queue.map((p) => withPrimaryPhoto(backendProductToStaging(p)))
-        ));
-      } else {
-        this.itemsSignal.set(collapseDuplicateProducts(
-          queue.map((p) => withPrimaryPhoto(backendProductToStaging(p)))
-        ));
-      }
+      // While authenticated, the server is authoritative even when its queue
+      // is empty. Never resurrect a deliberately cleared server catalog from
+      // stale browser localStorage.
+      this.itemsSignal.set(collapseDuplicateProducts(
+        queue.map((p) => withPrimaryPhoto(backendProductToStaging(p)))
+      ));
       this.persist();
       this.serverSynced.set(true);
       return true;
@@ -247,6 +245,9 @@ export class StagingQueueService {
     removedOutOfStock: string[],
     meta?: { fileName?: string }
   ): Promise<{ added: number; removed: number }> {
+    if (this.auth.isAuthenticated() && !this.hasServerSession()) {
+      throw new Error('نشست امن سرور کامل نیست. از پنل خارج شوید و دوباره وارد شوید.');
+    }
     if (this.hasServerSession()) {
       try {
         const res = await firstValueFrom(
@@ -282,8 +283,9 @@ export class StagingQueueService {
         this.logImport(res.added, res.removed, meta?.fileName);
         return { added: res.added, removed: res.removed };
       } catch (err) {
-        console.warn('StagingQueue: server import failed — applying locally', err);
         this.serverSynced.set(false);
+        const rejection = this.asServerRejection(err);
+        throw new Error(rejection || 'ثبت فایل موجودی روی سرور انجام نشد. اتصال بک‌اند و نشست مدیر را بررسی کنید.');
       }
     }
     return this.applyExcelImportLocal(products, removedOutOfStock, meta);
@@ -454,9 +456,11 @@ export class StagingQueueService {
     removedOutOfStock: string[],
     meta?: { fileName?: string }
   ): { added: number; removed: number } {
-    const positiveCodes = new Set(products.map((p) => p.code.toUpperCase()));
+    const positiveProducts = products.filter((p) => p.stock > 0);
+    const zeroCodes = products.filter((p) => p.stock <= 0).map((p) => p.code.toUpperCase());
+    const positiveCodes = new Set(positiveProducts.map((p) => p.code.toUpperCase()));
     const removeSet = new Set(
-      removedOutOfStock
+      [...removedOutOfStock, ...zeroCodes]
         .map((c) => c.toUpperCase())
         .filter((code) => !positiveCodes.has(code))
     );
@@ -467,36 +471,30 @@ export class StagingQueueService {
       const uniqueList = collapseDuplicateProducts(list);
       const kept = uniqueList.filter((item) => {
         if (removeSet.has(item.code.toUpperCase())) {
-          if (item.status === 'published' || item.status === 'awaiting_stock') {
-            return true;
-          }
-          if (item.status === 'rejected') {
-            return true;
-          }
-          removed += 1;
-          return false;
+          return true;
         }
         return true;
       });
 
       const existingCodes = new Set(kept.map((i) => i.code.toUpperCase()));
-      const fresh = products
+      const fresh = positiveProducts
         .filter((p) => !existingCodes.has(p.code.toUpperCase()))
-        .map((p) => withPrimaryPhoto({ ...p, photos: p.photos || [] }));
+        .map((p) => withPrimaryPhoto({ ...p, status: 'waiting_photo', isNewImport: true, photos: p.photos || [] }));
       added = fresh.length;
 
-      const incoming = new Map(products.map((p) => [p.code.toUpperCase(), p]));
+      const incoming = new Map(positiveProducts.map((p) => [p.code.toUpperCase(), p]));
       const merged = kept.map((item) => {
         if (item.status === 'rejected') return item;
         const next = incoming.get(item.code.toUpperCase());
         if (!next) {
-          return removeSet.has(item.code.toUpperCase()) &&
-            (item.status === 'published' || item.status === 'awaiting_stock')
+          return removeSet.has(item.code.toUpperCase())
             ? withPrimaryPhoto({
                 ...item,
                 stock: 0,
                 status: 'awaiting_stock',
-                isNewImport: false
+                inventoryResumeStatus: item.status === 'awaiting_stock'
+                  ? item.inventoryResumeStatus
+                  : item.status
               })
             : item;
         }
@@ -504,17 +502,10 @@ export class StagingQueueService {
           ...item,
           name: next.name,
           stock: next.stock,
-          category: next.category,
-          parentCategory: next.parentCategory,
-          parentCategorySlug: next.parentCategorySlug,
-          categorySlug: next.categorySlug,
           variations: next.variations,
-          isNewImport: next.isNewImport,
           status:
-            next.status === 'rejected'
-              ? 'rejected'
-              : item.status === 'awaiting_stock' && next.stock > 0
-                ? 'published'
+            item.status === 'awaiting_stock' && next.stock > 0
+                ? item.inventoryResumeStatus || ((item.photos || []).length ? 'ready_for_approval' : 'waiting_photo')
                 : item.status
         }));
       });
@@ -671,7 +662,7 @@ export class StagingQueueService {
   // ------------------------------------------------------------------
 
   private hasServerSession(): boolean {
-    return this.auth.isAuthenticated();
+    return this.auth.isAuthenticated() && !!this.auth.user()?.accessToken;
   }
 
   /** فقط رکوردهایی که واقعاً از سرور آمده‌اند (id از نوع UUID) */
@@ -681,10 +672,22 @@ export class StagingQueueService {
 
   /** خطاهای اعتبارسنجی سرور (400/404) نباید باعث fallback محلی شوند */
   private asServerRejection(err: unknown): string | null {
-    if (err instanceof HttpErrorResponse && (err.status === 400 || err.status === 404)) {
-      const message = (err.error as { message?: string | string[] })?.message;
+    const shaped = err as {
+      status?: number;
+      message?: string | string[];
+      error?: { message?: string | string[] };
+      details?: { message?: string | string[] };
+    };
+    const status = err instanceof HttpErrorResponse ? err.status : shaped?.status;
+    if (status === 400 || status === 401 || status === 403 || status === 404) {
+      const message = err instanceof HttpErrorResponse
+        ? (err.error as { message?: string | string[] })?.message
+        : shaped.details?.message ?? shaped.error?.message ?? shaped.message;
       if (Array.isArray(message)) return message.join('، ');
-      return message || 'درخواست توسط سرور رد شد.';
+      if (typeof message === 'string' && message.trim()) return message;
+      if (status === 401) return 'نشست مدیریت منقضی شده است؛ دوباره وارد پنل شوید.';
+      if (status === 403) return 'این کاربر مجوز ثبت فایل موجودی را ندارد.';
+      return 'درخواست توسط سرور رد شد.';
     }
     return null;
   }

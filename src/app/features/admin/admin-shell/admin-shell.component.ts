@@ -178,11 +178,11 @@ export class AdminShellComponent implements OnInit, OnDestroy {
       keywords: 'audit log فعالیت'
     },
     {
-      label: 'درخواست‌های مشاوره',
+      label: 'مشتریان بالقوه',
       path: '/admin/client-insights',
       icon: 'users',
       group: 'فروش',
-      keywords: 'consultation requests درخواست مشاوره تماس تلفنی'
+      keywords: 'potential customers leads consultation مشتریان بالقوه بازاریابی بوم رویایی تماس تلفنی'
       ,permission: 'consultation.manage'
     }
     ,{

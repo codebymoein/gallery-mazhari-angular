@@ -205,3 +205,4 @@
   .request-meta { grid-template-columns: 1fr; }
   .request-card__identity { align-items: flex-start; flex-direction: column; }
 }
+.request-intelligence{margin-top:.8rem;padding:.85rem;border:1px solid #e4d8c7;border-radius:.8rem;background:#fffaf2}.request-intelligence>strong{display:block;margin-bottom:.55rem}.request-intelligence__chips{display:flex;flex-wrap:wrap;gap:.4rem}.request-intelligence__chips span{padding:.32rem .58rem;border-radius:999px;background:#eee7dc;font-size:.78rem}.request-intelligence--tags{background:#f4f8f2;border-color:#ccddc7}.request-intelligence--tags .request-intelligence__chips span{background:#deedda;color:#28542c}

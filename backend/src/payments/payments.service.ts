@@ -11,6 +11,7 @@ import { ProductEntity } from '../products/entities/product.entity';
 import { CreatePaymentDto, UpdatePaymentSettingsDto } from './dto/payment.dto';
 import { PaymentSettingsEntity } from './entities/payment-settings.entity';
 import { PaymentTransactionEntity } from './entities/payment-transaction.entity';
+import { CustomRequestEntity } from '../custom-requests/entities/custom-request.entity';
 import { DiscountsService } from '../discounts/discounts.service';
 import { OrdersService } from '../orders/orders.service';
 import type { OrderCustomer } from '../orders/entities/order.entity';
@@ -22,6 +23,8 @@ export class PaymentsService {
     private readonly settingsRepo: Repository<PaymentSettingsEntity>,
     @InjectRepository(PaymentTransactionEntity)
     private readonly transactions: Repository<PaymentTransactionEntity>,
+    @InjectRepository(CustomRequestEntity)
+    private readonly customRequests: Repository<CustomRequestEntity>,
     @InjectRepository(ProductEntity)
     private readonly products: Repository<ProductEntity>,
     private readonly discounts: DiscountsService,
@@ -91,6 +94,9 @@ export class PaymentsService {
       pricedProducts.map((product) => [product.code, product]),
     );
     const lines = dto.items.map((item) => {
+      if (item.code.trim() === 'HOME-TRIAL-DEPOSIT') {
+        return { productId: 'home-trial-deposit', code: item.code.trim(), name: 'بیعانه تست در محل تهران', image: null, quantity: 1, unitPrice: 10_000_000, customization: undefined, requestId: item.requestId };
+      }
       const product = byCode.get(item.code.trim());
       if (!product || product.stock < item.quantity) {
         throw new BadRequestException(
@@ -109,6 +115,34 @@ export class PaymentsService {
           : item.customization === 'engraving'
             ? 8_000_000
             : 0;
+      let rental: { ceremonyDate: string; returnDueDate: string; refundAmount: number; rentalFee: number } | undefined;
+      if (item.rental) {
+        const rentableCategories = new Set([
+          'bridal-tiaras', 'bridal-headbands', 'imported-hairpiece',
+          'chignon-pins', 'bridal-capes',
+        ]);
+        if (!rentableCategories.has(product.categorySlug)) {
+          throw new BadRequestException('این کالا در گروه محصولات قابل اجاره قرار ندارد.');
+        }
+        if (!item.ceremonyDate) throw new BadRequestException('تاریخ مراسم برای اجاره الزامی است.');
+        const ceremony = new Date(`${item.ceremonyDate}T12:00:00`);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const returnDue = new Date(ceremony);
+        returnDue.setDate(returnDue.getDate() + 7);
+        const latestReturn = new Date(today);
+        latestReturn.setDate(latestReturn.getDate() + 45);
+        if (!Number.isFinite(ceremony.getTime()) || ceremony < today || returnDue > latestReturn) {
+          throw new BadRequestException('بازه تاریخ اجاره معتبر نیست؛ بازگشت باید حداکثر تا ۴۵ روز پس از ثبت سفارش باشد.');
+        }
+        const rentalFee = Math.round(price / 2);
+        rental = {
+          ceremonyDate: item.ceremonyDate,
+          returnDueDate: returnDue.toISOString().slice(0, 10),
+          rentalFee,
+          refundAmount: price - rentalFee,
+        };
+      }
       return {
         productId: product.id,
         code: product.code,
@@ -120,6 +154,8 @@ export class PaymentsService {
         quantity: item.quantity,
         unitPrice: price + customizationFee,
         customization: item.customization,
+        rental,
+        requestId: item.requestId,
       };
     });
 
@@ -160,10 +196,12 @@ export class PaymentsService {
       authority: null,
       status: 'created',
       referenceId: null,
-      items: lines.map(({ code, quantity, unitPrice }) => ({
+      items: lines.map(({ code, quantity, unitPrice, rental, requestId }) => ({
         code,
         quantity,
         unitPrice,
+        rental,
+        requestId,
       })),
       customer,
       gatewayResponse: null,
@@ -243,6 +281,7 @@ export class PaymentsService {
           result.referenceId,
         );
       }
+      if (result.paid) await this.confirmHomeTrial(transaction);
       return saved;
     }
     const custom = await this.verifyCustom(settings, transaction, query);
@@ -257,7 +296,14 @@ export class PaymentsService {
         custom.referenceId,
       );
     }
+    if (custom.paid) await this.confirmHomeTrial(transaction);
     return saved;
+  }
+
+  private async confirmHomeTrial(transaction: PaymentTransactionEntity): Promise<void> {
+    const requestId = transaction.items.find(item => item.code === 'HOME-TRIAL-DEPOSIT')?.requestId;
+    if (!requestId) return;
+    await this.customRequests.update({ id: requestId, type: 'home-trial' }, { status: 'new' });
   }
 
   private async getSettings(): Promise<PaymentSettingsEntity> {

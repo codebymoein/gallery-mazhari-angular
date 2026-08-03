@@ -80,8 +80,7 @@
 
     <!-- ═══ Brand ═══ -->
     <a class="luxury-nav__brand" routerLink="/" aria-label="صفحه اصلی گالری مظهری">
-      <span lang="en" dir="ltr">GALLERY MAZHARI</span>
-      <small lang="en" dir="ltr">TEHRAN · EST. 1337</small>
+      <img src="assets/images/gallery-mazhari-logo.png" alt="لوگوی گالری مظهری" width="1297" height="804" />
     </a>
 
     <!-- ═══ Actions ═══ -->
@@ -149,6 +148,7 @@
 
   <div class="luxury-nav__drawer-backdrop"
     [class.luxury-nav__drawer-backdrop--open]="drawer.isOpen()"
+    (pointerdown)="drawer.close()"
     (click)="drawer.close()"
   aria-hidden="true"></div>
 
@@ -249,7 +249,7 @@
       <a href="#appointment" (click)="goToConsultation($event)">رزرو مشاوره حرفه‌ای</a>
       <a routerLink="/contact" (click)="closeMenus()">ارتباط با ما</a>
       <a routerLink="/contact" (click)="closeMenus()">تماس با پشتیبانی</a>
-      <a routerLink="/account" (click)="closeMenus()">حساب کاربری من</a>
+      <a routerLink="/account" (pointerup)="closeMenus()" (click)="closeMenus()">حساب کاربری من</a>
       <a routerLink="/orders" (click)="closeMenus()">پیگیری سفارش‌ها</a>
     </nav>
   </div>

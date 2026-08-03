@@ -13,7 +13,7 @@ export interface CatalogSubcategory {
 function assignSubcategoryImages(categories: CatalogCategory[]): void {
   for (const category of categories) {
     for (const sub of category.subcategories) {
-      sub.image = category.image;
+      if (!sub.image) sub.image = category.image;
     }
   }
 }
@@ -89,10 +89,11 @@ export const CATALOG_CATEGORIES: CatalogCategory[] = [
     image: '/assets/images/cat-shoes.webp',
     span: 'medium',
     subcategories: [
-      { label: 'کفش عروس', slug: 'bridal-shoes', icon: '👠' },
-      { label: 'کتونی عروس', slug: 'bridal-sneakers', icon: '👟' },
-      { label: 'کیف عروس', slug: 'bridal-bags', icon: '👜' },
-      { label: 'اکسسوری کفش و کتونی', slug: 'bridal-footwear-accessories', icon: '✦' },
+      { label: 'کفش عروس', slug: 'bridal-shoes', icon: '👠', image: '/assets/images/cat-bridal-shoes.jpg' },
+      { label: 'کتونی عروس', slug: 'bridal-sneakers', icon: '👟', image: '/assets/images/cat-bridal-sneakers.jpg' },
+      { label: 'کیف عروس', slug: 'bridal-bags', icon: '👜', image: '/assets/images/cat-bridal-bags.jpg' },
+      { label: 'جوراب عروس', slug: 'bridal-socks', icon: '🧦', image: '/assets/images/cat-bridal-socks.jpg' },
+      { label: 'اکسسوری کفش و کتونی', slug: 'bridal-footwear-accessories', icon: '✦', image: '/assets/images/cat-bridal-footwear-accessories.jpg' },
     ]
   },
   {

@@ -47,11 +47,16 @@ export interface StagingProduct {
   discountPercent?: number;
   discountTitle?: string;
   discountBadge?: string;
+  modelSelectionEnabled?: boolean;
   /** سایز از اکسل (متغیر محصول) */
   size?: string;
   color?: string;
   /** جنس رویه / متریال */
   material?: string;
+  /** توضیح مختصر محصول، همگام‌شده از دیتابیس */
+  description?: string;
+  /** توضیحات کامل و تکمیلی محصول، همگام‌شده از دیتابیس */
+  additionalDescription?: string;
   /** ارتفاع پاشنه — کفش */
   heelHeight?: string;
   /** ارتفاع لژ — کتونی */
@@ -69,6 +74,8 @@ export interface StagingProduct {
   status: StagingStatus;
   /** وضعیت محصول پیش از انتقال به زباله‌دان، برای بازگردانی دقیق */
   trashedFromStatus?: StagingStatus;
+  /** Local fallback only: workflow state to restore when stock returns. */
+  inventoryResumeStatus?: StagingStatus;
   photos: StagingPhoto[];
   /** سازگاری با UI قدیمی — همیشه برابر photos[0] */
   photoUrl?: string;

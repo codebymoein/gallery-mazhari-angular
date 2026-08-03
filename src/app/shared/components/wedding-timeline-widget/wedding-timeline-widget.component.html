@@ -116,10 +116,6 @@
         <span>موافقم این تاریخ فقط روی همین مرورگر و حداکثر یک سال ذخیره شود.</span>
       </label>
 
-      <p class="wedding-timeline__privacy">
-        این تاریخ به سرور گالری ارسال نمی‌شود.
-      </p>
-
       @if (timeline.state$ | async; as state) {
         @if (state.personalized) {
           <div class="wedding-timeline__result" aria-live="polite">

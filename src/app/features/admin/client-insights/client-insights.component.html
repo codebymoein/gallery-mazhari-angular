@@ -1,8 +1,8 @@
 <section class="adm adm-page consultation-requests" dir="rtl">
   <header class="adm-page__head">
     <div>
-      <p class="adm-page__eyebrow" lang="en" dir="ltr">CONSULTATION REQUESTS</p>
-      <h1 class="adm-page__title">درخواست‌های مشاوره</h1>
+      <p class="adm-page__eyebrow" lang="en" dir="ltr">POTENTIAL CUSTOMERS</p>
+      <h1 class="adm-page__title">مشتریان بالقوه</h1>
       <p class="adm-page__lead">
         درخواست‌ها را تکی یا بر اساس وضعیت انتخاب کنید و یک برگه مرتب برای تماس تلفنی چاپ یا PDF کنید.
       </p>
@@ -91,6 +91,18 @@
           </dl>
           @if (req.message) {
             <p class="request-message">{{ req.message }}</p>
+          }
+          @if (req.dreamItems?.length) {
+            <section class="request-intelligence">
+              <strong>بوم رویایی مشتری</strong>
+              <div class="request-intelligence__chips">@for (item of req.dreamItems; track item.productId) {<span>{{ item.name }}</span>}</div>
+            </section>
+          }
+          @if (req.desiredTags?.length) {
+            <section class="request-intelligence request-intelligence--tags">
+              <strong>سیگنال‌های هوشمند انتخاب</strong>
+              <div class="request-intelligence__chips">@for (tag of req.desiredTags; track tag) {<span>{{ tag }}</span>}</div>
+            </section>
           }
           <div class="request-actions" role="group" aria-label="تغییر وضعیت پیگیری">
             <span>وضعیت پیگیری</span>

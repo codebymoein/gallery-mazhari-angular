@@ -55,6 +55,7 @@ export class PlatformApiService {
       mappingJson?: string;
       confirmUncertainMapping?: boolean;
       sourceTimestamp?: string;
+      preserveInventory?: boolean;
     }
   ): Observable<unknown> {
     const fd = new FormData();
@@ -62,12 +63,13 @@ export class PlatformApiService {
     if (opts?.mappingJson) fd.append('mappingJson', opts.mappingJson);
     if (opts?.confirmUncertainMapping) fd.append('confirmUncertainMapping', 'true');
     if (opts?.sourceTimestamp) fd.append('sourceTimestamp', opts.sourceTimestamp);
+    if (opts?.preserveInventory) fd.append('preserveInventory', 'true');
     return this.http.post(`${this.base}/import/dry-run`, fd, this.authOptions());
   }
 
   confirmImport(
     importId: string,
-    inventoryStrategy: 'full_replace' | 'incremental' = 'full_replace'
+    inventoryStrategy: 'preserve_inventory' | 'full_replace' | 'incremental' = 'preserve_inventory'
   ): Observable<unknown> {
     return this.http.post(
       `${this.base}/import/${importId}/confirm`,

@@ -42,24 +42,14 @@ export class AdminLoginComponent {
       await firstValueFrom(this.backend.forgotPassword(this.recoveryEmail.trim()));
       this.recoveryMessage = 'اگر حساب معتبر باشد، لینک امن بازیابی به ایمیل ثبت‌شده ارسال شد.';
     } catch (error: unknown) {
-      const detail = (error as { error?: { message?: string } })?.error?.message;
+      const shaped = error as {
+        error?: { message?: string };
+        details?: { message?: string };
+        message?: string;
+      };
+      const detail = shaped.error?.message || shaped.details?.message || shaped.message;
       this.error = detail === 'smtp_not_configured' ? 'ارسال ایمیل هنوز روی سرور پیکربندی نشده است.' : 'ارسال لینک بازیابی انجام نشد.';
     } finally { this.recoverySubmitting = false; this.cdr.markForCheck(); }
-  }
-
-  fillDemo(role: 'staff' | 'manager' | 'admin'): void {
-    if (role === 'staff') {
-      this.username = 'staff';
-      this.password = 'staff123';
-    } else if (role === 'admin') {
-      this.username = 'admin';
-      this.password = 'admin123';
-    } else {
-      this.username = 'manager';
-      this.password = 'manager123';
-    }
-    this.error = '';
-    this.cdr.markForCheck();
   }
 
   async submit(): Promise<void> {

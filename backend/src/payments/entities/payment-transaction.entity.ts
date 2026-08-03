@@ -36,7 +36,13 @@ export class PaymentTransactionEntity {
   referenceId: string | null;
 
   @Column({ type: 'simple-json' })
-  items: Array<{ code: string; quantity: number; unitPrice: number }>;
+  items: Array<{
+    code: string;
+    quantity: number;
+    unitPrice: number;
+    rental?: { ceremonyDate: string; returnDueDate: string; refundAmount: number; rentalFee: number };
+    requestId?: string;
+  }>;
 
   @Column({ type: 'simple-json', nullable: true })
   customer: OrderCustomer | null;

@@ -129,6 +129,7 @@ export class ProductsController {
       parentCategorySlug: string;
       collection?: string;
       hiddenTags?: string[];
+      modelSelectionEnabled?: boolean;
     },
   ) {
     return this.productsService.updateCatalog(id, dto);

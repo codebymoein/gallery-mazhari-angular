@@ -593,3 +593,40 @@
     transition-duration: .01ms !important;
   }
 }
+
+.luxury-footer__credits {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: .35rem .8rem;
+}
+
+.luxury-footer__credits a {
+  color: inherit;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.luxury-footer__developer-socials {
+  display: inline-flex;
+  align-items: center;
+  gap: .42rem;
+}
+
+.luxury-footer__developer-social {
+  display: inline-grid;
+  width: 1.25rem;
+  height: 1.25rem;
+  place-items: center;
+  color: currentColor;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  opacity: .86;
+}
+
+.luxury-footer__developer-social svg {
+  width: .7rem;
+  height: .7rem;
+}
+
+.luxury-footer__credits > p { margin: 0; white-space: nowrap; font-size: .72rem; }

@@ -99,6 +99,12 @@ export class ExcelImportComponent implements OnDestroy {
             this.result = result;
             this.parsing = false;
             this.cdr.markForCheck();
+          })
+          .catch((err: unknown) => {
+            this.error = err instanceof Error ? err.message : 'ثبت فایل موجودی روی سرور انجام نشد.';
+            this.result = null;
+            this.parsing = false;
+            this.cdr.markForCheck();
           });
       },
       error: (err: Error) => {

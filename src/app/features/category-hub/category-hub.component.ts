@@ -83,7 +83,7 @@ export class CategoryHubComponent implements OnInit, OnDestroy {
       image: categoryImage,
       subcategories: found.subcategories.map(sub => ({
         ...sub,
-        image: appearance?.subcategoryImages?.[sub.slug] || categoryImage
+        image: appearance?.subcategoryImages?.[sub.slug] || assetUrl(sub.image || found.image)
       }))
     };
   }

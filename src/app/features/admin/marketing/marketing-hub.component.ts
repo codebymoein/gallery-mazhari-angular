@@ -10,12 +10,13 @@ import {
 } from '@core/services/discounts-api.service';
 import { BackendProduct, ProductsApiService } from '@core/services/products-api.service';
 import { CATALOG_CATEGORIES } from '@shared/data/catalog-categories';
-import { finalize } from 'rxjs';
+import { finalize, forkJoin, Observable } from 'rxjs';
+import { JalaliDateInputComponent } from '@shared/components/jalali-date-input/jalali-date-input.component';
 
 @Component({
   selector: 'app-marketing-hub',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, JalaliDateInputComponent],
   templateUrl: './marketing-hub.component.html',
   styleUrls: ['./marketing-hub.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -34,6 +35,8 @@ export class MarketingHubComponent {
   error = '';
   message = '';
   editingId: string | null = null;
+  productSearch = '';
+  readonly selectedProductIds = new Set<string>();
 
   form: DiscountRulePayload = this.emptyForm();
 
@@ -60,9 +63,26 @@ export class MarketingHubComponent {
     }));
   }
 
+  get filteredProducts(): BackendProduct[] {
+    const query = this.productSearch.trim().toLocaleLowerCase('fa');
+    if (!query) return this.products.slice(0, 120);
+    return this.products.filter(product =>
+      `${product.name} ${product.code} ${product.category}`.toLocaleLowerCase('fa').includes(query)
+    ).slice(0, 120);
+  }
+
+  toggleProduct(product: BackendProduct, checked: boolean): void {
+    checked ? this.selectedProductIds.add(product.id) : this.selectedProductIds.delete(product.id);
+    this.syncProductTarget();
+  }
+
+  productSelected(id: string): boolean { return this.selectedProductIds.has(id); }
+
   scopeChanged(): void {
     this.form.targetKey = '';
     this.form.targetLabel = '';
+    this.selectedProductIds.clear();
+    this.productSearch = '';
   }
 
   targetChanged(): void {
@@ -73,7 +93,8 @@ export class MarketingHubComponent {
     this.error = '';
     this.message = '';
     this.targetChanged();
-    if (!this.form.title.trim() || !this.form.targetKey || this.form.percent < 1 || this.form.percent > 99) {
+    const hasTarget = this.form.scopeType === 'product' ? this.selectedProductIds.size > 0 : !!this.form.targetKey;
+    if (!this.form.title.trim() || !hasTarget || this.form.percent < 1 || this.form.percent > 99) {
       this.error = 'عنوان، هدف تخفیف و درصد معتبر را کامل کنید.';
       return;
     }
@@ -86,7 +107,16 @@ export class MarketingHubComponent {
       endsAt: this.form.endsAt ? new Date(`${this.form.endsAt}T23:59:59`).toISOString() : null
     };
     this.saving = true;
-    const request = this.editingId ? this.api.update(this.editingId, payload) : this.api.create(payload);
+    const selectedProducts = this.products.filter(product => this.selectedProductIds.has(product.id));
+    const request: Observable<unknown> = this.editingId
+      ? this.api.update(this.editingId, payload)
+      : this.form.scopeType === 'product' && selectedProducts.length > 1
+        ? forkJoin(selectedProducts.map(product => this.api.create({
+            ...payload,
+            targetKey: product.id,
+            targetLabel: `${product.name} — ${product.code}`
+          })))
+        : this.api.create(payload);
     request.pipe(finalize(() => { this.saving = false; this.cdr.markForCheck(); }), takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {
@@ -94,7 +124,7 @@ export class MarketingHubComponent {
           this.cancelEdit();
           this.reload();
         },
-        error: err => { this.error = err?.error?.message || 'ذخیره تخفیف انجام نشد.'; }
+        error: (err: { error?: { message?: string } }) => { this.error = err?.error?.message || 'ذخیره تخفیف انجام نشد.'; }
       });
   }
 
@@ -114,6 +144,8 @@ export class MarketingHubComponent {
       startsAt: rule.startsAt?.slice(0, 10) || null,
       endsAt: rule.endsAt?.slice(0, 10) || null
     };
+    this.selectedProductIds.clear();
+    if (rule.scopeType === 'product') this.selectedProductIds.add(rule.targetKey);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
@@ -132,6 +164,14 @@ export class MarketingHubComponent {
   cancelEdit(): void {
     this.editingId = null;
     this.form = this.emptyForm();
+    this.selectedProductIds.clear();
+    this.productSearch = '';
+  }
+
+  private syncProductTarget(): void {
+    const first = this.products.find(product => this.selectedProductIds.has(product.id));
+    this.form.targetKey = first?.id || '';
+    this.form.targetLabel = first ? `${first.name} — ${first.code}` : '';
   }
 
   scopeLabel(scope: DiscountScope): string {

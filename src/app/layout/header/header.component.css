@@ -38,6 +38,7 @@
   text-decoration: none;
   text-align: center;
 }
+.luxury-nav__brand img{display:block;width:auto;max-width:clamp(7.5rem,14vw,10rem);height:clamp(2.5rem,4.5vw,3.45rem);object-fit:contain}
 .luxury-nav__brand span {
   font-family: var(--font-display);
   font-size: clamp(1.35rem, 3.5vw, 2rem);
@@ -389,6 +390,7 @@
   transition: opacity var(--transition-smooth), visibility var(--transition-smooth);
 }
 .luxury-nav__drawer-backdrop--open { opacity: 1; visibility: visible; }
+.luxury-nav__drawer-backdrop:not(.luxury-nav__drawer-backdrop--open) { display: none; }
 
 .luxury-nav__drawer {
   position: fixed;
@@ -408,6 +410,7 @@
   transition: transform var(--transition-smooth);
 }
 .luxury-nav__drawer--open { transform: translateX(0); }
+.luxury-nav__drawer:not(.luxury-nav__drawer--open) { display: none; }
 
 .luxury-nav__drawer-header {
   position: sticky;
@@ -583,6 +586,7 @@
 
   .luxury-nav__menu-toggle { grid-area: menu; }
   .luxury-nav__brand { grid-area: brand; gap: 0.1rem; }
+  .luxury-nav__brand img{width:auto;max-width:7.2rem;height:2.45rem}
   .luxury-nav__brand span {
     max-inline-size: 100%;
     overflow: hidden;

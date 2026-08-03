@@ -744,3 +744,4 @@
   .checkout__field-row { grid-template-columns:repeat(2,minmax(0,1fr)); }
   .checkout__panel-actions { gap:.4rem; }
 }
+.checkout__rental-summary{display:block;margin-top:.35rem;padding:.45rem .55rem;border-radius:8px;background:#f5eddd;color:#705621;font-size:.68rem;line-height:1.7}

@@ -503,3 +503,16 @@
     grid-template-columns: repeat(3, 1fr);
   }
 }
+.account__referral,
+.account__card[aria-labelledby="activity-title"] { display: none !important; }
+
+@media (max-width: 600px) {
+  .account__hero { padding-block: 1.4rem; }
+  .account__greeting { font-size: 1.45rem; }
+  .account__hero-stats { gap: .45rem; }
+  .account__stat { padding: .65rem .5rem; }
+  .account__quick { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .45rem; }
+  .account__quick-link { min-width: 0; padding: .65rem .35rem; }
+  .account__quick-icon { width: 1.7rem; height: 1.7rem; }
+  .account__quick-label { font-size: .73rem; }
+}

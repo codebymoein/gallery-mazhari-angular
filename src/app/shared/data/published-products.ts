@@ -162,13 +162,17 @@ export function toCatalogProduct(item: StagingProduct): PublishedCatalogProduct 
     discountPercent: item.discountPercent,
     discountTitle: item.discountTitle,
     discountBadge: item.discountBadge,
+    modelSelectionEnabled: item.modelSelectionEnabled,
     name: item.name,
     categorySlug,
     parentCategorySlug: item.parentCategorySlug || '',
     isNewImport: item.isNewImport,
     image,
     tag: item.isNewImport ? 'محصول جدید وارد شده' : item.parentCategory || item.category,
-    description: `${item.name} — کد کالا ${item.code}، از موجودی واقعی فروشگاه گالری مظهری.`,
+    description:
+      item.description ||
+      `${item.name} — کد کالا ${item.code}، از موجودی واقعی فروشگاه گالری مظهری.`,
+    additionalDescription: item.additionalDescription,
     silhouette,
     fabric,
     size: item.size,

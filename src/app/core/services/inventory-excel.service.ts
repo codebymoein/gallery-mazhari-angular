@@ -87,6 +87,19 @@ export class InventoryExcelService {
       (Array.isArray(row) ? row : []).map((cell) => String(cell ?? '').trim())
     );
 
+    const headers = (cells[0] || []).map((cell) =>
+      cell.replace(/[\u200c\u200f\u202a-\u202e]/g, ' ').replace(/\s+/g, ' ').trim()
+    );
+    const isPlatformMigrationFile =
+      headers.includes('کد مادر') ||
+      headers.includes('نوع منبع') ||
+      headers.includes('شناسه WooCommerce');
+    if (isPlatformMigrationFile) {
+      throw new Error(
+        'این فایل، فایل مهاجرت محصولات و تنوع‌هاست و نباید در واردات کلاسیک انبار بارگذاری شود. از مسیر «پنل مدیریت ← مرکز پلتفرم ← واردات اکسل» استفاده کنید.'
+      );
+    }
+
     return parseInventoryMatrix(cells);
   }
 

@@ -118,6 +118,9 @@
                 <td>{{ formatToman(item.price) }}</td>
                 <td [class.inv-low]="item.stock > 0 && item.stock <= 3">
                   {{ item.stock | number:'1.0-0':'fa-IR' }}
+                  @if (item.stock === 1) {
+                    <span class="inv-single">تک‌مانده</span>
+                  }
                 </td>
                 <td>
                   @if (item.photoUrl) {

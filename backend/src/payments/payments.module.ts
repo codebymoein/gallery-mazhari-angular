@@ -7,6 +7,7 @@ import { PaymentsController } from './payments.controller';
 import { PaymentsService } from './payments.service';
 import { DiscountsModule } from '../discounts/discounts.module';
 import { OrdersModule } from '../orders/orders.module';
+import { CustomRequestEntity } from '../custom-requests/entities/custom-request.entity';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { OrdersModule } from '../orders/orders.module';
       PaymentSettingsEntity,
       PaymentTransactionEntity,
       ProductEntity,
+      CustomRequestEntity,
     ]),
     DiscountsModule,
     OrdersModule,

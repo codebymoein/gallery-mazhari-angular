@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
+import { BridalPreferenceService } from './bridal-preference.service';
 import { environment } from '@env/environment';
 import { AdminAuthService } from '@core/services/admin-auth.service';
 import {
@@ -38,6 +39,7 @@ export interface BackendProduct {
   size?: string | null;
   color?: string | null;
   material?: string | null;
+  description?: string | null;
   enrichment?: Record<string, unknown> | null;
   variations?: Array<{
     id: string;
@@ -80,6 +82,11 @@ export function backendProductToStaging(p: BackendProduct): StagingProduct {
     size: p.size ?? undefined,
     color: p.color ?? undefined,
     material: p.material ?? undefined,
+    description: p.description ?? undefined,
+    additionalDescription:
+      typeof enrichment['additionalDescription'] === 'string'
+        ? enrichment['additionalDescription']
+        : undefined,
     heelHeight:
       typeof enrichment['heelHeight'] === 'string'
         ? enrichment['heelHeight']
@@ -106,6 +113,7 @@ export function backendProductToStaging(p: BackendProduct): StagingProduct {
     hiddenTags: Array.isArray(enrichment['hiddenTags'])
       ? enrichment['hiddenTags'].filter((tag): tag is string => typeof tag === 'string')
       : [],
+    modelSelectionEnabled: enrichment['modelSelectionEnabled'] === true,
     isNewImport: p.isNewImport,
     status: p.status,
     trashedFromStatus: p.trashedFromStatus ?? undefined,
@@ -125,10 +133,16 @@ export function backendProductToStaging(p: BackendProduct): StagingProduct {
 export class ProductsApiService {
   private readonly http = inject(HttpClient);
   private readonly auth = inject(AdminAuthService);
+  private readonly preferences = inject(BridalPreferenceService);
   private readonly baseUrl = `${environment.backendApiBaseUrl}/products`;
 
   getPublished(): Observable<BackendProduct[]> {
-    return this.http.get<BackendProduct[]>(`${this.baseUrl}/published`);
+    return this.http.get<BackendProduct[]>(`${this.baseUrl}/published`).pipe(map(items => {
+      const wanted = new Set(this.preferences.tags());
+      if (!wanted.size) return items;
+      return items.map((item, index) => ({ item, index, score: Array.isArray(item.enrichment?.['hiddenTags']) ? (item.enrichment!['hiddenTags'] as unknown[]).filter(tag => wanted.has(String(tag))).length : 0 }))
+        .sort((a, b) => b.score - a.score || a.index - b.index).map(row => row.item);
+    }));
   }
 
   getQueue(): Observable<BackendProduct[]> {
@@ -245,6 +259,7 @@ export class ProductsApiService {
       parentCategorySlug: string;
       collection?: string;
       hiddenTags?: string[];
+      modelSelectionEnabled?: boolean;
     }
   ): Observable<BackendProduct> {
     return this.http.patch<BackendProduct>(

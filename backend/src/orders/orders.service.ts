@@ -42,6 +42,7 @@ export class OrdersService {
 
     const order = await this.dataSource.transaction(async (manager) => {
       for (const line of input.lines) {
+        if (line.code === 'HOME-TRIAL-DEPOSIT') continue;
         const result = await manager
           .createQueryBuilder()
           .update(ProductEntity)
@@ -105,6 +106,7 @@ export class OrdersService {
 
       if (order.stockReserved) {
         for (const line of order.lines) {
+          if (line.code === 'HOME-TRIAL-DEPOSIT') continue;
           await manager.increment(
             ProductEntity,
             { id: line.productId },

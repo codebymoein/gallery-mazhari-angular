@@ -45,7 +45,7 @@ export class AuthService {
     );
     const rawToken = randomBytes(32).toString('base64url');
     const expiresMinutes = 20;
-    await this.resetTokens.save(
+    const resetRecord = await this.resetTokens.save(
       this.resetTokens.create({
         userId: user.id,
         tokenHash: this.hashResetToken(rawToken),
@@ -59,11 +59,17 @@ export class AuthService {
     )
       .split(',')[0]
       .trim();
-    await this.recoveryMail.sendResetLink(
-      user.email,
-      `${frontend}/admin/reset-password?token=${encodeURIComponent(rawToken)}`,
-      expiresMinutes,
-    );
+    try {
+      await this.recoveryMail.sendResetLink(
+        user.email,
+        `${frontend}/admin/reset-password?token=${encodeURIComponent(rawToken)}`,
+        expiresMinutes,
+      );
+    } catch (error) {
+      // A failed delivery must not leave an unusable active reset token in DB.
+      await this.resetTokens.remove(resetRecord);
+      throw error;
+    }
     return { accepted: true };
   }
 

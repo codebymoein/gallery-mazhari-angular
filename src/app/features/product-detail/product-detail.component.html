@@ -1,5 +1,15 @@
 @if (product; as p) {
   <article class="bridal-product" dir="rtl">
+    @if (adminUser() && canEditProduct()) {
+      <aside class="bridal-product__admin-bar" aria-label="ابزار مدیریت محصول">
+        <span class="bridal-product__admin-bar-brand">پنل مدیریت گالری مظاهری</span>
+        <span class="bridal-product__admin-bar-product">{{ p.name }}</span>
+        <a
+          [routerLink]="['/admin/published-products']"
+          [queryParams]="{ settings: p.id, returnTo: '/product/' + p.id }"
+        >ویرایش کالا</a>
+      </aside>
+    }
     <nav class="bridal-product__crumb" aria-label="مسیر صفحه">
       <a routerLink="/">خانه</a>
       <span aria-hidden="true">/</span>
@@ -66,11 +76,13 @@
                 class="bridal-product__thumb"
                 role="listitem"
                 [class.bridal-product__thumb--active]="src === activeImage"
+                [class.bridal-product__thumb--model-selected]="requiresModelSelection && galleryImages().indexOf(src) === selectedModelIndex"
                 [attr.aria-label]="'نمایش تصویر ' + p.name"
                 [attr.aria-pressed]="src === activeImage"
                 (click)="selectImage(src)"
                 >
                 <img [src]="src" [appResponsiveProductImage]="src" responsiveSizes="120px" [alt]="''" width="120" height="160" loading="lazy" decoding="async" />
+                @if (requiresModelSelection) { <small>مدل {{ galleryImages().indexOf(src) + 1 }}</small> }
               </button>
             }
           </div>
@@ -82,7 +94,13 @@
         </p>
         <h1 class="bridal-product__title">{{ p.name }}</h1>
         @if (!showConsultation) {
-          <p class="bridal-product__price">{{ priceLabel }}</p>
+          <div class="bridal-product__pricing">
+            @if (originalPriceLabel) {
+              <del class="bridal-product__original-price">{{ originalPriceLabel }}</del>
+              <span class="bridal-product__discount-badge">{{ discountPercent }}٪ تخفیف</span>
+            }
+            <p class="bridal-product__price">{{ priceLabel }}</p>
+          </div>
         }
         <dl class="bridal-product__meta">
           <div>
@@ -94,7 +112,7 @@
             <dd>{{ metaSecondaryValue }}</dd>
           </div>
         </dl>
-        @if (isFootwear && sizeOptions.length) {
+        @if (isFootwear && !variationOptions.length && sizeOptions.length) {
           <div class="bridal-product__sizes" role="group" aria-label="انتخاب سایز">
             <div class="bridal-product__sizes-head">
               <strong>انتخاب سایز</strong>
@@ -119,10 +137,10 @@
             }
           </div>
         }
-        @if (!isFootwear && variationOptions.length) {
+        @if (variationOptions.length) {
           <div class="bridal-product__sizes">
             <div class="bridal-product__sizes-head">
-              <strong>انتخاب مدل / رنگ</strong>
+              <strong>{{ variationSelectorTitle }}</strong>
               @if (selectedVariationId) {
                 <span>موجودی: {{ selectedStock }}</span>
               }
@@ -152,14 +170,12 @@
             <li>{{ item }}</li>
           }
         </ul>
-        @if (adminUser() && canEditProduct()) {
-          <a
-            class="bridal-product__admin-edit"
-            [routerLink]="['/admin/published-products']"
-            [queryParams]="{ settings: p.id, returnTo: '/product/' + p.id }"
-            >
-            ویرایش کالا
-          </a>
+        @if (requiresModelSelection) {
+          <div class="bridal-product__model-choice">
+            <strong>انتخاب مدل از روی عکس</strong>
+            <span>{{ selectedModelIndex >= 0 ? 'مدل شماره ' + (selectedModelIndex + 1) + ' انتخاب شد.' : 'روی تصویر مدل موردنظر لمس کنید.' }}</span>
+            @if (modelSelectionError) { <p class="bridal-product__size-error" role="alert">{{ modelSelectionError }}</p> }
+          </div>
         }
         @if (isShoes) {
           <section class="bridal-product__engraving">
@@ -172,19 +188,28 @@
               <span>
                 <strong>درخواست حکاکی سفارشی</strong>
                 <small>۸٬۰۰۰٬۰۰۰ ریال به مبلغ سفارش اضافه می‌شود.</small>
+                <small>بعد از ثبت سفارش، همکاران ما جهت هماهنگی بیشتر با شما تماس می‌گیرند.</small>
               </span>
             </label>
             @if (engravingRequested) {
               <div class="bridal-product__engraving-form">
-                <label for="engravingText">متن موردنظر برای حکاکی</label>
-                <input
-                  id="engravingText"
-                  type="text"
-                  maxlength="80"
-                  placeholder="متن دلخواه را وارد کنید"
-                  [(ngModel)]="engravingText"
-                  (ngModelChange)="engravingError = ''"
-                  />
+                <div class="bridal-product__custom-input-row">
+                  <a href="assets/images/customization/shoe-engraving-danial-mahsa.jpg" target="_blank" rel="noopener" class="bridal-product__custom-sample" aria-label="نمایش نمونه بزرگ حکاکی زیر کفش">
+                    <img src="assets/images/customization/shoe-engraving-danial-mahsa.jpg" alt="نمونه حکاکی نام DANIAL و MAHSA زیر کفش عروس" width="96" height="96" loading="lazy" />
+                    <span>نمونه حکاکی</span>
+                  </a>
+                  <div class="bridal-product__custom-field">
+                    <label for="engravingText">متن موردنظر برای حکاکی</label>
+                    <input
+                      id="engravingText"
+                      type="text"
+                      maxlength="80"
+                      placeholder="متن دلخواه را وارد کنید"
+                      [(ngModel)]="engravingText"
+                      (ngModelChange)="engravingError = ''"
+                      />
+                  </div>
+                </div>
                 <p>با انتخاب حکاکی سفارشی، زمان ارسال سفارش ۲ روز بیشتر می‌شود.</p>
                 @if (engravingError) {
                   <span class="bridal-product__size-error" role="alert">{{ engravingError }}</span>
@@ -195,7 +220,6 @@
         }
         @if (isVeil) {
           <section class="bridal-product__engraving">
-            <p class="bridal-product__custom-coordination">در صورت انتخاب چاپ اختصاصی، همکاران ما برای هرگونه هماهنگی بیشتر با شما تماس می‌گیرند.</p>
             <label class="bridal-product__engraving-toggle">
               <input
                 type="checkbox"
@@ -205,19 +229,28 @@
               <span>
                 <strong>چاپ اسم و تاریخ اختصاصی</strong>
                 <small>۱۰٬۰۰۰٬۰۰۰ ریال به مبلغ سفارش اضافه می‌شود.</small>
+                <small>بعد از ثبت سفارش، همکاران ما جهت هماهنگی بیشتر با شما تماس می‌گیرند.</small>
               </span>
             </label>
             @if (veilPrintRequested) {
               <div class="bridal-product__engraving-form">
-                <label for="veilPrintText">توضیحات چاپ اسم و تاریخ</label>
-                <textarea
-                  id="veilPrintText"
-                  maxlength="500"
-                  rows="4"
-                  placeholder="اسم، تاریخ و جزئیات موردنظر برای چاپ را بنویسید"
-                  [(ngModel)]="veilPrintText"
-                  (ngModelChange)="veilPrintError = ''"
-                ></textarea>
+                <div class="bridal-product__custom-input-row">
+                  <a href="assets/images/customization/veil-print-danial-mahsa.jpg" target="_blank" rel="noopener" class="bridal-product__custom-sample" aria-label="نمایش نمونه بزرگ چاپ اسم و تاریخ روی تور">
+                    <img src="assets/images/customization/veil-print-danial-mahsa.jpg" alt="نمونه چاپ نام DANIAL و MAHSA و تاریخ ازدواج روی تور عروس" width="96" height="96" loading="lazy" />
+                    <span>نمونه چاپ تور</span>
+                  </a>
+                  <div class="bridal-product__custom-field">
+                    <label for="veilPrintText">توضیحات چاپ اسم و تاریخ</label>
+                    <textarea
+                      id="veilPrintText"
+                      maxlength="500"
+                      rows="4"
+                      placeholder="اسم، تاریخ و جزئیات موردنظر برای چاپ را بنویسید"
+                      [(ngModel)]="veilPrintText"
+                      (ngModelChange)="veilPrintError = ''"
+                    ></textarea>
+                  </div>
+                </div>
                 <p>همکاران ما جهت هماهنگی بیشتر با شما تماس می‌گیرند.</p>
                 @if (veilPrintError) {
                   <span class="bridal-product__size-error" role="alert">{{ veilPrintError }}</span>
@@ -227,9 +260,43 @@
           </section>
         }
         @if (!showConsultation) {
+          @if (canRent) {
+            <section class="bridal-product__rental" [class.bridal-product__rental--active]="rentalSelected">
+              <div class="bridal-product__mode-switch" role="group" aria-label="نوع سفارش">
+                <button type="button" [class.active]="!rentalSelected" (click)="selectPurchaseMode(false)">خرید</button>
+                <button type="button" [class.active]="rentalSelected" (click)="selectPurchaseMode(true)">اجاره</button>
+              </div>
+              @if (rentalSelected) {
+                <div class="bridal-product__rental-content">
+                  <div class="bridal-product__rental-heading">
+                    <span>RENTAL SERVICE</span>
+                    <h2>زیبایی برای شب مراسم، بدون پرداخت بهای همیشگی</h2>
+                  </div>
+                  <div class="bridal-product__rental-prices">
+                    <div><small>ودیعه هنگام ثبت سفارش</small><strong>{{ priceLabel }}</strong></div>
+                    <div><small>بهای نهایی اجاره برای شما</small><strong>{{ rentalFeeLabel }}</strong></div>
+                  </div>
+                  <label class="bridal-product__rental-date">
+                    <span>تاریخ مراسم</span>
+                    <app-jalali-date-input [(ngModel)]="ceremonyDate" [min]="rentalMinDate" [max]="rentalMaxCeremonyDate" (ngModelChange)="rentalError = ''" />
+                  </label>
+                  @if (ceremonyDate) {
+                    <p class="bridal-product__return-date">مهلت بازگشت: تا ۷ روز پس از مراسم ({{ persianDate(rentalReturnDate()) }})</p>
+                  }
+                  @if (rentalError) { <p class="bridal-product__size-error" role="alert">{{ rentalError }}</p> }
+                  <ol class="bridal-product__rental-steps">
+                    <li><b>۱</b><span>کل مبلغ کالا به‌عنوان ودیعه امن پرداخت می‌شود.</span></li>
+                    <li><b>۲</b><span>تا یک هفته بعد از مراسم کالا را حضوری یا با پست برگردانید؛ ارسال از شهرستان هم امکان‌پذیر است.</span></li>
+                    <li><b>۳</b><span>پس از رسیدن و بررسی کالا، ۵۰٪ مبلغ یعنی {{ rentalRefundLabel }} به حساب شما بازمی‌گردد.</span></li>
+                  </ol>
+                  <p class="bridal-product__rental-note">برای حفظ امکان رزرو، تاریخ بازگشت باید حداکثر ۴۵ روز پس از زمان ثبت سفارش باشد.</p>
+                </div>
+              }
+            </section>
+          }
           <div class="bridal-product__commerce">
             <button class="bridal-product__cart-btn" type="button" (click)="addToCart()">
-              افزودن به سبد خرید
+              {{ rentalSelected ? 'ثبت اجاره و افزودن به سبد' : 'افزودن به سبد خرید' }}
             </button>
             <button
               class="bridal-product__dream-btn"
@@ -240,6 +307,13 @@
               {{ onDreamBoard ? 'در بوم رویایی' : 'افزودن به بوم رویایی' }}
             </button>
           </div>
+          @if (shopParent && shopParent.slug !== 'bridal-clothing') {
+            <div class="bridal-product__home-trial-action">
+              <button type="button" (click)="addToHomeTrial()">تست در محل تهران</button>
+              <a routerLink="/home-trial">مشاهده انتخاب‌ها ({{ homeTrial.items().length }}/۵)</a>
+              @if(homeTrialMessage){<small>{{homeTrialMessage}}</small>}
+            </div>
+          }
         }
         @if (showConsultation) {
           <div class="bridal-product__consultation-only">
@@ -249,10 +323,18 @@
             >درخواست مشاوره حرفه‌ای</a>
           </div>
         }
-        <section class="bridal-product__additional">
-          <h2>توضیحات تکمیلی</h2>
-          <p>{{ p.additionalDescription || p.description }}</p>
-        </section>
+        @if (p.description) {
+          <section class="bridal-product__additional bridal-product__description">
+            <h2>توضیحات مختصر</h2>
+            <p>{{ p.description }}</p>
+          </section>
+        }
+        @if (p.additionalDescription) {
+          <section class="bridal-product__additional">
+            <h2>توضیحات تکمیلی</h2>
+            <p>{{ p.additionalDescription }}</p>
+          </section>
+        }
         @if (false && showConsultation) {
           <p class="bridal-product__note">
             برای دیدن جزئیات پارچه، اندازه‌ها و هماهنگی اکسسوری، پس از ثبت درخواست با شما هماهنگ می‌کنیم.

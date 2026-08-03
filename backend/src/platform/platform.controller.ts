@@ -74,6 +74,7 @@ export class PlatformController {
       mappingJson?: string;
       confirmUncertainMapping?: string;
       sourceTimestamp?: string;
+      preserveInventory?: string;
     },
     @Req() req: RequestLike,
   ) {
@@ -94,6 +95,7 @@ export class PlatformController {
       mapping,
       confirmUncertainMapping: body.confirmUncertainMapping === 'true',
       sourceTimestamp: body.sourceTimestamp || null,
+      preserveInventory: body.preserveInventory === 'true',
       actor: req.user?.email || null,
     });
   }
@@ -101,7 +103,13 @@ export class PlatformController {
   @Post('import/:id/confirm')
   confirm(
     @Param('id') id: string,
-    @Body() body: { inventoryStrategy?: 'full_replace' | 'incremental' },
+    @Body()
+    body: {
+      inventoryStrategy?:
+        | 'preserve_inventory'
+        | 'full_replace'
+        | 'incremental';
+    },
     @Req() req: RequestLike,
   ) {
     return this.imports.confirmImport({

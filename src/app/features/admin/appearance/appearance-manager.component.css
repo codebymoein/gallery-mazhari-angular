@@ -66,6 +66,51 @@
 .section-title h2::before { content:""; position:absolute; inset:12% 0 12% auto; width:3px; border-radius:5px; background:linear-gradient(#c8a04b,#8f681d); }
 .section-title p { max-width:48rem; line-height:1.8; }
 .style-fields label,.full-field,.memory-editor label { font-weight:650; color:#514a41; }
+.style-fields .payment-check {
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  align-self: end;
+  gap: .7rem;
+  padding: .65rem .8rem;
+  border: 1px solid #e3dbcf;
+  border-radius: 11px;
+  background: #fcfbf9;
+  cursor: pointer;
+  line-height: 1.5;
+}
+.style-fields .payment-check:hover { border-color:#c4a45f; background:#fffdf8; }
+.style-fields .payment-check input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  inline-size: 1.25rem;
+  block-size: 1.25rem;
+  min-inline-size: 1.25rem;
+  margin: 0;
+  display: grid;
+  place-content: center;
+  border: 1.5px solid #9d9386;
+  border-radius: 5px;
+  background: #fff;
+  cursor: pointer;
+}
+.style-fields .payment-check input[type="checkbox"]::before {
+  content: "";
+  inline-size: .6rem;
+  block-size: .35rem;
+  border-inline-start: 2px solid #fff;
+  border-block-end: 2px solid #fff;
+  transform: rotate(-45deg) scale(0);
+  transform-origin: center;
+  transition: transform .14s ease;
+}
+.style-fields .payment-check input[type="checkbox"]:checked {
+  border-color: #9a7123;
+  background: #a77d2d;
+}
+.style-fields .payment-check input[type="checkbox"]:checked::before { transform:rotate(-45deg) scale(1); }
+.style-fields .payment-check input[type="checkbox"]:focus-visible { outline:3px solid rgba(179,138,57,.22); outline-offset:2px; }
 .style-fields input,.style-fields select,.style-fields textarea,.full-field textarea,.memory-editor input:not([type=checkbox]),.memory-editor textarea,.memory-editor select { min-height:44px; border:1px solid #ded5c8; border-radius:11px; background:#fcfbf9; transition:border-color .2s,box-shadow .2s,background .2s; }
 .style-fields input:focus,.style-fields select:focus,.style-fields textarea:focus,.full-field textarea:focus,.memory-editor input:focus,.memory-editor textarea:focus,.memory-editor select:focus { outline:0; border-color:#b38a39; background:#fff; box-shadow:0 0 0 3px rgba(179,138,57,.12); }
 .panel button,.panel label { transition:.2s ease; }

@@ -2,8 +2,8 @@ import { Type } from 'class-transformer';
 import {
   IsArray,
   IsBoolean,
-  IsInt,
   IsIn,
+  IsNumber,
   IsOptional,
   IsString,
   MaxLength,
@@ -24,7 +24,7 @@ export class ImportVariationRowDto {
   @IsOptional() @IsString() @MaxLength(80) color?: string;
   @IsOptional() @IsString() @MaxLength(80) material?: string;
   @IsOptional() @Min(0) price?: number;
-  @IsInt() @Min(0) stock: number;
+  @IsNumber({ allowInfinity: false, allowNaN: false }) @Min(0) stock: number;
   @IsBoolean() available: boolean;
 }
 
@@ -56,7 +56,7 @@ export class ImportProductRowDto {
   @MaxLength(120)
   categorySlug?: string;
 
-  @IsInt()
+  @IsNumber({ allowInfinity: false, allowNaN: false })
   @Min(0)
   stock: number;
 

@@ -31,6 +31,11 @@ export const cartReducer = createReducer(
               source_id: item.source_id || i.source_id,
               product_name: item.product_name || i.product_name,
               product_image: item.product_image || i.product_image,
+              price: item.price,
+              regular_price: item.regular_price || i.regular_price,
+              sale_price: item.sale_price || i.sale_price,
+              attributes: item.attributes || i.attributes,
+              engraving: item.engraving || i.engraving,
               added_at: item.added_at || i.added_at
             }
           : i

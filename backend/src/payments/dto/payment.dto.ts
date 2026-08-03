@@ -70,6 +70,19 @@ export class PaymentItemDto {
   @IsOptional()
   @IsIn(['engraving', 'veil-print'])
   customization?: 'engraving' | 'veil-print';
+
+  @IsOptional()
+  @IsBoolean()
+  rental?: boolean;
+
+  @IsOptional()
+  @Matches(/^\d{4}-\d{2}-\d{2}$/)
+  ceremonyDate?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(60)
+  requestId?: string;
 }
 
 export class PaymentCustomerDto {

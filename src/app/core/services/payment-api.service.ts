@@ -52,6 +52,9 @@ export class PaymentApiService {
       code: string;
       quantity: number;
       customization?: 'engraving' | 'veil-print';
+      rental?: boolean;
+      ceremonyDate?: string;
+      requestId?: string;
     }>;
     shippingMethod: 'standard' | 'express' | 'pickup';
     customer: Record<string, string>;

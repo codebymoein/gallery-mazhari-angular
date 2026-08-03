@@ -187,6 +187,11 @@ export const routes: Routes = [
     loadComponent: () => import('./features/consultation/consultation.component').then(m => m.ConsultationComponent)
   },
   {
+    path: 'home-trial',
+    data: { seo: { title: 'تست اکسسوری در محل تهران | گالری مظهری', description: 'انتخاب تا پنج اکسسوری و تست در محل با پیک اختصاصی گالری مظهری.' } },
+    loadComponent: () => import('./features/home-trial/home-trial.component').then(m => m.HomeTrialComponent)
+  },
+  {
     path: 'custom-request/:type',
     data: { seo: { title: 'درخواست طراحی سفارشی | گالری مظهری', description: 'ثبت درخواست تور سر یا لباس سفارشی همراه با تصاویر مدل موردنظر.' } },
     loadComponent: () => import('./features/custom-request/custom-request.component').then(m => m.CustomRequestComponent)
@@ -450,7 +455,7 @@ export const routes: Routes = [
         canActivate: [adminPermissionGuard('consultation.manage')],
         data: {
           seo: {
-            title: 'درخواست‌های مشاوره | گالری مظهری',
+            title: 'مشتریان بالقوه | گالری مظهری',
             description: 'مدیریت، انتخاب و چاپ درخواست‌های مشاوره تلفنی.',
             robots: 'noindex,nofollow'
           }

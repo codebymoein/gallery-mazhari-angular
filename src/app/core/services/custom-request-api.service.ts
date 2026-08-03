@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 import { environment } from '@env/environment';
 import { AdminAuthService } from './admin-auth.service';
 
-export type CustomRequestType = 'veil' | 'dress';
+export type CustomRequestType = 'veil' | 'dress' | 'home-trial';
 export type CustomRequestStatus = 'new' | 'reviewing' | 'estimated' | 'contacted' | 'cancelled';
 
 export interface CustomRequestRecord {

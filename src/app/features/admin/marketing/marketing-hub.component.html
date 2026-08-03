@@ -35,6 +35,7 @@
             <option value="product">محصول تکی</option>
           </select>
         </label>
+        @if (form.scopeType !== 'product') {
         <label>انتخاب هدف
           <select name="targetKey" [(ngModel)]="form.targetKey" (ngModelChange)="targetChanged()" required>
             <option value="">انتخاب کنید…</option>
@@ -42,10 +43,28 @@
               <option [value]="target.key">{{ target.label }}</option>
             }
           </select>
-          @if (form.scopeType === 'product' && !products.length) {
-            <small>هنوز محصولی در سیستم ثبت نشده است.</small>
-          }
         </label>
+        } @else {
+          <div class="product-picker">
+            <label>جست‌وجوی محصول
+              <input name="productSearch" [(ngModel)]="productSearch" placeholder="نام یا کد کالا را بنویسید…" />
+            </label>
+            <div class="product-picker__head">
+              <strong>{{ selectedProductIds.size | number:'1.0-0':'fa-IR' }} محصول انتخاب شده</strong>
+              <small>می‌توانید چند محصول را هم‌زمان تیک بزنید.</small>
+            </div>
+            <div class="product-picker__list">
+              @for (product of filteredProducts; track product.id) {
+                <label class="product-picker__item">
+                  <input type="checkbox" [checked]="productSelected(product.id)" (change)="toggleProduct(product, $any($event.target).checked)" />
+                  @if (product.photos[0]?.url) { <img [src]="product.photos[0].url" [alt]="product.name" loading="lazy" /> }
+                  <span><b>{{ product.name }}</b><small>{{ product.code }} · {{ product.category }}</small></span>
+                </label>
+              }
+              @if (!filteredProducts.length) { <p class="product-picker__empty">محصولی با این عبارت پیدا نشد.</p> }
+            </div>
+          </div>
+        }
       </div>
 
       <div class="two-col">
@@ -56,8 +75,8 @@
       </div>
 
       <div class="two-col">
-        <label>تاریخ شروع<input type="date" name="startsAt" [(ngModel)]="form.startsAt" /></label>
-        <label>تاریخ پایان<input type="date" name="endsAt" [(ngModel)]="form.endsAt" /></label>
+        <label>تاریخ شروع (شمسی)<app-jalali-date-input name="startsAt" [(ngModel)]="form.startsAt" /></label>
+        <label>تاریخ پایان (شمسی)<app-jalali-date-input name="endsAt" [(ngModel)]="form.endsAt" /></label>
       </div>
 
       <label>متن نشان روی محصول<input name="badgeText" [(ngModel)]="form.badgeText" placeholder="فروش ویژه" /></label>

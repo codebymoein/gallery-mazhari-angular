@@ -2,6 +2,29 @@ import { suggestColumnMapping } from './column-mapper';
 import { runExcelDryRun } from './dry-run.engine';
 
 describe('column-mapper + dry-run', () => {
+  it('does not count child rows as products when an explicit parent exists', () => {
+    const mapping = {
+      productCode: 'code',
+      parentCode: 'parent',
+      productName: 'name',
+      inventory: 'stock',
+      price: 'price',
+    };
+    const report = runExcelDryRun({
+      headers: ['code', 'parent', 'name', 'stock', 'price'],
+      rows: [
+        { code: 'P-1', parent: '', name: 'Parent', stock: 2, price: 1000 },
+        { code: 'SKU-1', parent: 'P-1', name: 'Parent', stock: 1, price: 1000 },
+        { code: 'SKU-2', parent: 'P-1', name: 'Parent', stock: 1, price: 1000 },
+      ],
+      mapping,
+      existing: [{ code: 'P-1', name: 'Parent', stock: 2, price: 1000 }],
+    });
+
+    expect(report.newProducts).toBe(0);
+    expect(report.updatedProducts + report.unchangedProducts).toBe(1);
+  });
+
   it('suggests Persian accounting headers', () => {
     const s = suggestColumnMapping([
       'کد کالا',

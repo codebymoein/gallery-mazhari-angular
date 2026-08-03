@@ -63,7 +63,7 @@ export const environment = {
     adminSession: 'mazhari_admin_session',
     stagingQueue: 'mazhariStagingQueueV4',
     adminActivity: 'mazhariAdminActivityV1',
-    excelInventorySnapshot: 'mazhariExcelInventorySnapshotV1',
+    excelInventorySnapshot: 'mazhariExcelInventorySnapshotV2',
     publishedProducts: 'mazhariPublishedProductsV1'
   },
 

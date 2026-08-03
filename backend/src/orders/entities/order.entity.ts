@@ -28,6 +28,12 @@ export interface OrderLine {
   quantity: number;
   unitPrice: number;
   customization?: 'engraving' | 'veil-print';
+  rental?: {
+    ceremonyDate: string;
+    returnDueDate: string;
+    refundAmount: number;
+    rentalFee: number;
+  };
 }
 
 export interface OrderCustomer {

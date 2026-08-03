@@ -57,7 +57,8 @@ export class PlatformHubComponent implements OnInit, OnDestroy {
   importId = '';
   mappingJson = '';
   confirmMapping = false;
-  inventoryStrategy: 'full_replace' | 'incremental' = 'full_replace';
+  inventoryStrategy: 'preserve_inventory' | 'full_replace' | 'incremental' =
+    'preserve_inventory';
 
   runs: unknown[] = [];
   orphans: unknown[] = [];
@@ -172,7 +173,8 @@ export class PlatformHubComponent implements OnInit, OnDestroy {
       this.api
         .dryRun(file, {
           mappingJson,
-          confirmUncertainMapping: this.confirmMapping
+          confirmUncertainMapping: this.confirmMapping,
+          preserveInventory: this.inventoryStrategy === 'preserve_inventory'
         })
         .subscribe({
           next: (res) => {
