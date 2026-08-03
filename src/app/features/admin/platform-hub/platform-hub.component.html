@@ -63,6 +63,7 @@
       <label class="ph-field">
         استراتژی موجودی
         <select [(ngModel)]="inventoryStrategy">
+          <option value="preserve_inventory">فقط اطلاعات سایت قبلی — حفظ موجودی انبار</option>
           <option value="full_replace">جایگزینی کامل</option>
           <option value="incremental">افزایشی</option>
         </select>

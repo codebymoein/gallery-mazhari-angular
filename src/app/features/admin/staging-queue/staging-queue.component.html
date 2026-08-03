@@ -44,6 +44,11 @@
         <button type="button" class="adm-chip" [class.adm-chip--active]="statusFilter() === 'waiting_photo'" (click)="setStatusFilter('waiting_photo')">در انتظار عکاسی</button>
         <button type="button" class="adm-chip" [class.adm-chip--active]="statusFilter() === 'ready_for_approval'" (click)="setStatusFilter('ready_for_approval')">آماده‌ی تایید</button>
       </div>
+      <div class="adm-chips" role="group" aria-label="فیلتر عکس محصول">
+        <button type="button" class="adm-chip" [class.adm-chip--active]="photoFilter() === 'all'" (click)="setPhotoFilter('all')">همه عکس‌ها</button>
+        <button type="button" class="adm-chip" [class.adm-chip--active]="photoFilter() === 'with_photos'" (click)="setPhotoFilter('with_photos')">دارای عکس</button>
+        <button type="button" class="adm-chip" [class.adm-chip--active]="photoFilter() === 'without_photos'" (click)="setPhotoFilter('without_photos')">بدون عکس</button>
+      </div>
       <div class="adm-search" style="min-width: min(100%, 15rem)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
           <circle cx="11" cy="11" r="7" />
@@ -340,6 +345,7 @@
       <label>نام محصول<input class="adm-input" [(ngModel)]="previewDraft.name" /></label>
       <label>توضیح کوتاه<textarea class="adm-input" rows="3" [(ngModel)]="previewDraft.description"></textarea></label>
       <label>توضیحات تکمیلی<textarea class="adm-input" rows="5" [(ngModel)]="previewDraft.additionalDescription"></textarea></label>
+      <label><input type="checkbox" [(ngModel)]="previewDraft.modelSelectionEnabled" /> انتخاب مدل از روی تصاویر گالری</label>
       <div class="stg-preview__cols">
         <label>عنوان ویژگی اول<input class="adm-input" [(ngModel)]="previewDraft.primaryAttributeLabel" /></label>
         <label>مقدار ویژگی اول<input class="adm-input" [(ngModel)]="previewDraft.primaryAttributeValue" /></label>
@@ -378,6 +384,9 @@
           <select class="adm-input" #settingsCatalog [value]="catalogValue(item)"
             (change)="changeCatalog(item, settingsCatalog.value)">
             <option value="">انتخاب دسته‌بندی…</option>
+            @if (catalogValue(item) && !catalogOptionExists(catalogValue(item))) {
+              <option [value]="catalogValue(item)">{{ item.category }} (دسته فعلی؛ نیازمند انتخاب مدیر)</option>
+            }
             @if (suggestedCatalog(item)) {
               <option [value]="suggestedCatalog(item)">پیشنهاد هوشمند بر اساس نام و کد</option>
             }

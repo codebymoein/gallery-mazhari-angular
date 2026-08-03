@@ -57,6 +57,7 @@
       <label>نام محصول<input class="adm-input" [(ngModel)]="draft.name" /></label>
       <label>توضیح کوتاه<textarea class="adm-input" rows="3" [(ngModel)]="draft.description"></textarea></label>
       <label>توضیحات تکمیلی<textarea class="adm-input" rows="6" [(ngModel)]="draft.additionalDescription"></textarea></label>
+      <label class="pub__model-mode"><input type="checkbox" [(ngModel)]="draft.modelSelectionEnabled" /> انتخاب مدل از روی تصاویر گالری (برای کالاهای یک‌کد و چندمدلی)</label>
       <div class="pub__cols">
         <label>عنوان ویژگی اول<input class="adm-input" [(ngModel)]="draft.primaryAttributeLabel" /></label>
         <label>مقدار ویژگی اول<input class="adm-input" [(ngModel)]="draft.primaryAttributeValue" /></label>

@@ -22,16 +22,16 @@
 
       <form class="login__form" (ngSubmit)="submit()" novalidate>
         <div class="adm-field">
-          <label class="adm-label" for="admin-username">نام کاربری</label>
+          <label class="adm-label" for="admin-username">ایمیل مدیر</label>
           <input
             id="admin-username"
             class="adm-input"
             name="username"
-            type="text"
+            type="email"
             autocomplete="username"
             [(ngModel)]="username"
             required
-            placeholder="admin یا manager"
+            placeholder="name@example.com"
             />
         </div>
 
@@ -87,18 +87,6 @@
           @if (recoveryMessage) { <p class="adm-alert" role="status">{{ recoveryMessage }}</p> }
         </form>
       }
-
-      <div class="login__demos">
-        <p>ورود سریع آزمایشی</p>
-        <div class="login__demo-row">
-          <button type="button" class="adm-btn adm-btn--soft adm-btn--sm" (click)="fillDemo('admin')">
-            ادمین
-          </button>
-          <button type="button" class="adm-btn adm-btn--soft adm-btn--sm" (click)="fillDemo('manager')">
-            مدیر
-          </button>
-        </div>
-      </div>
 
       <a class="login__back" routerLink="/">بازگشت به فروشگاه</a>
     </div>

@@ -17,7 +17,13 @@ interface BackendAdminOrder {
   number: string;
   status: 'pending-payment' | 'processing' | 'preparing' | 'ready' | 'shipped' | 'completed' | 'cancelled';
   paymentStatus: 'pending' | 'paid' | 'failed' | 'cancelled' | 'refunded';
-  lines: Array<{ code: string; name: string; quantity: number; unitPrice: number | string }>;
+  lines: Array<{
+    code: string;
+    name: string;
+    quantity: number;
+    unitPrice: number | string;
+    rental?: { ceremonyDate: string; returnDueDate: string; refundAmount: number; rentalFee: number };
+  }>;
   customer: {
     firstName: string;
     lastName: string;
@@ -152,7 +158,9 @@ export class AdminOrdersService {
       shippingAddress,
       lines: order.lines.map(line => ({
         productCode: line.code,
-        name: line.name,
+        name: line.rental
+          ? `${line.name} · اجاره (مراسم ${line.rental.ceremonyDate}، بازگشت تا ${line.rental.returnDueDate})`
+          : line.name,
         qty: line.quantity,
         unitPrice: Number(line.unitPrice)
       })),

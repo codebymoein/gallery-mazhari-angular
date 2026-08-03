@@ -48,6 +48,13 @@ export const BRIDAL_COLLECTION_CATEGORIES: BridalCollectionCategory[] = [
     subtitle: 'ENGAGEMENT COLLECTION',
     slug: 'engagement-dresses',
     image: 'assets/images/cat-engagement.webp'
+  },
+  {
+    id: 'ceremony-suits',
+    title: 'کالکشن کت‌وشلوار عقد',
+    subtitle: 'CEREMONY SUITS COLLECTION',
+    slug: 'ceremony-suits',
+    image: 'assets/images/cat-engagement.webp'
   }
 ];
 
@@ -84,6 +91,12 @@ export interface BridalSampleProduct {
   stock?: number;
   /** قیمت واقعی فایل انبار، به ریال */
   price?: number;
+  /** قیمت پیش از تخفیف فعال، به ریال */
+  originalPrice?: number;
+  salePrice?: number;
+  discountPercent?: number;
+  /** تصاویر گالری، مدل‌های قابل انتخاب یک کالای بدون متغیر هستند. */
+  modelSelectionEnabled?: boolean;
   /** جنس رویه (کفش/کتونی) */
   material?: string;
   /** ارتفاع پاشنه (کفش) */
@@ -118,6 +131,10 @@ export interface ProductVariationOption {
   stock: number;
   productId: string;
   available: boolean;
+  sku?: string;
+  size?: string;
+  color?: string;
+  price?: number;
 }
 
 /** دسته‌هایی که درخواست مشاوره دارند */
@@ -552,17 +569,47 @@ export function getSizeOptionsForProduct(product: BridalSampleProduct): ProductS
 export function getVariationOptionsForProduct(
   product: BridalSampleProduct
 ): ProductVariationOption[] {
-  if (isFootwearCategory(product.categorySlug) || !product.variantKey) return [];
+  const availableDirect = (product.variations ?? []).filter(variation => variation.available && variation.stock > 0);
+  const distinctColors = new Set(availableDirect.map(variation => (variation.color || '').trim().toLocaleLowerCase('fa')).filter(Boolean));
+  const showColor = distinctColors.size > 1;
+  const directVariations = (product.variations ?? []).map(variation => {
+    const attributes = [showColor ? variation.color : '', variation.size, !variation.size ? variation.material : '']
+      .map(value => (value || '').trim())
+      .filter(Boolean);
+    return {
+      label: attributes.join(' — ') || variation.sku,
+      stock: variation.stock,
+      productId: variation.id || variation.sku,
+      available: variation.available && variation.stock > 0,
+      sku: variation.sku,
+      size: variation.size,
+      color: variation.color,
+      price: variation.price
+    };
+  });
+  if (directVariations.length) {
+    return directVariations.sort((a, b) =>
+      a.label.localeCompare(b.label, 'fa', { numeric: true })
+    );
+  }
+
+  if (!product.variantKey) return [];
   const siblings = getAllCatalogProducts().filter(
     item => item.categorySlug === product.categorySlug && item.variantKey === product.variantKey
   );
   if (siblings.length < 2) return [];
+  const siblingColors = new Set(siblings.filter(item => (item.stock ?? 0) > 0).map(item => (item.color || '').trim().toLocaleLowerCase('fa')).filter(Boolean));
+  const showSiblingColor = siblingColors.size > 1;
   const options = siblings
     .map(item => ({
-      label: (item.color || item.size || item.material || '').trim(),
+      label: ([showSiblingColor ? item.color : '', item.size, !item.size ? item.material : ''].filter(Boolean).join(' — ') || item.id).trim(),
       stock: item.stock ?? 0,
       productId: item.id,
-      available: (item.stock ?? 0) > 0
+      available: (item.stock ?? 0) > 0,
+      sku: 'code' in item ? String(item.code || item.id) : item.id,
+      size: item.size,
+      color: showSiblingColor ? item.color : undefined,
+      price: item.price
     }))
     .filter(option => option.label);
   return [...new Map(options.map(option => [option.label, option])).values()];
@@ -590,6 +637,7 @@ export interface CatalogProductEdit {
   gallery?: string[];
   image?: string;
   collectionSlugs?: string[];
+  modelSelectionEnabled?: boolean;
 }
 
 export const CATALOG_PRODUCT_EDITS_KEY = 'mazhari_catalog_product_edits_v1';
@@ -622,6 +670,11 @@ function applyCatalogEdit(product: BridalSampleProduct): BridalSampleProduct {
   return {
     ...product,
     ...edit,
+    // Server catalog copy is authoritative. An old browser-local edit may
+    // contain the generated placeholder/empty values and must not hide it.
+    description: product.description || edit.description || '',
+    additionalDescription:
+      product.additionalDescription || edit.additionalDescription,
     gallery: (gallery?.length ? gallery : product.gallery)?.map(assetUrl),
     image: assetUrl(gallery?.[0] || edit.image || product.image)
   };

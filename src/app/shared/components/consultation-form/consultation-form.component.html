@@ -49,6 +49,15 @@
       <strong>شروع یک انتخاب هماهنگ</strong>
     </legend>
 
+    @if (!lockedProduct) {
+      <label class="consult-form__field">
+        <span>دسته‌بندی درخواست مشاوره <b aria-hidden="true">*</b></span>
+        <select name="consultation_topic" [(ngModel)]="selectedTopicId" required>
+          @for (topic of topicOptions; track topic.id) { <option [value]="topic.id">{{ topic.label }}</option> }
+        </select>
+      </label>
+    }
+
     <div class="consult-form__field">
       <span id="consult-ceremony-label">تاریخ مراسم <small>(اختیاری)</small></span>
 
@@ -130,13 +139,14 @@
 
     <div class="consult-form__row">
       <label class="consult-form__field">
-        <span>نام خانوادگی <small>(اختیاری)</small></span>
+        <span>نام خانوادگی <b aria-hidden="true">*</b></span>
         <input
           type="text"
           name="last_name"
           maxlength="80"
           autocomplete="family-name"
           [(ngModel)]="lastName"
+          required
           />
       </label>
 
@@ -162,8 +172,8 @@
     </div>
 
     <label class="consult-form__field">
-      <span>زمان پیشنهادی تماس <small>(اختیاری)</small></span>
-      <select name="contact_time" [(ngModel)]="contactTime">
+      <span>زمان پیشنهادی تماس <b aria-hidden="true">*</b></span>
+      <select name="contact_time" [(ngModel)]="contactTime" required>
         @for (key of timeKeys; track key) {
           <option [value]="key">{{ contactTimes[key] }}</option>
         }

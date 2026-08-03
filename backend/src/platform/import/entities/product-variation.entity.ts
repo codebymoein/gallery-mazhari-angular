@@ -40,7 +40,7 @@ export class ProductVariationEntity {
   @Column({ type: 'float', nullable: true })
   price: number | null;
 
-  @Column({ type: 'int', default: 0 })
+  @Column({ type: 'float', default: 0 })
   stock: number;
 
   @Column({ type: 'int', default: 0 })

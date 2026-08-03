@@ -59,8 +59,11 @@ export class AdminInventoryService {
     // هر بار که محصولی منتشر می‌شود، انبار بلافاصله همگام می‌شود.
     effect(
       () => {
-        const published = this.staging.published();
-        this.syncFromStaging(published);
+        // Inventory is an operational view of the whole server catalogue, not
+        // only the public storefront. Include both publication queue and live
+        // products so an item never disappears while moving between states.
+        const catalogue = this.staging.items();
+        this.syncFromStaging(catalogue);
       },
       { allowSignalWrites: true }
     );
@@ -140,12 +143,12 @@ export class AdminInventoryService {
     this.log(`افزودن ${ids.length} محصول به دسته حراج`);
   }
 
-  private syncFromStaging(published: StagingProduct[]): void {
-    if (!published.length) return;
+  private syncFromStaging(catalogue: StagingProduct[]): void {
+    if (!catalogue.length) return;
 
     this.itemsSignal.update((current) => {
       const byCode = new Map(current.map((c) => [c.code.toUpperCase(), c]));
-      for (const p of published) {
+      for (const p of catalogue) {
         const existing = byCode.get(p.code.toUpperCase());
         const next: InventorySku = {
           id: existing?.id || `inv-${p.code}`,
@@ -154,7 +157,7 @@ export class AdminInventoryService {
           category: p.category,
           parentCategorySlug: p.parentCategorySlug,
           categorySlug: p.categorySlug,
-          price: existing?.price ?? 0,
+          price: p.salePrice ?? p.price ?? existing?.price ?? 0,
           stock: p.stock,
           status: p.stock > 0 ? 'active' : 'out_of_stock',
           hasPhoto: (p.photos?.length || 0) > 0 || !!p.photoUrl,

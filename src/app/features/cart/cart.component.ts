@@ -5,6 +5,7 @@ import { map, Observable } from 'rxjs';
 import { CartService } from '@core/services/cart.service';
 import { ShoppingContextService } from '@core/services/shopping-context.service';
 import { CartItem } from '@shared/models';
+import { HomeTrialService } from '@core/services/home-trial.service';
 
 @Component({
   selector: 'app-cart',
@@ -17,10 +18,13 @@ import { CartItem } from '@shared/models';
 export class CartComponent {
   private readonly cart = inject(CartService);
   private readonly shoppingContext = inject(ShoppingContextService);
+  readonly homeTrial = inject(HomeTrialService);
 
   readonly cartItems$ = this.cart.cartItems$;
   readonly cartTotals$ = this.cart.cartTotals$;
   readonly emptyCart$ = this.cart.emptyCart$;
+  readonly purchaseItems$ = this.cartItems$.pipe(map(items => items.filter(item => item.source_id !== 'HOME-TRIAL-DEPOSIT')));
+  readonly trialDeposit$ = this.cartItems$.pipe(map(items => items.find(item => item.source_id === 'HOME-TRIAL-DEPOSIT') || null));
 
   /** Contextual «ادامه خرید» based on products currently in the cart. */
   readonly continueShoppingLink$: Observable<string[]> = this.cartItems$.pipe(

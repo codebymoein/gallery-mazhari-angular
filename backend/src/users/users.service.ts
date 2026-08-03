@@ -39,6 +39,7 @@ export class UsersService {
     passwordHash: string;
     role?: UserRole;
     permissions?: string[];
+    isActive?: boolean;
   }) {
     const user = this.usersRepository.create({
       fullName: input.fullName,
@@ -46,6 +47,7 @@ export class UsersService {
       passwordHash: input.passwordHash,
       role: input.role ?? UserRole.CUSTOMER,
       permissions: input.permissions ?? [],
+      isActive: input.isActive ?? true,
     });
 
     return this.usersRepository.save(user);

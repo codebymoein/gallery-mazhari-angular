@@ -32,6 +32,7 @@ class CreateManagedUserDto {
   @IsString() @MinLength(6) password: string;
   @IsOptional() @IsEnum(UserRole) role?: UserRole;
   @IsOptional() @IsArray() @IsString({ each: true }) permissions?: string[];
+  @IsOptional() @IsBoolean() isActive?: boolean;
 }
 
 class UpdateManagedUserDto {

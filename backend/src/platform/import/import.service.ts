@@ -7,11 +7,11 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { AuditService } from '../audit/audit.service';
 import { sha256 } from '../common/hash';
-import { normalizeProductCode } from '../common/text-normalize';
+import { normalizeProductCode, normalizeText } from '../common/text-normalize';
 import { JobsService } from '../jobs/jobs.service';
 import { PlatformJobEntity } from '../jobs/entities/platform-job.entity';
 import { ProductEntity } from '../../products/entities/product.entity';
-import { ColumnMapping } from './column-mapper';
+import { ColumnMapping, suggestColumnMapping } from './column-mapper';
 import { CommitRow, DryRunReport, runExcelDryRun } from './dry-run.engine';
 import { parseExcelBuffer } from './excel-parser';
 import {
@@ -54,6 +54,7 @@ export class ImportService {
     fileName: string;
     mapping?: ColumnMapping;
     confirmUncertainMapping?: boolean;
+    preserveInventory?: boolean;
     sourceTimestamp?: string | null;
     actor?: string | null;
   }): Promise<{ run: ImportRunEntity; report: DryRunReport }> {
@@ -66,6 +67,8 @@ export class ImportService {
     }
 
     const existing = await this.products.find();
+    const existingVariations = await this.variations.find();
+    const existingById = new Map(existing.map((product) => [product.id, product]));
     const previousCompletedRun = await this.runs.findOne({
       where: { status: 'completed' },
       order: { updatedAt: 'DESC' },
@@ -83,14 +86,17 @@ export class ImportService {
       where: { headerFingerprint: parsed.headerFingerprint },
     });
 
-    const mapping = input.mapping || template?.mapping;
+    const mapping = input.mapping || (template
+      ? { ...suggestColumnMapping(parsed.headers).mapping, ...template.mapping }
+      : undefined);
 
     const report = runExcelDryRun({
       headers: parsed.headers,
       rows: parsed.rows,
       mapping,
       confirmUncertainMapping: input.confirmUncertainMapping,
-      existing: existing.map((p) => ({
+      existing: [
+        ...existing.map((p) => ({
         code: p.code,
         barcode: p.barcode,
         name: p.name,
@@ -100,11 +106,30 @@ export class ImportService {
         updatedAt: p.updatedAt?.toISOString?.() ?? null,
         inventoryUpdatedAt: p.inventoryUpdatedAt,
         status: p.status,
-      })),
+        })),
+        ...existingVariations.flatMap((variation) => {
+          const parent = existingById.get(variation.parentProductId);
+          if (!parent) return [];
+          return [...new Set([variation.sku, variation.barcode])]
+            .filter(Boolean)
+            .map((alias) => ({
+              code: alias,
+              barcode: alias,
+              name: parent.name,
+              stock: parent.stock,
+              price: parent.price,
+              category: parent.category,
+              updatedAt: parent.updatedAt?.toISOString?.() ?? null,
+              inventoryUpdatedAt: parent.inventoryUpdatedAt,
+              status: parent.status,
+            }));
+        }),
+      ],
       knownCategories,
       sourceTimestamp: input.sourceTimestamp,
       fileBufferHash: sha256(input.buffer),
       previousInStockProductCodes: previousReport?.inStockProductCodes ?? null,
+      preserveInventory: input.preserveInventory,
     });
 
     // Idempotent dry-run upsert by fingerprint
@@ -167,7 +192,7 @@ export class ImportService {
   async confirmImport(input: {
     importId: string;
     actor?: string | null;
-    inventoryStrategy?: 'full_replace' | 'incremental';
+    inventoryStrategy?: 'preserve_inventory' | 'full_replace' | 'incremental';
   }): Promise<{ job: PlatformJobEntity; run: ImportRunEntity }> {
     const run = await this.runs.findOne({ where: { id: input.importId } });
     if (!run) throw new NotFoundException('import_not_found');
@@ -217,7 +242,7 @@ export class ImportService {
       type: 'import.commit',
       payload: {
         importId: run.id,
-        inventoryStrategy: input.inventoryStrategy ?? 'full_replace',
+        inventoryStrategy: input.inventoryStrategy ?? 'preserve_inventory',
         actor: input.actor,
       },
       createdBy: input.actor,
@@ -245,8 +270,11 @@ export class ImportService {
     const importId = String(job.payload?.['importId'] ?? '');
     const actor = (job.payload?.['actor'] as string) || null;
     const strategy =
-      (job.payload?.['inventoryStrategy'] as 'full_replace' | 'incremental') ||
-      'full_replace';
+      (job.payload?.['inventoryStrategy'] as
+        | 'preserve_inventory'
+        | 'full_replace'
+        | 'incremental') || 'preserve_inventory';
+    const preserveInventory = strategy === 'preserve_inventory';
 
     const run = await this.runs.findOne({ where: { id: importId } });
     if (!run?.report) throw new Error('import_report_missing');
@@ -268,6 +296,29 @@ export class ImportService {
     let skipped = 0;
     const now = new Date().toISOString();
     const processedParents = new Set<string>();
+    const preserveProducts = preserveInventory ? await this.products.find() : [];
+    const preserveById = new Map(preserveProducts.map((product) => [product.id, product]));
+    const preserveByCode = new Map(
+      preserveProducts.map((product) => [normalizeProductCode(product.code), product]),
+    );
+    const preserveNameBuckets = new Map<string, ProductEntity[]>();
+    for (const product of preserveProducts) {
+      const key = normalizeText(product.name);
+      if (!key) continue;
+      const bucket = preserveNameBuckets.get(key) ?? [];
+      bucket.push(product);
+      preserveNameBuckets.set(key, bucket);
+    }
+    const preserveByAlias = new Map<string, ProductEntity>();
+    if (preserveInventory) {
+      for (const variation of await this.variations.find()) {
+        const parent = preserveById.get(variation.parentProductId);
+        if (!parent) continue;
+        for (const alias of [variation.sku, variation.barcode]) {
+          if (alias) preserveByAlias.set(normalizeProductCode(alias), parent);
+        }
+      }
+    }
 
     // Skip hard-error duplicate codes/barcodes from commit
     const blockedCodes = new Set([
@@ -289,25 +340,38 @@ export class ImportService {
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i];
       const code = normalizeProductCode(row.code);
+      const nameMatches = preserveNameBuckets.get(normalizeText(row.name)) ?? [];
+      const preserveTarget = preserveInventory
+        ? preserveByCode.get(code) ||
+          preserveByAlias.get(code) ||
+          (nameMatches.length === 1 ? nameMatches[0] : undefined)
+        : undefined;
 
       if (row.parentCode) {
         const parentCode = normalizeProductCode(row.parentCode);
-        let parent = await this.products.findOne({
+        let parent = preserveTarget || await this.products.findOne({
           where: { code: parentCode },
         });
 
+        if (preserveInventory && !parent) {
+          skipped += 1;
+          continue;
+        }
+
         if (parent?.status === 'rejected') {
           if (!processedParents.has(parentCode)) {
-            parent.stock = 0;
-            parent.inventoryUpdatedAt = now;
-            await this.products.save(parent);
-            const rejectedVariations = await this.variations.find({
-              where: { parentProductId: parent.id },
-            });
-            for (const variation of rejectedVariations) {
-              variation.stock = 0;
-              variation.available = false;
-              await this.variations.save(variation);
+            if (!preserveInventory) {
+              parent.stock = 0;
+              parent.inventoryUpdatedAt = now;
+              await this.products.save(parent);
+              const rejectedVariations = await this.variations.find({
+                where: { parentProductId: parent.id },
+              });
+              for (const variation of rejectedVariations) {
+                variation.stock = 0;
+                variation.available = false;
+                await this.variations.save(variation);
+              }
             }
             processedParents.add(parentCode);
           }
@@ -359,20 +423,29 @@ export class ImportService {
         parent.parentCategory = classified.parentCategory;
         parent.parentCategorySlug = classified.parentCategorySlug;
         parent.productType = 'variable';
-        parent.price = row.price;
-        parent.stock = rows
-          .filter(
-            (candidate) =>
-              normalizeProductCode(candidate.parentCode || '') === parentCode,
-          )
-          .reduce((sum, candidate) => sum + candidate.stock, 0);
-        parent.inventoryUpdatedAt = now;
+        if (!preserveInventory) parent.price = row.price;
+        parent.photos = this.mergeLegacyPhotos(parent.photos, row.imageUrls, now);
+        if (!preserveInventory) {
+          parent.stock = rows
+            .filter(
+              (candidate) =>
+                normalizeProductCode(candidate.parentCode || '') === parentCode,
+            )
+            .reduce((sum, candidate) => sum + candidate.stock, 0);
+          parent.inventoryUpdatedAt = now;
+        }
         parent.lastImportId = run.id;
         parent.isNewImport = row.changeType === 'new';
         parent = await this.products.save(parent);
         processedParents.add(parentCode);
 
-        await this.upsertVariation(parent, row, run.id, changeSet);
+        await this.upsertVariation(
+          parent,
+          row,
+          run.id,
+          changeSet,
+          preserveInventory,
+        );
         await this.ensureCategoryDefaultTag(
           parent,
           classified.categorySlug,
@@ -381,7 +454,12 @@ export class ImportService {
         continue;
       }
 
-      let product = await this.products.findOne({ where: { code } });
+      let product = preserveTarget || await this.products.findOne({ where: { code } });
+
+      if (preserveInventory && !product) {
+        skipped += 1;
+        continue;
+      }
 
       if (product?.status === 'rejected') {
         product.stock = 0;
@@ -404,6 +482,7 @@ export class ImportService {
 
       // Stale inventory protection
       if (
+        !preserveInventory &&
         product?.inventoryUpdatedAt &&
         run.sourceTimestamp &&
         new Date(run.sourceTimestamp) < new Date(product.inventoryUpdatedAt)
@@ -445,7 +524,7 @@ export class ImportService {
         updated += 1;
       }
 
-      changeSet.products.push({ code, previous });
+      changeSet.products.push({ code: product.code, previous });
 
       product.name = row.name;
       const classified = classifyProductCategory(row.name, row.category);
@@ -455,21 +534,25 @@ export class ImportService {
       product.parentCategorySlug = classified.parentCategorySlug;
       product.barcode = row.barcode;
       product.parentCode = row.parentCode;
-      product.price = row.price;
-      product.salePrice = row.salePrice;
+      if (!preserveInventory) {
+        product.price = row.price;
+        product.salePrice = row.salePrice;
+      }
       product.size = normalizeSizeValue(row.size);
       const colorNorm = normalizeColorValue(row.color);
       product.color = colorNorm.canonical || row.color;
       product.material = row.material;
       product.brand = row.brand;
       product.description = row.description;
+      product.photos = this.mergeLegacyPhotos(product.photos, row.imageUrls, now);
       product.branch = row.branch;
       product.collection = row.collection;
       product.lastImportId = run.id;
       product.isNewImport = row.changeType === 'new';
 
-      // Never auto-publish
-      if (product.status === 'published') {
+      // A legacy metadata/photo import must not change publication workflow.
+      // For authoritative imports, never auto-publish.
+      if (!preserveInventory && product.status === 'published') {
         // material change → pending review, stay unpublished until re-approved
         if (previous && previous.stock !== row.stock) {
           // inventory-only update may keep published if policy allows;
@@ -485,6 +568,7 @@ export class ImportService {
           product.publishedAt = null;
         }
       } else if (
+        !preserveInventory &&
         product.status !== 'ready_for_approval' &&
         product.status !== 'waiting_photo'
       ) {
@@ -498,7 +582,9 @@ export class ImportService {
       }
 
       const prevStock = product.stock;
-      if (strategy === 'incremental') {
+      if (preserveInventory) {
+        product.stock = prevStock;
+      } else if (strategy === 'incremental') {
         product.stock = prevStock + row.stock;
       } else {
         // Parent-level stock only for simple products; variations store own stock
@@ -509,7 +595,7 @@ export class ImportService {
           product.productType = 'variable';
         }
       }
-      product.inventoryUpdatedAt = now;
+      if (!preserveInventory) product.inventoryUpdatedAt = now;
 
       product = await this.products.save(product);
 
@@ -526,7 +612,13 @@ export class ImportService {
       );
 
       if (row.parentCode && row.barcode) {
-        await this.upsertVariation(product, row, run.id, changeSet);
+        await this.upsertVariation(
+          product,
+          row,
+          run.id,
+          changeSet,
+          preserveInventory,
+        );
       }
 
       // Hidden enrichment tags
@@ -646,6 +738,7 @@ export class ImportService {
       const parentCode = normalizeProductCode(group.parentCode);
       let parent = await this.products.findOne({ where: { code: parentCode } });
       if (!parent) {
+        if (preserveInventory) continue;
         const classified = classifyProductCategory(
           group.children[0]?.name || parentCode,
           group.children[0]?.category || '',
@@ -658,10 +751,13 @@ export class ImportService {
             parentCategory: classified.parentCategory,
             parentCategorySlug: classified.parentCategorySlug,
             categorySlug: classified.categorySlug,
-            stock: group.children.reduce(
-              (sum, child) => sum + (child.stock || 0),
-              0,
-            ),
+            // A metadata-only legacy import is not an inventory authority.
+            stock: preserveInventory
+              ? 0
+              : group.children.reduce(
+                  (sum, child) => sum + (child.stock || 0),
+                  0,
+                ),
             photos: [],
             status: 'pending_variation_review',
             productType: 'variable',
@@ -676,10 +772,12 @@ export class ImportService {
       } else {
         if (parent.status === 'rejected') continue;
         parent.productType = 'variable';
-        parent.stock = group.children.reduce(
-          (sum, child) => sum + (child.stock || 0),
-          0,
-        );
+        if (!preserveInventory) {
+          parent.stock = group.children.reduce(
+            (sum, child) => sum + (child.stock || 0),
+            0,
+          );
+        }
         await this.products.save(parent);
       }
     }
@@ -706,6 +804,7 @@ export class ImportService {
     row: CommitRow,
     importId: string,
     changeSet: { variations: string[] },
+    preserveInventory = false,
   ): Promise<void> {
     const barcode = normalizeProductCode(row.barcode || row.code);
     const sku = normalizeProductCode(row.code);
@@ -723,9 +822,9 @@ export class ImportService {
         color: normalizeColorValue(row.color).canonical || row.color,
         material: row.material,
         price: row.price,
-        stock: row.stock,
+        stock: preserveInventory ? 0 : row.stock,
         reservedStock: 0,
-        available: row.stock > 0,
+        available: preserveInventory ? false : row.stock > 0,
         photos: [],
         status: 'draft',
         importId,
@@ -736,21 +835,52 @@ export class ImportService {
         variation.parentCode !==
         normalizeProductCode(row.parentCode || parentProduct.code)
       ) {
+        // Legacy catalog metadata must never re-parent an authoritative
+        // warehouse variation. Skip the conflicting legacy relation while
+        // continuing the rest of the enrichment job.
+        if (preserveInventory) return;
         throw new Error(`barcode_parent_conflict:${barcode}`);
       }
-      variation.stock = row.stock;
-      variation.price = row.price ?? variation.price;
+      if (!preserveInventory) variation.stock = row.stock;
+      if (!preserveInventory) variation.price = row.price ?? variation.price;
       variation.size = normalizeSizeValue(row.size) ?? variation.size;
       variation.color =
         normalizeColorValue(row.color).canonical ||
         row.color ||
         variation.color;
-      variation.available = row.stock > 0;
+      if (!preserveInventory) variation.available = row.stock > 0;
       variation.importId = importId;
     }
 
     variation = await this.variations.save(variation);
     changeSet.variations.push(variation.id);
+  }
+
+  private mergeLegacyPhotos(
+    current: ProductEntity['photos'] | null | undefined,
+    imageUrls: string[],
+    addedAt: string,
+  ): ProductEntity['photos'] {
+    const photos = [...(current || [])];
+    const known = new Set(photos.map((photo) => photo.url));
+    for (const url of imageUrls) {
+      if (known.has(url) || photos.length >= 5) continue;
+      let fileName = 'legacy-product-image.jpg';
+      try {
+        const pathPart = new URL(url).pathname.split('/').filter(Boolean).pop();
+        if (pathPart) fileName = decodeURIComponent(pathPart);
+      } catch {
+        // URL validity is already checked during Dry Run.
+      }
+      photos.push({
+        url,
+        fileName,
+        addedAt,
+        role: photos.length === 0 ? 'primary' : 'gallery',
+      });
+      known.add(url);
+    }
+    return photos;
   }
 
   private async ensureCategoryDefaultTag(

@@ -52,6 +52,169 @@ type TagRule = {
 };
 
 const RULES: TagRule[] = [
+  // —— Description-derived product characteristics ——
+  {
+    id: 'description.comfortable',
+    tag: 'Comfortable',
+    baseConfidence: 0.9,
+    test: (_input, hay) => ({
+      hit: /راحت|راحتی|استفاده طولانی|طبی|comfortable/.test(hay),
+      evidence: /راحت|راحتی|استفاده طولانی|طبی|comfortable/.test(hay)
+        ? ['description keyword: comfort']
+        : [],
+    }),
+  },
+  {
+    id: 'description.handmade',
+    tag: 'Handmade',
+    baseConfidence: 0.92,
+    test: (_input, hay) => ({
+      hit: /کار دست|دست.?دوز|دوخت شده|handmade|hand.?crafted/.test(hay),
+      evidence: /کار دست|دست.?دوز|دوخت شده|handmade|hand.?crafted/.test(hay)
+        ? ['description keyword: handmade']
+        : [],
+    }),
+  },
+  {
+    id: 'description.lace',
+    tag: 'Lace',
+    baseConfidence: 0.92,
+    test: (_input, hay) => ({
+      hit: /دانتل|گیپور|lace/.test(hay),
+      evidence: /دانتل|گیپور|lace/.test(hay) ? ['description material: lace'] : [],
+    }),
+  },
+  {
+    id: 'description.pearl',
+    tag: 'Pearl Detail',
+    baseConfidence: 0.94,
+    test: (_input, hay) => ({
+      hit: /مروارید|pearl/.test(hay),
+      evidence: /مروارید|pearl/.test(hay) ? ['description detail: pearl'] : [],
+    }),
+  },
+  {
+    id: 'description.crystal',
+    tag: 'Crystal Detail',
+    baseConfidence: 0.94,
+    test: (_input, hay) => ({
+      hit: /کریستال|نگین|crystal|rhinestone/.test(hay),
+      evidence: /کریستال|نگین|crystal|rhinestone/.test(hay)
+        ? ['description detail: crystal']
+        : [],
+    }),
+  },
+  {
+    id: 'description.leather',
+    tag: 'Leather',
+    baseConfidence: 0.92,
+    test: (_input, hay) => ({
+      hit: /چرم|leather/.test(hay),
+      evidence: /چرم|leather/.test(hay) ? ['description material: leather'] : [],
+    }),
+  },
+  {
+    id: 'description.satin',
+    tag: 'Satin',
+    baseConfidence: 0.92,
+    test: (_input, hay) => ({
+      hit: /ساتن|satin/.test(hay),
+      evidence: /ساتن|satin/.test(hay) ? ['description material: satin'] : [],
+    }),
+  },
+  {
+    id: 'description.platform',
+    tag: 'Platform Sole',
+    baseConfidence: 0.93,
+    test: (_input, hay) => ({
+      hit: /لژ|platform/.test(hay),
+      evidence: /لژ|platform/.test(hay) ? ['description construction: platform'] : [],
+    }),
+  },
+  {
+    id: 'description.sneaker',
+    tag: 'Bridal Sneakers',
+    baseConfidence: 0.96,
+    test: (_input, hay) => ({
+      hit: /کتونی|اسنیکر|sneakers?/.test(hay),
+      evidence: /کتونی|اسنیکر|sneakers?/.test(hay)
+        ? ['description product type: sneaker']
+        : [],
+    }),
+  },
+  {
+    id: 'description.lightweight',
+    tag: 'Lightweight',
+    baseConfidence: 0.92,
+    test: (_input, hay) => ({
+      hit: /سبک وزن|وزن سبک|lightweight/.test(hay),
+      evidence: /سبک وزن|وزن سبک|lightweight/.test(hay)
+        ? ['description feature: lightweight']
+        : [],
+    }),
+  },
+  {
+    id: 'description.bow',
+    tag: 'Bow Detail',
+    baseConfidence: 0.92,
+    test: (_input, hay) => ({
+      hit: /پاپیون|bow/.test(hay),
+      evidence: /پاپیون|bow/.test(hay) ? ['description detail: bow'] : [],
+    }),
+  },
+  {
+    id: 'description.high_heel',
+    tag: 'High Heel',
+    baseConfidence: 0.93,
+    test: (_input, hay) => ({
+      hit: /پاشنه بلند|پاشنه.{0,8}[۷۸۹]|high.?heel/.test(hay),
+      evidence: /پاشنه بلند|پاشنه.{0,8}[۷۸۹]|high.?heel/.test(hay)
+        ? ['description construction: high heel']
+        : [],
+    }),
+  },
+  {
+    id: 'description.engagement',
+    tag: 'Engagement Ceremony',
+    baseConfidence: 0.9,
+    test: (_input, hay) => ({
+      hit: /عقد|نامزدی|engagement/.test(hay),
+      evidence: /عقد|نامزدی|engagement/.test(hay)
+        ? ['description occasion: engagement']
+        : [],
+    }),
+  },
+  {
+    id: 'description.ballroom',
+    tag: 'Ballroom Wedding',
+    baseConfidence: 0.9,
+    test: (_input, hay) => ({
+      hit: /تالار|سالن|ballroom/.test(hay),
+      evidence: /تالار|سالن|ballroom/.test(hay) ? ['description venue: ballroom'] : [],
+    }),
+  },
+  {
+    id: 'description.photo_ready',
+    tag: 'Photo Ready',
+    baseConfidence: 0.88,
+    test: (_input, hay) => ({
+      hit: /عکاسی|فتوشوت|photo.?shoot/.test(hay),
+      evidence: /عکاسی|فتوشوت|photo.?shoot/.test(hay)
+        ? ['description occasion: photography']
+        : [],
+    }),
+  },
+  {
+    id: 'description.jimmy_choo',
+    tag: 'Jimmy Choo Style',
+    baseConfidence: 0.96,
+    test: (_input, hay) => ({
+      hit: /جیمی چو|جيمي چو|jimmy choo/.test(hay),
+      evidence: /جیمی چو|جيمي چو|jimmy choo/.test(hay)
+        ? ['description style reference: Jimmy Choo']
+        : [],
+    }),
+  },
   // —— Style / region ——
   {
     id: 'keyword.european',

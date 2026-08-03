@@ -15,6 +15,16 @@ class DreamItemDto {
   @IsString() @MaxLength(160) name: string;
 }
 
+class PreferenceProfileDto {
+  @IsOptional() @IsString() @MaxLength(40) bodyShape?: string;
+  @IsOptional() @IsString() @MaxLength(40) faceShape?: string;
+  @IsOptional() @IsArray() @IsString({ each: true }) style?: string[];
+  @IsOptional() @IsString() @MaxLength(40) ceremony?: string;
+  @IsOptional() @IsArray() @IsString({ each: true }) priorities?: string[];
+  @IsOptional() brideHeight?: number;
+  @IsOptional() groomHeight?: number;
+}
+
 export class CreateConsultationDto {
   @IsOptional() @IsString() @MaxLength(80) lastName?: string;
   @Matches(/^09\d{9}$/) phone: string;
@@ -30,6 +40,9 @@ export class CreateConsultationDto {
   @ValidateNested({ each: true })
   @Type(() => DreamItemDto)
   dreamItems?: DreamItemDto[];
+  @IsOptional() @ValidateNested() @Type(() => PreferenceProfileDto)
+  preferenceProfile?: PreferenceProfileDto;
+  @IsOptional() @IsArray() @IsString({ each: true }) desiredTags?: string[];
   @IsOptional() @IsString() @MaxLength(200) website?: string;
 }
 

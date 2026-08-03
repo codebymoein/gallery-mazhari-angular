@@ -325,6 +325,12 @@
                     <div class="checkout__item-body">
                       <span class="checkout__item-name">{{ item.product_name || 'محصول #' + item.product_id }}</span>
                       <span class="checkout__item-qty">× {{ item.quantity | number:'1.0-0':'fa' }}</span>
+                      @if (itemAttribute(item, 'نوع سفارش')) {
+                        <span class="checkout__rental-summary">
+                          اجاره · مراسم {{ itemAttribute(item, 'تاریخ مراسم') }}<br />
+                          بهای اجاره برای شما: {{ itemAttribute(item, 'بهای نهایی اجاره') }}؛ ودیعه کامل پس از بازگشت کالا، ۵۰٪ مسترد می‌شود.
+                        </span>
+                      }
                     </div>
                     <span class="checkout__item-price">{{ formatPrice(lineTotal(item)) }}</span>
                   </li>

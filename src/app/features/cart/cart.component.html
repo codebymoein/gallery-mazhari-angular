@@ -26,7 +26,7 @@
     <div class="cart__layout">
       <!-- Line items -->
       <ul class="cart__items" aria-label="اقلام سبد خرید">
-        @for (item of cartItems$ | async; track trackByProductId($index, item)) {
+        @for (item of purchaseItems$ | async; track trackByProductId($index, item)) {
           <li
             class="cart__item"
             >
@@ -53,10 +53,12 @@
               @if (item.attributes?.length) {
                 <p class="cart__item-attr">
                   @for (attr of item.attributes; track attr) {
+                    @if (attr.name !== 'rentalCeremonyIso') {
                     <span>
                       <small>{{ attr.name }}</small>
                       <strong>{{ attr.value }}</strong>
                     </span>
+                    }
                   }
                 </p>
               }
@@ -99,6 +101,14 @@
           </li>
         }
       </ul>
+      @if (trialDeposit$ | async; as trialDeposit) {
+        <section class="cart__trial-card">
+          <header><div><small>HOME TRY-ON</small><h2>سبد پرو در محل</h2></div><strong>{{ formatPrice(trialDeposit.price) }}</strong></header>
+          <div class="cart__trial-products">@for (product of homeTrial.items(); track product.id) { <span><img [src]="product.image" [alt]="product.name"><b>{{ product.name }}</b></span> }</div>
+          <p>بیعانه سرویس همراه سایر کالاهای سبد، در یک پرداخت محاسبه می‌شود.</p>
+          <button type="button" (click)="remove(trialDeposit.product_id)">حذف درخواست پرو از پرداخت</button>
+        </section>
+      }
       <!-- Summary -->
       <aside class="cart__summary" aria-labelledby="cart-summary-title">
         <h2 id="cart-summary-title" class="cart__summary-title">خلاصه سفارش</h2>

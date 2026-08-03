@@ -102,6 +102,12 @@ body {
   scroll-behavior: smooth;
 }
 
+html.dream-canvas-modal-open,
+body.dream-canvas-modal-open {
+  overflow-x: hidden !important;
+  overscroll-behavior-x: none;
+}
+
 body {
   font-family: var(--font-persian);
   color: var(--color-text-main);

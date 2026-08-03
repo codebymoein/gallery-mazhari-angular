@@ -1,6 +1,6 @@
 import { Column, CreateDateColumn, Entity, Index, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
-export type CustomRequestType = 'veil' | 'dress';
+export type CustomRequestType = 'veil' | 'dress' | 'home-trial';
 
 @Entity('custom_requests')
 @Index('idx_custom_requests_type_status', ['type', 'status'])

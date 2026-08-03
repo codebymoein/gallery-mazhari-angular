@@ -39,10 +39,10 @@ export class CustomRequestsService {
       sizeOrLength: dto.sizeOrLength?.trim() || null,
       budget: dto.budget?.trim() || null,
       imageUrls,
-      status: 'new',
+      status: dto.type === 'home-trial' ? 'awaiting-payment' : 'new',
       adminNote: null,
     }));
-    const label = record.type === 'veil' ? 'تور سر سفارشی' : 'لباس سفارشی';
+    const label = record.type === 'veil' ? 'تور سر سفارشی' : record.type === 'home-trial' ? 'تست در محل تهران (در انتظار پرداخت بیعانه)' : 'لباس سفارشی';
     await this.notifications.notify('custom-request.created', [
       `🧵 درخواست ${label} جدید`,
       `شناسه: ${record.id}`,

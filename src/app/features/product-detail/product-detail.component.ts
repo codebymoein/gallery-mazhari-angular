@@ -17,6 +17,7 @@ import { ShoppingContextService } from '@core/services/shopping-context.service'
 import { SeoService } from '@core/services/seo.service';
 import { PublishedCatalogSyncService } from '@core/services/published-catalog-sync.service';
 import { AdminAuthService } from '@core/services/admin-auth.service';
+import { productAttributeTemplate } from '@shared/utils/product-attribute-template';
 import {
   formatIrr,
   productIdToNumber
@@ -41,11 +42,13 @@ import {
 import { findCategoryForSubSlug, getCatalogCategoryBySlug, CatalogCategory, CatalogSubcategory } from '@shared/data/catalog-categories';
 import { RecommendationWidgetComponent } from '@shared/components/recommendation-widget/recommendation-widget.component';
 import { ResponsiveProductImageDirective } from '@shared/directives/responsive-product-image.directive';
+import { JalaliDateInputComponent } from '@shared/components/jalali-date-input/jalali-date-input.component';
+import { HomeTrialService } from '@core/services/home-trial.service';
 
 @Component({
   selector: 'app-product-detail',
   standalone: true,
-  imports: [FormsModule, RouterLink, RecommendationWidgetComponent, ResponsiveProductImageDirective],
+  imports: [FormsModule, RouterLink, RecommendationWidgetComponent, ResponsiveProductImageDirective, JalaliDateInputComponent],
   templateUrl: './product-detail.component.html',
   styleUrls: ['./product-detail.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -57,6 +60,8 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
   private readonly dreamCanvas = inject(DreamCanvasService);
   private readonly shoppingContext = inject(ShoppingContextService);
   private readonly seo = inject(SeoService);
+  readonly homeTrial = inject(HomeTrialService);
+  homeTrialMessage = '';
   private readonly publishedSync = inject(PublishedCatalogSyncService);
   private readonly adminAuth = inject(AdminAuthService);
   private sub?: Subscription;
@@ -74,6 +79,9 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
   activeImage = '';
   price = 0;
   priceLabel = '';
+  originalPrice = 0;
+  originalPriceLabel = '';
+  discountPercent = 0;
   productIdNumber = 0;
   onDreamBoard = false;
   readonly adminUser = this.adminAuth.user;
@@ -100,6 +108,8 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
   selectedVariationId = '';
   selectedVariationLabel = '';
   variationError = '';
+  selectedModelIndex = -1;
+  modelSelectionError = '';
   engravingRequested = false;
   engravingText = '';
   engravingError = '';
@@ -109,6 +119,13 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
   veilPrintError = '';
   readonly veilPrintFee = 10_000_000;
   cartNoticeVisible = false;
+  rentalSelected = false;
+  ceremonyDate = '';
+  rentalError = '';
+  readonly rentalCategorySlugs = new Set([
+    'bridal-tiaras', 'bridal-headbands', 'imported-hairpiece',
+    'chignon-pins', 'bridal-capes'
+  ]);
 
   constructor() {
     effect(() => {
@@ -177,8 +194,12 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
       this.veilPrintRequested = false;
       this.veilPrintText = '';
       this.veilPrintError = '';
-      this.price = found.price ?? 0;
-      this.priceLabel = this.price > 0 ? formatIrr(this.price) : 'قیمت ثبت نشده';
+      this.rentalSelected = false;
+      this.ceremonyDate = '';
+      this.rentalError = '';
+      this.selectedModelIndex = -1;
+      this.modelSelectionError = '';
+      this.applyPrice(found);
       this.productIdNumber = productIdToNumber(found.id);
       this.onDreamBoard = this.dreamCanvas.has(this.productIdNumber);
       this.shoppingContext.rememberPath(
@@ -230,8 +251,7 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
       .filter(product => product.id !== found.id && product.variantKey !== found.variantKey)
       .slice(0, 4);
     this.suggested = complementaryProductsFor(found, 8);
-    this.price = found.price ?? 0;
-    this.priceLabel = this.price > 0 ? formatIrr(this.price) : 'قیمت ثبت نشده';
+    this.applyPrice(found);
     this.productIdNumber = productIdToNumber(found.id);
     this.onDreamBoard = this.dreamCanvas.has(this.productIdNumber);
     this.cdr.markForCheck();
@@ -246,6 +266,7 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
 
   private applyCategoryPresentation(product: BridalSampleProduct): void {
     const slug = product.categorySlug;
+    const attributeTemplate = productAttributeTemplate(slug);
     this.showConsultation = isConsultationCategory(slug);
     this.isFootwear = isFootwearCategory(slug);
     this.isShoes = slug === SHOE_CATEGORY_SLUG;
@@ -277,17 +298,17 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
       this.metaSecondaryLabel = 'جنس رویه';
       this.metaSecondaryValue = product.material || product.fabric || '—';
     } else {
-      this.metaPrimaryLabel = 'فرم لباس';
-      this.metaPrimaryValue = product.silhouette;
-      this.metaSecondaryLabel = 'پارچه';
-      this.metaSecondaryValue = product.fabric;
+      this.metaPrimaryLabel = attributeTemplate.primary;
+      this.metaPrimaryValue = product.primaryAttributeValue || product.silhouette || '—';
+      this.metaSecondaryLabel = attributeTemplate.secondary;
+      this.metaSecondaryValue = product.secondaryAttributeValue || product.material || product.fabric || '—';
     }
 
-    this.metaPrimaryLabel = product.primaryAttributeLabel || this.metaPrimaryLabel;
+    this.metaPrimaryLabel = attributeTemplate.primary;
     this.metaPrimaryValue = this.isFootwear
       ? normalizedFootwearHeight(product.primaryAttributeValue || this.metaPrimaryValue, product.name)
       : product.primaryAttributeValue || this.metaPrimaryValue;
-    this.metaSecondaryLabel = product.secondaryAttributeLabel || this.metaSecondaryLabel;
+    this.metaSecondaryLabel = attributeTemplate.secondary;
     this.metaSecondaryValue = product.secondaryAttributeValue || this.metaSecondaryValue;
 
     this.sizeOptions = getSizeOptionsForProduct(product);
@@ -315,8 +336,7 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
     if (matched) {
       this.product = matched;
       this.productIdNumber = productIdToNumber(matched.id);
-      this.price = matched.price ?? 0;
-      this.priceLabel = this.price > 0 ? formatIrr(this.price) : 'قیمت ثبت نشده';
+      this.applyPrice(matched);
       this.onDreamBoard = this.dreamCanvas.has(this.productIdNumber);
     }
     this.cdr.markForCheck();
@@ -325,15 +345,13 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
   selectVariation(productId: string): void {
     const option = this.variationOptions.find(item => item.productId === productId);
     if (!option?.available) return;
-    const matched = getBridalProductById(productId);
-    if (!matched) return;
     this.selectedVariationId = productId;
     this.selectedVariationLabel = option.label;
+    this.selectedSize = option.size || '';
     this.selectedStock = option.stock;
     this.variationError = '';
-    this.product = matched;
-    this.productIdNumber = productIdToNumber(matched.id);
-    this.price = matched.price ?? 0;
+    this.sizeError = '';
+    this.price = option.price ?? this.product?.price ?? 0;
     this.priceLabel = this.price > 0 ? formatIrr(this.price) : 'قیمت ثبت نشده';
     this.cdr.markForCheck();
   }
@@ -359,6 +377,10 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
 
   selectImage(src: string): void {
     this.activeImage = src;
+    if (this.requiresModelSelection) {
+      this.selectedModelIndex = this.galleryImages().indexOf(src);
+      this.modelSelectionError = '';
+    }
     this.cdr.markForCheck();
   }
 
@@ -367,8 +389,7 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
     if (images.length < 2) return;
     const current = Math.max(0, images.indexOf(this.activeImage));
     const next = (current + direction + images.length) % images.length;
-    this.activeImage = images[next];
-    this.cdr.markForCheck();
+    this.selectImage(images[next]);
   }
 
   onGalleryTouchStart(event: TouchEvent): void {
@@ -391,18 +412,27 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
     if (!this.product) {
       return;
     }
-    if (this.isFootwear && this.sizeOptions.length && !this.selectedSize) {
+    if (this.rentalSelected && !this.validateRentalDate()) {
+      this.cdr.markForCheck();
+      return;
+    }
+    if (this.variationOptions.length && !this.selectedVariationId) {
+      this.variationError = 'لطفاً رنگ و سایز موردنظر را انتخاب کنید.';
+      this.cdr.markForCheck();
+      return;
+    }
+    if (this.requiresModelSelection && this.selectedModelIndex < 0) {
+      this.modelSelectionError = 'لطفاً عکس مدل موردنظر را انتخاب کنید.';
+      this.cdr.markForCheck();
+      return;
+    }
+    if (this.isFootwear && !this.variationOptions.length && this.sizeOptions.length && !this.selectedSize) {
       this.sizeError = 'لطفاً سایز را انتخاب کنید.';
       this.cdr.markForCheck();
       return;
     }
     if (this.isFootwear && this.selectedStock <= 0) {
       this.sizeError = 'این سایز موجود نیست.';
-      this.cdr.markForCheck();
-      return;
-    }
-    if (!this.isFootwear && this.variationOptions.length && !this.selectedVariationId) {
-      this.variationError = 'لطفاً مدل موردنظر را انتخاب کنید.';
       this.cdr.markForCheck();
       return;
     }
@@ -432,6 +462,15 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
     }
     if (this.selectedVariationLabel) {
       attributes.push({ name: 'متغیر انتخاب‌شده', value: this.selectedVariationLabel });
+      const selected = this.variationOptions.find(option => option.productId === this.selectedVariationId);
+      if (selected?.color) attributes.push({ name: 'رنگ', value: selected.color });
+      if (selected?.sku) attributes.push({ name: 'کد تنوع', value: selected.sku });
+    }
+    if (this.requiresModelSelection) {
+      attributes.push(
+        { name: 'مدل تصویری انتخاب‌شده', value: `مدل شماره ${this.selectedModelIndex + 1}` },
+        { name: 'تصویر مدل', value: this.activeImage }
+      );
     }
     if (this.metaPrimaryValue && this.metaPrimaryValue !== '—') {
       attributes.push({ name: this.metaPrimaryLabel, value: this.metaPrimaryValue });
@@ -453,6 +492,17 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
         { name: 'هماهنگی سفارش', value: 'تماس همکاران گالری با مشتری' }
       );
     }
+    if (this.rentalSelected) {
+      attributes.push(
+        { name: 'نوع سفارش', value: 'اجاره با ودیعه کامل' },
+        { name: 'rentalCeremonyIso', value: this.ceremonyDate },
+        { name: 'تاریخ مراسم', value: this.persianDate(this.ceremonyDate) },
+        { name: 'مهلت بازگشت', value: this.persianDate(this.rentalReturnDate()) },
+        { name: 'ودیعه پرداختی', value: formatIrr(this.price) },
+        { name: 'مبلغ قابل بازگشت', value: formatIrr(this.rentalRefundAmount) },
+        { name: 'بهای نهایی اجاره', value: formatIrr(this.rentalFee) }
+      );
+    }
 
     this.cart.addProductToCart(
       this.productIdNumber,
@@ -461,12 +511,13 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
         (hasEngraving ? this.engravingFee : 0) +
         (hasVeilPrint ? this.veilPrintFee : 0),
       this.product.name,
-      this.product.image,
+      this.requiresModelSelection ? this.activeImage : this.product.image,
       {
         categorySlug: this.product.categorySlug,
-        sourceId: ('code' in this.product && typeof this.product.code === 'string')
-          ? this.product.code
-          : this.product.id,
+        sourceId: this.variationOptions.find(option => option.productId === this.selectedVariationId)?.sku ||
+          (('code' in this.product && typeof this.product.code === 'string')
+            ? this.product.code
+            : this.product.id),
         attributes: attributes.length ? attributes : undefined,
         engraving: (hasEngraving || hasVeilPrint) ? {
           product_id: this.productIdNumber,
@@ -481,6 +532,115 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
       }
     );
     this.showCartNotice();
+  }
+
+  addToHomeTrial(): void {
+    if (!this.product) return;
+    if (this.variationOptions.length && !this.selectedVariationId) {
+      this.variationError = 'برای تست در محل هم باید رنگ یا سایز موردنظر را انتخاب کنید.';
+      this.homeTrialMessage = '';
+      return;
+    }
+    if (this.isFootwear && !this.variationOptions.length && this.sizeOptions.length && !this.selectedSize) {
+      this.sizeError = 'برای تست در محل ابتدا سایز را انتخاب کنید.';
+      this.homeTrialMessage = '';
+      return;
+    }
+    if (this.requiresModelSelection && this.selectedModelIndex < 0) {
+      this.modelSelectionError = 'برای تست در محل ابتدا عکس مدل موردنظر را انتخاب کنید.';
+      this.homeTrialMessage = '';
+      return;
+    }
+    const option = this.variationOptions.find(item => item.productId === this.selectedVariationId);
+    const selectionLabel = [option?.label, this.requiresModelSelection ? `مدل ${this.selectedModelIndex + 1}` : ''].filter(Boolean).join(' · ');
+    const selectedProduct: BridalSampleProduct = {
+      ...this.product,
+      id: `${this.product.id}::${option?.sku || this.selectedSize || 'base'}::${this.requiresModelSelection ? this.selectedModelIndex + 1 : 0}`,
+      name: selectionLabel ? `${this.product.name} — ${selectionLabel}` : this.product.name,
+      image: this.requiresModelSelection ? this.activeImage : this.product.image,
+      size: option?.size || this.selectedSize || this.product.size,
+      color: option?.color || this.product.color
+    };
+    this.homeTrialMessage = this.homeTrial.add(selectedProduct) || 'به انتخاب‌های تست در محل اضافه شد.';
+  }
+
+  get requiresModelSelection(): boolean {
+    return !!this.product && (this.product.modelSelectionEnabled || this.product.categorySlug === 'chignon-pins') && this.galleryImages().length > 1;
+  }
+
+  get hasMultipleVariationColors(): boolean {
+    return new Set(this.variationOptions.map(option => (option.color || '').trim().toLocaleLowerCase('fa')).filter(Boolean)).size > 1;
+  }
+
+  get variationSelectorTitle(): string {
+    const hasSize = this.variationOptions.some(option => !!option.size);
+    return this.hasMultipleVariationColors ? (hasSize ? 'انتخاب رنگ و سایز' : 'انتخاب رنگ') : (hasSize ? 'انتخاب سایز' : 'انتخاب مدل');
+  }
+
+  get canRent(): boolean {
+    return !!this.product && this.rentalCategorySlugs.has(this.product.categorySlug) && this.price > 0;
+  }
+
+  get rentalFee(): number { return Math.round(this.price / 2); }
+  get rentalRefundAmount(): number { return this.price - this.rentalFee; }
+  get rentalFeeLabel(): string { return formatIrr(this.rentalFee); }
+  get rentalRefundLabel(): string { return formatIrr(this.rentalRefundAmount); }
+
+  get rentalMinDate(): string { return this.dateInputValue(new Date()); }
+
+  get rentalMaxCeremonyDate(): string {
+    const date = new Date();
+    date.setDate(date.getDate() + 38);
+    return this.dateInputValue(date);
+  }
+
+  selectPurchaseMode(rental: boolean): void {
+    this.rentalSelected = rental;
+    this.rentalError = '';
+  }
+
+  rentalReturnDate(): string {
+    if (!this.ceremonyDate) return '';
+    const date = new Date(`${this.ceremonyDate}T12:00:00`);
+    date.setDate(date.getDate() + 7);
+    return this.dateInputValue(date);
+  }
+
+  private validateRentalDate(): boolean {
+    if (!this.ceremonyDate) {
+      this.rentalError = 'لطفاً تاریخ مراسم را انتخاب کنید.';
+      return false;
+    }
+    const ceremony = new Date(`${this.ceremonyDate}T12:00:00`).getTime();
+    const min = new Date(`${this.rentalMinDate}T00:00:00`).getTime();
+    const max = new Date(`${this.rentalMaxCeremonyDate}T23:59:59`).getTime();
+    if (!Number.isFinite(ceremony) || ceremony < min || ceremony > max) {
+      this.rentalError = 'تاریخ مراسم باید طوری باشد که بازگشت کالا حداکثر تا ۴۵ روز پس از امروز انجام شود.';
+      return false;
+    }
+    this.rentalError = '';
+    return true;
+  }
+
+  private applyPrice(product: BridalSampleProduct): void {
+    this.price = product.salePrice ?? product.price ?? 0;
+    this.originalPrice = product.originalPrice ?? 0;
+    this.discountPercent = product.discountPercent ?? 0;
+    this.priceLabel = this.price > 0 ? formatIrr(this.price) : 'قیمت ثبت نشده';
+    this.originalPriceLabel = this.originalPrice > this.price ? formatIrr(this.originalPrice) : '';
+  }
+
+  private dateInputValue(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  persianDate(value: string): string {
+    if (!value) return '—';
+    return new Intl.DateTimeFormat('fa-IR', { year: 'numeric', month: 'long', day: 'numeric' })
+      .format(new Date(`${value}T12:00:00`));
   }
 
   closeCartNotice(): void {

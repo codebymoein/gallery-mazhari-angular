@@ -5,7 +5,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, Router } from '@angular/router';
-import { NavigationStart } from '@angular/router';
+import { NavigationEnd, NavigationStart } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CartService } from '@core/services/cart.service';
 import { DrawerService } from '@core/services/drawer.service';
@@ -54,7 +54,7 @@ export class HeaderComponent implements OnDestroy {
   constructor() {
     this.cartCount$ = inject(CartService).getItemCount();
     this.routerEventsSubscription = this.router.events
-      .pipe(filter((event): event is NavigationStart => event instanceof NavigationStart))
+      .pipe(filter((event): event is NavigationStart | NavigationEnd => event instanceof NavigationStart || event instanceof NavigationEnd))
       .subscribe(() => this.closeMenus());
   }
 

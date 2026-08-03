@@ -62,7 +62,9 @@ export class ProductEntity {
   @Column({ length: 120, default: '' })
   categorySlug: string;
 
-  @Column({ type: 'int', default: 0 })
+  // Some inventory units are fractional (for example fabric by metre).
+  // Keep the authoritative Excel quantity exactly instead of rounding it.
+  @Column({ type: 'float', default: 0 })
   stock: number;
 
   @Column({ default: false })

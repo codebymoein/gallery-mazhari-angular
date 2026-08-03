@@ -72,15 +72,15 @@ export class UserManagerComponent implements OnInit {
     const request = this.editingId ? this.api.update(this.editingId, payload) : this.api.create(payload as ManagedUserInput & { password: string });
     request.pipe(finalize(() => { this.saving = false; this.cdr.markForCheck(); })).subscribe({
       next: () => { this.notice = 'اطلاعات کاربر با موفقیت ذخیره شد.'; this.showForm = false; this.load(false); },
-      error: err => { this.error = err?.error?.message || 'ذخیره کاربر انجام نشد.'; this.cdr.markForCheck(); }
+      error: err => { this.error = this.errorMessage(err, 'ذخیره کاربر انجام نشد.'); this.cdr.markForCheck(); }
     });
   }
   toggleActive(user: ManagedUser) {
-    this.api.update(user.id, { isActive: !user.isActive }).subscribe({ next: () => this.load(false), error: () => { this.error = 'تغییر وضعیت انجام نشد.'; this.cdr.markForCheck(); } });
+    this.api.update(user.id, { isActive: !user.isActive }).subscribe({ next: () => this.load(false), error: e => { this.error = this.errorMessage(e, 'تغییر وضعیت انجام نشد.'); this.cdr.markForCheck(); } });
   }
   remove(user: ManagedUser) {
     if (!confirm(`حساب «${user.fullName}» حذف شود؟`)) return;
-    this.api.remove(user.id).subscribe({ next: () => { this.notice = 'حساب حذف شد.'; this.load(false); }, error: e => { this.error = e?.error?.message || 'حذف حساب انجام نشد.'; this.cdr.markForCheck(); } });
+    this.api.remove(user.id).subscribe({ next: () => { this.notice = 'حساب حذف شد.'; this.load(false); }, error: e => { this.error = this.errorMessage(e, 'حذف حساب انجام نشد.'); this.cdr.markForCheck(); } });
   }
   saveMe() {
     this.clearMessages();
@@ -88,12 +88,16 @@ export class UserManagerComponent implements OnInit {
     this.saving = true;
     this.api.updateMe({ fullName: this.me.fullName, email: this.me.email, ...(this.me.password ? { password: this.me.password } : {}) })
       .pipe(finalize(() => { this.saving = false; this.cdr.markForCheck(); }))
-      .subscribe({ next: () => { this.me.password = ''; this.notice = 'اطلاعات حساب مدیر ذخیره شد؛ پس از تغییر نام کاربری دوباره وارد شوید.'; }, error: e => { this.error = e?.error?.message || 'تغییر حساب مدیر انجام نشد.'; } });
+      .subscribe({ next: () => { this.me.password = ''; this.notice = 'اطلاعات حساب مدیر ذخیره شد؛ پس از تغییر نام کاربری دوباره وارد شوید.'; }, error: e => { this.error = this.errorMessage(e, 'تغییر حساب مدیر انجام نشد.'); } });
   }
   private load(showLoader = true) {
     if (showLoader) this.loading = true;
-    this.api.list().pipe(finalize(() => { this.loading = false; this.cdr.markForCheck(); })).subscribe({ next: users => this.users = users, error: e => this.error = e?.error?.message || 'دریافت کاربران انجام نشد.' });
+    this.api.list().pipe(finalize(() => { this.loading = false; this.cdr.markForCheck(); })).subscribe({ next: users => this.users = users, error: e => this.error = this.errorMessage(e, 'دریافت کاربران انجام نشد.') });
   }
   private emptyForm(): ManagedUserInput { return { fullName: '', email: '', role: 'customer', permissions: ['catalog.view', 'profile.edit'], isActive: true }; }
   private clearMessages() { this.error = ''; this.notice = ''; }
+  private errorMessage(error: any, fallback: string): string {
+    const detail = error?.error?.message || error?.details?.message || error?.message;
+    return Array.isArray(detail) ? detail.join('، ') : (detail || fallback);
+  }
 }

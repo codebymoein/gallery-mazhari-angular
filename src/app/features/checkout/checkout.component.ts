@@ -180,6 +180,14 @@ export class CheckoutComponent implements OnInit {
     return item.price * item.quantity;
   }
 
+  itemAttribute(item: CartItem, name: string): string {
+    return item.attributes?.find(attribute => attribute.name === name)?.value || '';
+  }
+
+  rentalCeremonyIso(item: CartItem): string | undefined {
+    return item.attributes?.find(attribute => attribute.name === 'rentalCeremonyIso')?.value || undefined;
+  }
+
   subtotal(items: CartItem[]): number {
     return items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   }
@@ -276,7 +284,10 @@ export class CheckoutComponent implements OnInit {
             ? 'veil-print' as const
             : item.engraving
               ? 'engraving' as const
-              : undefined
+              : undefined,
+          rental: !!this.itemAttribute(item, 'نوع سفارش'),
+          ceremonyDate: this.rentalCeremonyIso(item)
+          ,requestId: this.itemAttribute(item, 'شناسه درخواست') || undefined
         }));
         if (paymentItems.some(item => !item.code)) {
           this.paymentError = 'شناسه انباری یکی از کالاها معتبر نیست؛ آن را از سبد حذف و دوباره اضافه کنید.';

@@ -26,6 +26,16 @@ export class ConsultationEntity {
     productId: string;
     name: string;
   }> | null;
+  @Column({ type: 'simple-json', nullable: true }) preferenceProfile: {
+    bodyShape?: string;
+    faceShape?: string;
+    style?: string[];
+    ceremony?: string;
+    priorities?: string[];
+    brideHeight?: number;
+    groomHeight?: number;
+  } | null;
+  @Column({ type: 'simple-json', nullable: true }) desiredTags: string[] | null;
   @Column({ type: 'varchar', length: 30, default: 'needs_followup' })
   followUpTag: string;
   @Column({ type: 'varchar', length: 1000, nullable: true }) adminNote:

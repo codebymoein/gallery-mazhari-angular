@@ -1,0 +1,19 @@
+<main class="trial" dir="rtl">
+ <header class="hero"><span>MAZHARI PRIVATE TRY-ON</span><h1>انتخاب در آرامش خانه</h1><p>تا پنج اکسسوری را انتخاب کنید؛ پیک اختصاصی گالری برای یک پرو ۳۰ دقیقه‌ای در تهران همراه شماست.</p></header>
+ <section class="journey"><div><b>۰۱</b><span>انتخاب کالا</span></div><div><b>۰۲</b><span>زمان و نشانی</span></div><div><b>۰۳</b><span>بیعانه آنلاین</span></div><div><b>۰۴</b><span>پرو و انتخاب نهایی</span></div></section>
+ <div class="layout">
+  <aside class="selection panel"><header><div><small>YOUR SELECTION</small><h2>انتخاب‌های شما</h2></div><strong>{{trial.items().length}} / ۵</strong></header>
+   <div class="selection-list">@for(p of trial.items();track p.id){<article class="item"><img [src]="p.image" [alt]="p.name"><div><b>{{p.name}}</b><small>کد {{p.id}}</small></div><button type="button" (click)="trial.remove(p.id)" aria-label="حذف کالا">×</button></article>}</div>
+   @if(!trial.items().length){<div class="empty"><span>۰</span><p>هنوز محصولی برای پرو انتخاب نشده است.</p><a routerLink="/accessories">مشاهده فروشگاه اکسسوری</a></div>}
+   <div class="selection-note"><b>تا ۵ انتخاب</b><span>می‌توانید ترکیبی از تاج، ریسه، کفش، کیف و سایر اکسسوری‌ها داشته باشید.</span></div>
+  </aside>
+  <form class="details panel" (ngSubmit)="submit()"><header><small>DELIVERY DETAILS</small><h2>هماهنگی پرو در محل</h2><p>سرویس فعلاً فقط در مناطق ۲۲گانه تهران ارائه می‌شود.</p></header>
+   <div class="fields"><label><span>نام و نام خانوادگی</span><input [(ngModel)]="model.fullName" name="name" placeholder="نام تحویل‌گیرنده"></label><label><span>شماره موبایل</span><input [(ngModel)]="model.phone" name="phone" dir="ltr" inputmode="numeric" placeholder="09xxxxxxxxx"></label><label><span>منطقه تهران</span><select [(ngModel)]="model.district" name="district"><option [ngValue]="0">انتخاب منطقه</option>@for(d of districts;track d){<option [ngValue]="d">منطقه {{d}}</option>}</select></label></div>
+   <section class="scheduler"><div class="section-title"><span>۱</span><div><h3>روز تحویل</h3><p>تاریخ را از تقویم شمسی انتخاب کنید.</p></div></div><app-jalali-date-input [(ngModel)]="model.date" name="date" [min]="minDate" /></section>
+   <section class="scheduler"><div class="section-title"><span>۲</span><div><h3>ساعت تحویل</h3><p>بازه سرویس از ساعت ۰۹:۰۰ تا ۲۰:۰۰ است.</p></div></div><div class="time-picker" dir="ltr"><select [(ngModel)]="model.hour" name="hour" (ngModelChange)="hourChanged()"><option value="">ساعت</option>@for(h of hours;track h){<option [value]="h">{{h}}</option>}</select><b>:</b><select [(ngModel)]="model.minute" name="minute">@for(m of availableMinutes;track m){<option [value]="m">{{m}}</option>}</select><span>24H</span></div></section>
+   <section class="scheduler map-section"><div class="section-title"><span>۳</span><div><h3>نشانی و نقطه تحویل</h3><p>روی نقشه لمس کنید یا موقعیت فعلی را ثبت کنید.</p></div></div><label><span>آدرس کامل، پلاک و واحد</span><textarea [(ngModel)]="model.address" name="address" rows="3" placeholder="تهران، منطقه ..."></textarea></label><div #map class="map" aria-label="نقشه انتخاب موقعیت"></div><div class="map-actions"><button type="button" (click)="locate()">⌖ استفاده از موقعیت فعلی</button>@if(model.lat){<span>نقطه تحویل ثبت شد ✓</span>}@else{<small>یک نقطه داخل تهران انتخاب کنید</small>}</div></section>
+   <aside class="deposit"><div><small>بیعانه رزرو پیک</small><strong>۱٬۰۰۰٬۰۰۰ تومان</strong></div><p>بعد از پرو، قیمت کالاهای انتخابی با کسر همین بیعانه کارت‌به‌کارت می‌شود و سایر کالاها با پیک بازمی‌گردند.<br><b>در صورت انتخاب‌نکردن هیچ‌کدام از کالاها، ۶۰۰ هزار تومان بابت ایاب‌وذهاب از بیعانه کسر می‌شود.</b></p></aside>
+   @if(error){<p class="error">{{error}}</p>}<button class="pay" [disabled]="busy||!trial.items().length">{{busy?'در حال انتقال امن…':'ثبت درخواست و پرداخت بیعانه'}}</button>
+  </form>
+ </div>
+</main>

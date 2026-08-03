@@ -22,6 +22,13 @@ import { ProductVariationEntity } from '../platform/import/entities/product-vari
 import { DiscountsService } from '../discounts/discounts.service';
 
 export const MAX_PRODUCT_PHOTOS = 5;
+const NEW_PRODUCTS_CATEGORY_SLUG = 'new-products';
+
+const INVENTORY_RESUMABLE_STATUSES = new Set<ProductStatus>([
+  'published',
+  'waiting_photo',
+  'ready_for_approval',
+]);
 
 const DATA_URL_PATTERN = /^data:(image\/[a-z0-9.+-]+);base64,(.+)$/i;
 
@@ -104,10 +111,17 @@ export class ProductsService {
     removed: number;
     queue: ProductEntity[];
   }> {
-    const incomingCodes = dto.products.map((p) => p.code.trim().toUpperCase());
+    // Zero-stock rows are never candidates for insert/update. Import clients
+    // should report their codes in removedOutOfStock; this guard keeps the
+    // server rule authoritative even if a client sends a malformed payload.
+    const positiveRows = dto.products.filter((p) => p.stock > 0);
+    const zeroRowCodes = dto.products
+      .filter((p) => p.stock <= 0)
+      .map((p) => p.code.trim().toUpperCase());
+    const incomingCodes = positiveRows.map((p) => p.code.trim().toUpperCase());
     const positiveCodeSet = new Set(incomingCodes);
     const removeCodes = [
-      ...new Set(dto.removedOutOfStock.map((c) => c.trim().toUpperCase())),
+      ...new Set([...dto.removedOutOfStock, ...zeroRowCodes].map((c) => c.trim().toUpperCase())),
     ].filter((code) => Boolean(code) && !positiveCodeSet.has(code));
 
     let removed = 0;
@@ -115,24 +129,13 @@ export class ProductsService {
       const zeroStockProducts = await this.repo.find({
         where: { code: In(removeCodes) },
       });
-      const removableIds: string[] = [];
       for (const product of zeroStockProducts) {
-        if (
-          product.status === 'published' ||
-          product.status === 'awaiting_stock'
-        ) {
-          product.stock = 0;
-          product.status = 'awaiting_stock';
-          product.isNewImport = false;
-          product.inventoryUpdatedAt = new Date().toISOString();
-          await this.repo.save(product);
-        } else if (product.status !== 'rejected') {
-          removableIds.push(product.id);
-        }
-      }
-      if (removableIds.length) {
-        const result = await this.repo.delete({ id: In(removableIds) });
-        removed = result.affected ?? 0;
+        // Trash is an explicit admin decision and Excel must never mutate it.
+        if (product.status === 'rejected') continue;
+        this.moveToAwaitingStock(product);
+        product.inventoryUpdatedAt = new Date().toISOString();
+        await this.repo.save(product);
+        removed += 1;
       }
     }
 
@@ -147,7 +150,7 @@ export class ProductsService {
     let updated = 0;
     const now = new Date().toISOString();
 
-    for (const row of dto.products) {
+    for (const row of positiveRows) {
       const code = row.code.trim().toUpperCase();
       const current = existingByCode.get(code);
 
@@ -155,22 +158,13 @@ export class ProductsService {
         // زباله‌دان از چرخه به‌روزرسانی اکسل خارج است.
         if (current.status === 'rejected') continue;
         current.name = row.name.trim();
-        current.category = row.category;
-        current.parentCategory = row.parentCategory ?? current.parentCategory;
-        current.parentCategorySlug =
-          row.parentCategorySlug ?? current.parentCategorySlug;
-        current.categorySlug = row.categorySlug ?? current.categorySlug;
         current.stock = row.stock;
-        if (row.status === 'rejected') {
-          current.trashedFromStatus = current.status;
-          current.status = 'rejected';
-        }
-        if (current.status === 'awaiting_stock' && row.stock > 0) {
-          current.status = 'published';
-        }
+        if (current.status === 'awaiting_stock' && row.stock > 0)
+          this.restoreAfterRestock(current);
         current.inventoryUpdatedAt = now;
         if (row.price !== undefined) current.price = row.price;
-        current.isNewImport = row.isNewImport ?? current.isNewImport;
+        // A new product stays new until an admin explicitly classifies it.
+        // Subsequent daily files are not allowed to clear this workflow flag.
         if (row.size !== undefined) current.size = row.size || null;
         if (row.material !== undefined) current.material = row.material || null;
         current.enrichment = {
@@ -196,7 +190,7 @@ export class ProductsService {
         categorySlug: row.categorySlug ?? '',
         stock: row.stock,
         price: row.price ?? null,
-        isNewImport: row.isNewImport ?? false,
+        isNewImport: true,
         size: row.size || null,
         material: row.material || null,
         enrichment: {
@@ -205,7 +199,7 @@ export class ProductsService {
           ...(row.platformHeight ? { platformHeight: row.platformHeight } : {}),
           ...(row.variantKey ? { variantKey: row.variantKey } : {}),
         },
-        status: row.status ?? 'waiting_photo',
+        status: 'waiting_photo',
         photos: [],
         importedAt: now,
         productType: row.variations?.length ? 'variable' : 'simple',
@@ -217,6 +211,30 @@ export class ProductsService {
     }
 
     return { added, updated, removed, queue: await this.getQueue() };
+  }
+
+  private moveToAwaitingStock(product: ProductEntity): void {
+    if (product.status !== 'awaiting_stock' && INVENTORY_RESUMABLE_STATUSES.has(product.status)) {
+      product.enrichment = {
+        ...(product.enrichment ?? {}),
+        inventoryResumeStatus: product.status,
+      };
+    }
+    product.stock = 0;
+    product.status = 'awaiting_stock';
+  }
+
+  private restoreAfterRestock(product: ProductEntity): void {
+    const saved = product.enrichment?.['inventoryResumeStatus'];
+    product.status = typeof saved === 'string' && INVENTORY_RESUMABLE_STATUSES.has(saved as ProductStatus)
+      ? saved as ProductStatus
+      : (product.photos ?? []).length
+        ? 'ready_for_approval'
+        : 'waiting_photo';
+    if (product.enrichment && 'inventoryResumeStatus' in product.enrichment) {
+      const { inventoryResumeStatus: _removed, ...rest } = product.enrichment;
+      product.enrichment = rest;
+    }
   }
 
   private async syncVariations(
@@ -485,6 +503,7 @@ export class ProductsService {
       parentCategorySlug: string;
       collection?: string;
       hiddenTags?: string[];
+      modelSelectionEnabled?: boolean;
     },
   ): Promise<ProductEntity> {
     const product = await this.getById(id);
@@ -492,6 +511,11 @@ export class ProductsService {
     product.categorySlug = dto.categorySlug.trim();
     product.parentCategory = dto.parentCategory.trim();
     product.parentCategorySlug = dto.parentCategorySlug.trim();
+    // Assigning a real category is the explicit admin decision that ends the
+    // permanent "new product" holding state.
+    if (product.parentCategorySlug !== NEW_PRODUCTS_CATEGORY_SLUG) {
+      product.isNewImport = false;
+    }
     if (dto.collection !== undefined)
       product.collection = dto.collection.trim() || null;
     if (dto.hiddenTags !== undefined) {
@@ -501,6 +525,9 @@ export class ProductsService {
           ...new Set(dto.hiddenTags.map((tag) => tag.trim()).filter(Boolean)),
         ],
       };
+    }
+    if (dto.modelSelectionEnabled !== undefined) {
+      product.enrichment = { ...(product.enrichment ?? {}), modelSelectionEnabled: dto.modelSelectionEnabled };
     }
     return this.repo.save(product);
   }

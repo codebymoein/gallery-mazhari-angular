@@ -6,6 +6,7 @@ import { AdminAuthService } from './admin-auth.service';
 import { ConsultationFormPayload } from '@shared/data/consultation-options';
 import { environment } from '@env/environment';
 import { DreamCanvasService, DreamCanvasItem } from './dream-canvas.service';
+import { BridalPreferenceProfile } from './bridal-preference.service';
 
 export type ConsultationSubmitStatus =
   | 'success'
@@ -34,6 +35,8 @@ export interface StoredConsultationRequest extends ConsultationFormPayload {
   adminNote?: string;
   /** Snapshot taken when the request is submitted; prevents mixing customers' canvases. */
   dreamItems?: Pick<DreamCanvasItem, 'productId' | 'name'>[];
+  preferenceProfile?: BridalPreferenceProfile;
+  desiredTags?: string[];
 }
 
 const STATUS_MESSAGES: Record<ConsultationSubmitStatus, string> = {
@@ -82,6 +85,7 @@ export class ConsultationService {
       message?: string; source: ConsultationFormPayload['consultation_source']; productName?: string;
       productId?: string; dreamItems?: Pick<DreamCanvasItem, 'productId' | 'name'>[];
       followUpTag?: ConsultationFollowUpTag; adminNote?: string; createdAt: string;
+      preferenceProfile?: BridalPreferenceProfile; desiredTags?: string[];
     }>>(`${environment.backendApiBaseUrl}/consultations`, this.authOptions()).pipe(
       tap(items => localStorage.setItem(this.storageKey, JSON.stringify(items.map(item => ({
         id: item.id, last_name: item.lastName, phone: item.phone, ceremony_date: item.ceremonyDate,
@@ -89,6 +93,7 @@ export class ConsultationService {
         consultation_source: item.source, product_name: item.productName, product_id: item.productId,
         dreamItems: item.dreamItems || [], followUpTag: item.followUpTag,
         adminNote: item.adminNote || '', created_at: item.createdAt,
+        preferenceProfile: item.preferenceProfile, desiredTags: item.desiredTags || [],
       }))))),
       // Read the normalized cache so all existing admin consumers keep one shape.
       map(() => this.readRequests())
@@ -160,6 +165,15 @@ export class ConsultationService {
       } catch {
         subscriber.error('save-error');
       }
+    });
+  }
+
+  submitPotentialLead(input: { lastName: string; phone: string; profile: BridalPreferenceProfile; desiredTags: string[] }): Observable<unknown> {
+    return this.http.post(`${environment.backendApiBaseUrl}/consultations`, {
+      lastName: input.lastName.trim(), phone: normalizePhoneDigits(input.phone),
+      source: 'dream-profile', contactTime: 'anytime', consent: true,
+      preferenceProfile: input.profile, desiredTags: input.desiredTags,
+      dreamItems: this.dreamCanvas.items.map(item => ({ productId: String(item.productId), name: item.name }))
     });
   }
 

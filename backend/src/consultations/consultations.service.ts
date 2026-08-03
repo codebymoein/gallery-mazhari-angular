@@ -36,6 +36,8 @@ export class ConsultationsService {
         productName: dto.productName?.trim() || null,
         productId: dto.productId?.trim() || null,
         dreamItems: (dto.dreamItems || []).slice(0, 30),
+        preferenceProfile: dto.preferenceProfile || null,
+        desiredTags: [...new Set((dto.desiredTags || []).map(tag => tag.trim()).filter(Boolean))].slice(0, 30),
         followUpTag: 'needs_followup',
         adminNote: null,
       }),
@@ -57,6 +59,7 @@ export class ConsultationsService {
         `منبع: ${record.source}`,
         `توضیحات: ${record.message || '-'}`,
         `بوم رویایی:\n${dream}`,
+        `سیگنال‌های انتخاب: ${(record.desiredTags || []).join('، ') || '-'}`,
       ].join('\n'),
       { consultationId: record.id, phone: record.phone },
     );

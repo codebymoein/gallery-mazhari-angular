@@ -108,3 +108,4 @@
 .inv-row--selected {
   background: #fffdf7 !important;
 }
+.inv-single{display:inline-block;margin-inline-start:.35rem;padding:.15rem .4rem;border-radius:1rem;background:#fff0df;color:#9b4300;font-size:.68rem;font-weight:800;white-space:nowrap}

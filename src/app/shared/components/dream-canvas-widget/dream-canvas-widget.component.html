@@ -26,13 +26,13 @@
     {{ canvas.announcement$ | async }}
   </p>
 
-  <dialog
+  @if (canvas.isOpen$ | async) {
+  <section
     #dialogEl
     class="dream-canvas__dialog"
     id="dream-canvas-dialog"
     aria-labelledby="dream-canvas-title"
     aria-describedby="dream-canvas-description"
-    (close)="onDialogClose()"
     >
     <header class="dream-canvas__header">
       <div>
@@ -100,10 +100,13 @@
     </div>
 
     <footer class="dream-canvas__footer">
-      <p>
-        انتخاب‌های مهمان حداکثر ۱۸۰ روز روی همین مرورگر می‌مانند؛ با ورود به حساب، به بوم حساب شما اضافه می‌شوند.
-      </p>
+      <div class="dream-canvas__footer-tools">
+        <button type="button" (click)="exportPdf()">ساخت PDF قابل انتشار</button>
+        <button type="button" (click)="requestConsultation()">مشاوره درباره بوم</button>
+      </div>
+      <p>حرفه‌ای‌ترین و باسابقه‌ترین مشاوران گالری مظهری رایگان تماس می‌گیرند و برای استایل شما نظر تخصصی ارائه می‌دهند.</p>
       <a [routerLink]="continueShoppingLink()" (click)="close()">ادامه مشاهده محصولات</a>
     </footer>
-  </dialog>
+  </section>
+  }
 </div>
