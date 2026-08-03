@@ -13,7 +13,7 @@
   </div>
 
   <div #track class="discover__track" role="list" aria-label="زیردسته‌های پیشنهادی">
-    @for (item of items; track item.link.join('/')) {
+    @for (item of items; track item.link.join('/'); let i = $index) {
       <a class="discover-card" [routerLink]="item.link" role="listitem">
         <div class="discover-card__media">
           <img
@@ -21,7 +21,7 @@
             [alt]="item.title"
             width="360"
             height="500"
-            loading="lazy"
+            [attr.loading]="i < 8 ? 'eager' : 'lazy'"
             decoding="async"
             (error)="hideBrokenImage($event)"
           >

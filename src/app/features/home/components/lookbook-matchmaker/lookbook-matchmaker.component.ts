@@ -8,6 +8,7 @@ import {
   inject,
   signal
 } from '@angular/core';
+import { onImgErrorUseFallback } from '@shared/utils/asset-url';
 
 import { RouterLink } from '@angular/router';
 import { StylesApiService } from '@core/services/styles-api.service';
@@ -144,7 +145,7 @@ export class LookbookMatchmakerComponent implements OnInit {
   }
 
   hideBrokenImage(event: Event): void {
-    (event.currentTarget as HTMLImageElement).hidden = true;
+    onImgErrorUseFallback(event);
   }
 
   onTrackScroll(): void {

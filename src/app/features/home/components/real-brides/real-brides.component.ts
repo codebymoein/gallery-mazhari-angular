@@ -7,6 +7,7 @@ import {
   inject,
   signal
 } from '@angular/core';
+import { onImgErrorUseFallback } from '@shared/utils/asset-url';
 
 import { AppearanceApiService } from '@core/services/appearance-api.service';
 
@@ -128,7 +129,7 @@ export class RealBridesComponent implements OnDestroy {
   }
 
   hideBrokenImage(event: Event): void {
-    (event.currentTarget as HTMLImageElement).hidden = true;
+    onImgErrorUseFallback(event);
   }
 
   @HostListener('document:keydown', ['$event'])

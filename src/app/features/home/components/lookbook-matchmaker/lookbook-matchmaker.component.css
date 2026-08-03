@@ -3,6 +3,8 @@
    Matte black + champagne gold · mobile-first slider
    ================================================================ */
 
+:host { display: block; }
+
 .lookbook {
   position: relative;
   isolation: isolate;

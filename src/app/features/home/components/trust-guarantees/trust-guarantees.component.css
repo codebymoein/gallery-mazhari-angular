@@ -3,6 +3,8 @@
    Glassmorphic dark cards · champagne gold · mobile-first
    ================================================================ */
 
+:host { display: block; }
+
 .trust-guarantees {
   position: relative;
   isolation: isolate;

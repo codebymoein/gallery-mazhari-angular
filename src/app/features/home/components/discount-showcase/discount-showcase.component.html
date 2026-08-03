@@ -12,7 +12,7 @@
       @for (product of products; track product) {
         <a class="card" [routerLink]="['/product', product.code]">
           <div class="media">
-            <img [src]="image(product)" [appResponsiveProductImage]="image(product)" [alt]="product.name" loading="lazy" />
+          <img [src]="image(product)" [appResponsiveProductImage]="image(product)" [alt]="product.name" loading="eager" />
             <b>{{ product.discountBadge || (product.discountPercent + '٪ تخفیف') }}</b>
           </div>
           <div class="body"><small>{{ product.category }}</small><h3>{{ product.name }}</h3>

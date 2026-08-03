@@ -3,6 +3,8 @@
    Mobile-First: Story Scroll → Bento Grid (desktop)
    ================================================================ */
 
+:host { display: block; }
+
 /* ── Section ── */
 .cat-showcase {
   position: relative;
