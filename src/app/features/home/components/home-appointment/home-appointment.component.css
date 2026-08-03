@@ -197,6 +197,30 @@
   font-weight: 500;
 }
 
+@media (max-width: 767px) {
+  .home-appointment {
+    padding-block: 1.5rem 2rem;
+  }
+
+  .home-appointment__divider {
+    margin-block-end: 1rem;
+  }
+
+  .home-appointment__intro {
+    display: none;
+  }
+
+  .home-appointment__inner {
+    display: block;
+  }
+
+  .home-appointment__form-card {
+    width: 100%;
+    max-inline-size: none;
+    margin: 0;
+  }
+}
+
 @media (min-width: 900px) {
   .home-appointment__inner {
     grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.85fr);
