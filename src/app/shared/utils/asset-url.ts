@@ -53,6 +53,18 @@ export const CATEGORY_IMAGE_FALLBACK =
 export function onImgErrorUseFallback(event: Event): void {
   const img = event.target as HTMLImageElement;
   if (img.dataset['fallbackApplied'] === '1') return;
+  // Safari can emit a transient decode/load error under memory or connection
+  // pressure. Retry the original URL once instead of permanently replacing a
+  // valid image with the fallback poster.
+  if (img.dataset['retryApplied'] !== '1') {
+    img.dataset['retryApplied'] = '1';
+    const original = img.currentSrc || img.src;
+    const separator = original.includes('?') ? '&' : '?';
+    window.setTimeout(() => {
+      img.src = `${original}${separator}retry=1`;
+    }, 150);
+    return;
+  }
   img.dataset['fallbackApplied'] = '1';
   img.src = CATEGORY_IMAGE_FALLBACK;
 }

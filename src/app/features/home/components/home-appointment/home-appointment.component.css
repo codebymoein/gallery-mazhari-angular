@@ -206,14 +206,6 @@
     margin-block-end: 1rem;
   }
 
-  .home-appointment__intro {
-    display: none;
-  }
-
-  .home-appointment__inner {
-    display: block;
-  }
-
   .home-appointment__form-card {
     width: 100%;
     max-inline-size: none;
