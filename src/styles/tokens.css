@@ -185,7 +185,7 @@
   /* ── Mazhari UI law ──────────────────────────────────────────────
      One visual grammar for every new or revised surface:
      Yekan typography, warm neutral surfaces, champagne borders,
-     portrait imagery, alternating arches, restrained elevation and
+     portrait rectangles in irregular mosaics, restrained elevation and
      touch targets no smaller than 44px. */
   --ui-font: var(--font-persian);
   --ui-surface: #fffdf9;
@@ -196,8 +196,7 @@
   --ui-accent: var(--color-gold-primary);
   --ui-radius-control: 0.72rem;
   --ui-radius-card: 1rem;
-  --ui-arch-top: 999px 999px 1rem 1rem;
-  --ui-arch-bottom: 1rem 1rem 999px 999px;
+  --ui-rect-radius: var(--ui-radius-card);
   --ui-portrait: 3 / 4.35;
   --ui-portrait-tall: 3 / 4.9;
   --ui-shadow-card: 0 12px 34px rgba(57, 43, 26, 0.1);

@@ -622,8 +622,15 @@
     padding: .7rem .55rem;
   }
 
+  .cat-story:nth-child(5n + 1),
+  .cat-story:nth-child(5n + 4) {
+    grid-column: span 2 !important;
+    grid-row: span 8;
+  }
+
   .cat-story:nth-child(3n + 2) { grid-row: span 12; }
   .cat-story:nth-child(4n) { grid-row: span 11; }
+  .cat-story:nth-child(5n + 3) { grid-row: span 9; }
 
   .cat-story__label {
     padding-inline: .2rem;

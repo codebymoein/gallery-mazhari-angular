@@ -657,15 +657,15 @@ nav[aria-label="مسیر صفحه"] > * {
 
 /* ================================================================
    Mazhari UI law — mobile category and subcategory imagery
-   Category cards use a dense, irregular portrait mosaic. The homepage
-   discovery carousel intentionally keeps its own uniform domed silhouette.
+   Portrait rectangles in a dense, irregular mosaic (not domed arches).
    ================================================================ */
 @media (max-width: 767px) {
   :where(
     .cat-story,
     .cat-hub__card,
     .accessory-store__card,
-    .bridal-catalog__chip
+    .bridal-catalog__chip,
+    .discover-card__media
   ) {
     min-width: 0;
     overflow: hidden;
@@ -678,7 +678,8 @@ nav[aria-label="مسیر صفحه"] > * {
     .cat-story,
     .cat-hub__card,
     .accessory-store__card,
-    .bridal-catalog__chip
+    .bridal-catalog__chip,
+    .discover-card__media
   ) {
     border-radius: var(--ui-radius-card) !important;
   }
@@ -692,7 +693,9 @@ nav[aria-label="مسیر صفحه"] > * {
     .accessory-store__shade,
     .bridal-catalog__chip-media,
     .bridal-catalog__chip-img,
-    .bridal-catalog__chip-fallback
+    .bridal-catalog__chip-fallback,
+    .discover-card__media img,
+    .discover-card__fallback
   ) {
     border-radius: inherit !important;
   }
@@ -701,7 +704,8 @@ nav[aria-label="مسیر صفحه"] > * {
     .cat-story__img,
     .cat-hub__card-img,
     .accessory-store__image,
-    .bridal-catalog__chip-img
+    .bridal-catalog__chip-img,
+    .discover-card__media img
   ) {
     width: 100%;
     height: 100%;

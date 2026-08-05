@@ -74,7 +74,7 @@ async function scrollThroughAndPaint(page: Page): Promise<void> {
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
 }
 
-async function assertPortraitDomeCards(page: Page, selector: string): Promise<void> {
+async function assertPortraitRectangleCards(page: Page, selector: string): Promise<void> {
   const cards = page.locator(selector);
   await expect(cards.first()).toBeVisible();
   const geometry = await cards.evaluateAll((elements) =>
@@ -93,8 +93,10 @@ async function assertPortraitDomeCards(page: Page, selector: string): Promise<vo
   expect(geometry.length).toBeGreaterThan(1);
   expect(geometry.every((card) => card.height > card.width)).toBe(true);
   expect(new Set(geometry.map((card) => Math.round(card.height))).size).toBeGreaterThan(1);
-  expect(geometry[0].topRadius).toBeGreaterThan(geometry[0].bottomRadius);
-  expect(geometry[1].bottomRadius).toBeGreaterThan(geometry[1].topRadius);
+  expect(
+    geometry.every((card) => Math.abs(card.topRadius - card.bottomRadius) < 2),
+  ).toBe(true);
+  expect(geometry.every((card) => card.topRadius < 40)).toBe(true);
 }
 
 test.describe('iPhone WebKit rendering regressions', () => {
@@ -136,23 +138,23 @@ test.describe('iPhone WebKit rendering regressions', () => {
     }
   });
 
-  test('category imagery follows the portrait alternating-dome UI law', async ({
+  test('category imagery follows the portrait irregular-rectangle UI law', async ({
     page,
   }) => {
     test.setTimeout(90_000);
 
     await page.goto('/');
-    await assertPortraitDomeCards(page, '.cat-story');
-    await assertPortraitDomeCards(page, '.discover-card__media');
+    await assertPortraitRectangleCards(page, '.cat-story');
+    await assertPortraitRectangleCards(page, '.discover-card__media');
 
     await page.goto('/shop/bridal-clothing');
-    await assertPortraitDomeCards(page, '.cat-hub__card');
+    await assertPortraitRectangleCards(page, '.cat-hub__card');
 
     await page.goto('/accessories');
-    await assertPortraitDomeCards(page, '.accessory-store__card');
+    await assertPortraitRectangleCards(page, '.accessory-store__card');
 
     await page.goto('/catalog');
-    await assertPortraitDomeCards(page, '.bridal-catalog__chip');
+    await assertPortraitRectangleCards(page, '.bridal-catalog__chip');
 
     await page.evaluate(() => document.fonts.ready);
     const yekan = await page.evaluate(() => ({

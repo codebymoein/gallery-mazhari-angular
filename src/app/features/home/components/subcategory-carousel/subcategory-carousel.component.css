@@ -84,11 +84,19 @@
   text-decoration: none;
 }
 
+/* Editorial vertical rectangles in three alternating proportions. */
+.discover-card:nth-child(3n + 1) { flex-basis: clamp(8.5rem, 15vw, 11.5rem); }
+.discover-card:nth-child(3n + 1) .discover-card__media { aspect-ratio: 3 / 4.6; }
+.discover-card:nth-child(3n + 2) { flex-basis: clamp(11rem, 20vw, 15.5rem); }
+.discover-card:nth-child(3n + 2) .discover-card__media { aspect-ratio: 3 / 4; }
+.discover-card:nth-child(3n + 3) { flex-basis: clamp(7.75rem, 14vw, 10.5rem); }
+.discover-card:nth-child(3n + 3) .discover-card__media { aspect-ratio: 3 / 5; }
+
 .discover-card__media {
   position: relative;
   aspect-ratio: 3 / 4.25;
   overflow: hidden;
-  border-radius: 8rem 8rem .8rem .8rem;
+  border-radius: .95rem;
   background: #ddd1bf;
   box-shadow: 0 10px 30px rgba(42, 31, 20, .1);
 }
@@ -139,9 +147,15 @@
   .discover-card {
     flex-basis: min(43vw, 11.25rem);
   }
+  .discover-card:nth-child(3n + 1) { flex-basis: min(38vw, 10rem); }
+  .discover-card:nth-child(3n + 2) { flex-basis: min(46vw, 12rem); }
+  .discover-card:nth-child(3n + 3) { flex-basis: min(34vw, 9rem); }
 
   .discover-card__media {
     aspect-ratio: 3 / 4.25;
-    border-radius: 8rem 8rem .8rem .8rem;
+    border-radius: .95rem;
   }
+  .discover-card:nth-child(3n + 1) .discover-card__media { aspect-ratio: 3 / 4.6; }
+  .discover-card:nth-child(3n + 2) .discover-card__media { aspect-ratio: 3 / 4; }
+  .discover-card:nth-child(3n + 3) .discover-card__media { aspect-ratio: 3 / 5; }
 }
