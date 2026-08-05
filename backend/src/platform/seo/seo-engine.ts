@@ -46,7 +46,7 @@ export interface ProductSeoPayload {
   generatedAt: string;
 }
 
-const SITE_DEFAULT = 'https://gallery-mazhari.ir';
+const SITE_DEFAULT = 'https://gallerymazhari.com';
 
 /** Lightweight FA/EN keyword → slug segment */
 const SLUG_MAP: Array<[RegExp, string]> = [

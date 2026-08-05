@@ -15,11 +15,11 @@ describe('assetUrl', () => {
   });
 
   it('normalizes bundled asset paths and empty input', () => {
-    expect(assetUrl('assets/images/item.webp')).toBe(
-      '/assets/images/item.webp',
+    expect(assetUrl('assets/images/item.webp')).toMatch(
+      /^\/assets\/images\/item\.webp\?v=[\w-]+$/,
     );
-    expect(assetUrl('./assets/images/item.webp')).toBe(
-      '/assets/images/item.webp',
+    expect(assetUrl('./assets/images/item.webp')).toMatch(
+      /^\/assets\/images\/item\.webp\?v=[\w-]+$/,
     );
     expect(assetUrl('   ')).toBe('');
     expect(assetUrl(undefined)).toBe('');

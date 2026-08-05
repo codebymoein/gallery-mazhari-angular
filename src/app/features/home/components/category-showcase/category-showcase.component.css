@@ -601,3 +601,33 @@
     animation-duration: .01ms !important;
   }
 }
+
+/* Shared UI law: mobile category images are always portrait. The varying row
+   spans preserve the editorial mosaic without producing horizontal cards. */
+@media (max-width: 767px) {
+  .cat-showcase__stories {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-auto-flow: dense;
+    grid-auto-rows: 1rem;
+    gap: .7rem;
+    padding-inline: .85rem;
+  }
+
+  .cat-story,
+  .cat-story--wide,
+  .cat-story--tall {
+    grid-column: span 1 !important;
+    grid-row: span 10;
+    min-block-size: 0;
+    padding: .7rem .55rem;
+  }
+
+  .cat-story:nth-child(3n + 2) { grid-row: span 12; }
+  .cat-story:nth-child(4n) { grid-row: span 11; }
+
+  .cat-story__label {
+    padding-inline: .2rem;
+    font-size: clamp(.68rem, 3.2vw, .78rem);
+    line-height: 1.55;
+  }
+}

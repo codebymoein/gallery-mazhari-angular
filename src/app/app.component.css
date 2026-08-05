@@ -3,6 +3,7 @@
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  min-height: 100svh;
   background: var(--color-bg-cream);
 }
 
@@ -20,6 +21,7 @@
 
 .app-main--admin {
   min-height: 100vh;
+  min-height: 100svh;
   background: #f4f2ee;
 }
 

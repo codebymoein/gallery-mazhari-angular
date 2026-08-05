@@ -17,8 +17,8 @@ import {
 } from 'class-validator';
 
 export class UpdatePaymentSettingsDto {
-  @IsIn(['disabled', 'zarinpal', 'custom'])
-  provider: 'disabled' | 'zarinpal' | 'custom';
+  @IsIn(['disabled', 'zibal', 'custom'])
+  provider: 'disabled' | 'zibal' | 'custom';
 
   @IsBoolean()
   enabled: boolean;

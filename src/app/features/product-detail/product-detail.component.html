@@ -323,16 +323,37 @@
             >درخواست مشاوره حرفه‌ای</a>
           </div>
         }
-        @if (p.description) {
-          <section class="bridal-product__additional bridal-product__description">
-            <h2>توضیحات مختصر</h2>
-            <p>{{ p.description }}</p>
-          </section>
-        }
-        @if (p.additionalDescription) {
-          <section class="bridal-product__additional">
-            <h2>توضیحات تکمیلی</h2>
-            <p>{{ p.additionalDescription }}</p>
+        @if (p.description || p.additionalDescription) {
+          <section
+            class="bridal-product__additional bridal-product__description"
+            [class.bridal-product__description--expanded]="descriptionExpanded"
+            aria-labelledby="product-description-title"
+            >
+            <div class="bridal-product__description-head">
+              <span aria-hidden="true">✦</span>
+              <h2 id="product-description-title">توضیحات محصول</h2>
+            </div>
+            @if (p.description) {
+              <p class="bridal-product__description-summary">{{ p.description }}</p>
+            }
+            @if (p.additionalDescription && descriptionExpanded) {
+              <div class="bridal-product__description-more" id="product-description-more">
+                <h3>جزئیات تکمیلی</h3>
+                <p>{{ p.additionalDescription }}</p>
+              </div>
+            }
+            @if (p.additionalDescription) {
+              <button
+                type="button"
+                class="bridal-product__description-toggle"
+                [attr.aria-expanded]="descriptionExpanded"
+                aria-controls="product-description-more"
+                (click)="toggleDescription()"
+                >
+                <span>{{ descriptionExpanded ? 'نمایش کمتر' : 'نمایش بیشتر' }}</span>
+                <b aria-hidden="true">{{ descriptionExpanded ? '−' : '+' }}</b>
+              </button>
+            }
           </section>
         }
         @if (false && showConsultation) {

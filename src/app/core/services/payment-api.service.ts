@@ -4,7 +4,7 @@ import { environment } from '@env/environment';
 import { Observable } from 'rxjs';
 import { AdminAuthService } from './admin-auth.service';
 
-export type PaymentProvider = 'disabled' | 'zarinpal' | 'custom';
+export type PaymentProvider = 'disabled' | 'zibal' | 'custom';
 
 export interface PaymentSettings {
   id?: number;

@@ -7,4 +7,4 @@ Disallow: /orders
 Disallow: /dream-canvas
 Disallow: /admin
 
-Sitemap: https://gallery-mazhari.ir/sitemap.xml
+Sitemap: https://gallerymazhari.com/sitemap.xml

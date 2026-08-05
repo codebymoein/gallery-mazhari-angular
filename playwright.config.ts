@@ -12,7 +12,6 @@ export default defineConfig({
   reporter: [['list'], ['html', { open: 'never' }]],
   use: {
     baseURL: frontendUrl,
-    channel: process.env['PLAYWRIGHT_CHANNEL'] ?? 'chrome',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     // Keep E2E runnable with a system Chrome even when Playwright's CDN
@@ -22,11 +21,21 @@ export default defineConfig({
   projects: [
     {
       name: 'desktop-chrome',
-      use: { ...devices['Desktop Chrome'] },
+      use: {
+        ...devices['Desktop Chrome'],
+        channel: process.env['PLAYWRIGHT_CHANNEL'] ?? 'chrome',
+      },
     },
     {
       name: 'mobile-chrome',
-      use: { ...devices['Pixel 7'] },
+      use: {
+        ...devices['Pixel 7'],
+        channel: process.env['PLAYWRIGHT_CHANNEL'] ?? 'chrome',
+      },
+    },
+    {
+      name: 'mobile-webkit',
+      use: { ...devices['iPhone 13'], browserName: 'webkit' },
     },
   ],
   webServer: [

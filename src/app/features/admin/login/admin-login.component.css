@@ -1,12 +1,15 @@
 :host {
   display: block;
   min-height: 100vh;
+  min-height: 100svh;
+  background: #100e0c;
 }
 
 .login {
   display: grid;
   grid-template-columns: 1.05fr 0.95fr;
   min-height: 100vh;
+  min-height: 100svh;
   background: #0f0e0c;
 }
 
@@ -14,13 +17,30 @@
   position: relative;
   display: grid;
   align-items: center;
-  padding: 2.5rem;
+  isolation: isolate;
+  padding: clamp(2rem, 5vw, 5rem);
   color: #f5f0e8;
   background:
     radial-gradient(ellipse 70% 50% at 20% 10%, rgba(184, 151, 62, 0.22), transparent 55%),
     radial-gradient(ellipse 50% 40% at 90% 90%, rgba(184, 151, 62, 0.1), transparent 50%),
     linear-gradient(160deg, #141210 0%, #0a0908 100%);
   overflow: hidden;
+}
+
+.login__brand::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  width: min(34vw, 28rem);
+  aspect-ratio: 1;
+  inset-inline-end: -10%;
+  inset-block-end: -28%;
+  border: 1px solid rgba(216, 184, 104, 0.13);
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 3.5rem rgba(216, 184, 104, 0.025),
+    0 0 0 7rem rgba(216, 184, 104, 0.018);
+  pointer-events: none;
 }
 
 .login__brand::after {
@@ -36,6 +56,7 @@
   position: relative;
   z-index: 1;
   max-width: 28rem;
+  padding-inline: clamp(0rem, 2vw, 1.25rem);
 }
 
 .login__eyebrow {
@@ -90,18 +111,35 @@
 .login__panel {
   display: grid;
   place-items: center;
-  padding: 1.5rem;
+  padding:
+    max(1.5rem, env(safe-area-inset-top, 0px))
+    max(1.5rem, env(safe-area-inset-right, 0px))
+    max(1.5rem, env(safe-area-inset-bottom, 0px))
+    max(1.5rem, env(safe-area-inset-left, 0px));
   background:
-    linear-gradient(180deg, #f7f5f1 0%, #f0eeea 100%);
+    radial-gradient(circle at 90% 8%, rgba(184, 151, 62, 0.11), transparent 28%),
+    linear-gradient(180deg, #faf8f4 0%, #f0ece5 100%);
 }
 
 .login__card {
+  position: relative;
   width: min(100%, 24.5rem);
-  padding: 1.75rem 1.5rem;
-  border-radius: 1rem;
-  border: 1px solid #e7e5e4;
-  background: #fff;
-  box-shadow: 0 18px 48px rgba(28, 25, 23, 0.08);
+  overflow: hidden;
+  padding: 2rem 1.75rem 1.6rem;
+  border-radius: 1.15rem;
+  border: 1px solid #e4dbce;
+  background: linear-gradient(155deg, #fff 0%, #fffdf9 100%);
+  box-shadow:
+    0 28px 70px rgba(52, 39, 22, 0.13),
+    0 2px 8px rgba(52, 39, 22, 0.05);
+}
+
+.login__card::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 4px;
+  background: linear-gradient(90deg, #5e441a, #d3b15c 50%, #5e441a);
 }
 
 .login__title {
@@ -124,6 +162,16 @@
   gap: 0.85rem;
 }
 
+.login__form + .login__recovery-toggle {
+  margin-block-start: 0.75rem;
+}
+
+.login__recovery-toggle + .login__form {
+  margin-block-start: 0.8rem;
+  padding-block-start: 0.85rem;
+  border-block-start: 1px solid #ece4d8;
+}
+
 .login__pass-wrap {
   position: relative;
 }
@@ -144,6 +192,11 @@
   font-size: 0.72rem;
   font-weight: 700;
   cursor: pointer;
+}
+
+.login__eye:hover,
+.login__eye:focus-visible {
+  color: #765826;
 }
 
 .login__demos {
@@ -180,11 +233,12 @@
 @media (max-width: 900px) {
   .login {
     grid-template-columns: 1fr;
+    grid-template-rows: auto minmax(0, 1fr);
   }
 
   .login__brand {
-    min-height: 38vh;
-    padding: 1.75rem 1.25rem;
+    min-height: clamp(10.5rem, 30svh, 14rem);
+    padding: 2rem 1.5rem;
   }
 
   .login__brand::after {
@@ -193,5 +247,75 @@
 
   .login__points {
     display: none;
+  }
+
+  .login__brand-title {
+    font-size: clamp(1.65rem, 7vw, 2.2rem);
+  }
+
+  .login__brand-lead {
+    max-width: 34rem;
+    font-size: 0.82rem;
+    line-height: 1.75;
+  }
+
+  .login__panel {
+    align-items: start;
+  }
+}
+
+@media (max-width: 560px) {
+  .login__brand {
+    min-height: auto;
+    padding: 1.6rem 1.15rem;
+  }
+
+  .login__brand::after {
+    inset: 0.6rem;
+  }
+
+  .login__brand-lead {
+    margin-block-start: 0.45rem;
+    font-size: 0.74rem;
+  }
+
+  .login__panel {
+    padding: 0.85rem max(0.75rem, env(safe-area-inset-right, 0px))
+      max(1.2rem, env(safe-area-inset-bottom, 0px))
+      max(0.75rem, env(safe-area-inset-left, 0px));
+  }
+
+  .login__card {
+    padding: 1.55rem 1rem 1.15rem;
+    border-radius: 0.9rem;
+  }
+
+  .login__title {
+    font-size: 1.2rem;
+  }
+
+  .login__lead {
+    margin-block-end: 0.9rem;
+    font-size: 0.77rem;
+  }
+
+  .login .adm-input {
+    min-height: 3rem;
+    font-size: 1rem;
+  }
+
+  .login .adm-btn {
+    min-height: 2.85rem;
+  }
+}
+
+@media (min-width: 901px) and (max-height: 700px) {
+  .login__brand,
+  .login__panel {
+    padding-block: 1.25rem;
+  }
+
+  .login__card {
+    padding-block: 1.5rem 1.1rem;
   }
 }

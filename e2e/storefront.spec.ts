@@ -55,4 +55,51 @@ test.describe('storefront smoke tests', () => {
       )
       .toBe(true);
   });
+
+  test('lower home sections remain painted and reachable on mobile engines', async ({
+    page,
+  }) => {
+    await page.goto('/');
+
+    const discoverTitle = page.locator('#discover-title');
+    const appointment = page.locator('.home-appointment__inner');
+
+    await discoverTitle.scrollIntoViewIfNeeded();
+    await expect(discoverTitle).toBeVisible();
+    await expect(discoverTitle).toBeInViewport();
+
+    await appointment.scrollIntoViewIfNeeded();
+    await expect(appointment).toBeVisible();
+    await expect(appointment).toBeInViewport();
+
+    const scrollState = await page.evaluate(() => ({
+      bodyHeight: document.body.scrollHeight,
+      rootHeight: document.documentElement.scrollHeight,
+      viewportHeight: window.innerHeight,
+      scrollTop: window.scrollY,
+    }));
+
+    expect(scrollState.bodyHeight).toBeGreaterThan(scrollState.viewportHeight * 2);
+    expect(scrollState.rootHeight).toBeGreaterThan(scrollState.viewportHeight * 2);
+    expect(scrollState.scrollTop).toBeGreaterThan(0);
+  });
+
+  test('storefront product cards do not use deferred paint containment', async ({
+    page,
+  }) => {
+    await page.goto('/catalog');
+    await expect(page.locator('app-root')).toBeVisible();
+
+    const deferredCards = await page.locator([
+      '.cat-products__card',
+      '.collection-page__card',
+      '.bridal-catalog__rail-card',
+      '.generic-catalog__card',
+      '.search-catalog__card',
+    ].join(',')).evaluateAll(cards =>
+      cards.filter(card => getComputedStyle(card).contentVisibility === 'auto').length,
+    );
+
+    expect(deferredCards).toBe(0);
+  });
 });

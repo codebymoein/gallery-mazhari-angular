@@ -25,7 +25,7 @@ export interface ProductSeoPayload {
 
 @Injectable({ providedIn: 'root' })
 export class SeoService {
-  private readonly siteUrl = 'https://gallery-mazhari.ir';
+  private readonly siteUrl = 'https://gallerymazhari.com';
   private readonly defaultImage = `${this.siteUrl}/assets/images/home-hero-bride.webp`;
 
   constructor(

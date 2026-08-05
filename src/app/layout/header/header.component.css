@@ -14,6 +14,20 @@
   box-shadow: var(--shadow-luxury);
   font-family: var(--font-persian);
   backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+/*
+ * All iPhone browsers use WebKit. Avoid its sticky + backdrop-filter + shadow
+ * compositor failure on long pages; the desktop navigation remains sticky.
+ */
+@media (max-width: 1023px) {
+  .luxury-nav {
+    position: relative;
+    inset-block-start: auto;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
 }
 
 /* ── Bar Layout: 3-col grid (nav | brand | actions) ── */

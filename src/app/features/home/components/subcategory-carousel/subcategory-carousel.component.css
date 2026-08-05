@@ -3,7 +3,9 @@
 .discover {
   padding: clamp(2.5rem, 6vw, 5.5rem) 0;
   overflow: hidden;
+  background: #f7f2e9;
   background: linear-gradient(180deg, var(--color-bg-cream) 0%, #f7f2e9 100%);
+  border-block: 1px solid #e5ddcf;
   border-block: 1px solid color-mix(in srgb, var(--color-gold-primary) 14%, transparent);
   font-family: var(--font-persian);
 }
@@ -12,9 +14,15 @@
   width: min(100% - 2rem, 82rem);
   margin: 0 auto clamp(1.4rem, 3vw, 2.25rem);
   display: flex;
-  align-items: end;
-  justify-content: space-between;
+  align-items: center;
+  justify-content: center;
   gap: 1rem;
+  text-align: center;
+}
+
+.discover__heading > div:first-child {
+  display: grid;
+  justify-items: center;
 }
 
 .discover__eyebrow {
@@ -40,7 +48,7 @@
   font-size: clamp(.78rem, 1.5vw, .95rem);
 }
 
-.discover__controls { display: flex; gap: .5rem; direction: ltr; }
+.discover__controls { position: absolute; inset-inline-end: max(1rem, calc((100vw - 82rem) / 2)); display: flex; gap: .5rem; direction: ltr; }
 .discover__controls button {
   width: 2.8rem;
   height: 2.8rem;
@@ -110,7 +118,7 @@
 .discover__hint { display: none; margin: .15rem 1rem 0; color: var(--mds-color-text-muted); font-size: .68rem; text-align: center; }
 
 @media (max-width: 767px) {
-  .discover__heading { align-items: start; }
+  .discover__heading { align-items: center; }
   .discover__controls { display: none; }
   .discover__track { padding-inline: 1rem; }
   .discover-card { flex-basis: min(44vw, 11.5rem); }
@@ -120,4 +128,20 @@
 @media (prefers-reduced-motion: reduce) {
   .discover__track { scroll-behavior: auto; }
   .discover-card__media img, .discover__controls button { transition: none; }
+}
+
+@media (max-width: 767px) {
+  .discover__track {
+    align-items: flex-start;
+    gap: .85rem;
+  }
+
+  .discover-card {
+    flex-basis: min(43vw, 11.25rem);
+  }
+
+  .discover-card__media {
+    aspect-ratio: 3 / 4.25;
+    border-radius: 8rem 8rem .8rem .8rem;
+  }
 }

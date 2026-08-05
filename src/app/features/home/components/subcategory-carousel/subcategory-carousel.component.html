@@ -21,7 +21,7 @@
             [alt]="item.title"
             width="360"
             height="500"
-            [attr.loading]="i < 8 ? 'eager' : 'lazy'"
+            loading="lazy"
             decoding="async"
             (error)="hideBrokenImage($event)"
           >

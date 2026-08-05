@@ -464,7 +464,7 @@ export class StagingQueueService {
         .map((c) => c.toUpperCase())
         .filter((code) => !positiveCodes.has(code))
     );
-    let removed = 0;
+    const removed = 0;
     let added = 0;
 
     this.itemsSignal.update((list) => {

@@ -19,7 +19,7 @@ export class CustomRequestsAdminComponent implements OnInit {
   ngOnInit(): void { this.load(); }
   load(): void { this.loading = true; this.api.list().subscribe({ next: value => { this.requests = value; this.loading = false; }, error: () => { this.error = 'دریافت درخواست‌ها انجام نشد.'; this.loading = false; } }); }
   save(request: CustomRequestRecord): void { this.api.update(request.id, { status: request.status, adminNote: request.adminNote || '' }).subscribe({ next: saved => Object.assign(request, saved), error: () => this.error = 'ذخیره تغییرات انجام نشد.' }); }
-  toggleDetails(id: string): void { this.expanded.has(id) ? this.expanded.delete(id) : this.expanded.add(id); }
+  toggleDetails(id: string): void { if (this.expanded.has(id)) { this.expanded.delete(id); } else { this.expanded.add(id); } }
   isExpanded(id: string): boolean { return this.expanded.has(id); }
   printPdf(): void { window.print(); }
   jalaliDate(value?: string | null, withTime = false): string {

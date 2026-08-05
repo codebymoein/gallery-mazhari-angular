@@ -1,6 +1,6 @@
 import { Column, Entity, PrimaryColumn, UpdateDateColumn } from 'typeorm';
 
-export type PaymentProvider = 'disabled' | 'zarinpal' | 'custom';
+export type PaymentProvider = 'disabled' | 'zibal' | 'custom';
 
 @Entity('payment_gateway_settings')
 export class PaymentSettingsEntity {

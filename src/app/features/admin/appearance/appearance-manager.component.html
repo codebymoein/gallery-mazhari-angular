@@ -22,39 +22,39 @@
       <label>درگاه فعال
         <select [(ngModel)]="payment.provider">
           <option value="disabled">غیرفعال</option>
-          <option value="zarinpal">زرین‌پال</option>
-          <option value="custom">درگاه سفارشی</option>
+          <option value="zibal">زیبال</option>
+          <option value="custom">سایر شرکت‌های پرداخت</option>
         </select>
       </label>
       <label>عنوان دکمه پرداخت
-        <input [(ngModel)]="payment.displayName" maxlength="100" placeholder="پرداخت امن با زرین‌پال">
+        <input [(ngModel)]="payment.displayName" maxlength="100" placeholder="پرداخت اینترنتی امن">
       </label>
       <label class="payment-check">
         <input type="checkbox" [(ngModel)]="payment.enabled">
         فعال‌کردن پرداخت آنلاین
       </label>
-      @if (payment.provider === 'zarinpal') {
+      @if (payment.provider === 'zibal') {
         <label class="payment-check">
           <input type="checkbox" [(ngModel)]="payment.sandbox">
-          حالت آزمایشی زرین‌پال
+          حالت آزمایشی زیبال
         </label>
       }
-      @if (payment.provider === 'zarinpal') {
-        <label>Merchant ID زرین‌پال
-          <input [(ngModel)]="payment.merchantId" dir="ltr" autocomplete="off" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+      @if (payment.provider === 'zibal') {
+        <label>کد پذیرنده زیبال
+          <input [(ngModel)]="payment.merchantId" dir="ltr" autocomplete="off" placeholder="کد پذیرنده دریافتی از زیبال">
         </label>
       }
       @if (payment.provider === 'custom') {
-        <label>آدرس ایجاد پرداخت
-          <input [(ngModel)]="payment.customRequestUrl" dir="ltr" placeholder="https://gateway.example/api/payment">
+        <label>آدرس API ایجاد پرداخت
+          <input [(ngModel)]="payment.customRequestUrl" dir="ltr" placeholder="https://gateway.example/api/request">
         </label>
-        <label>آدرس تأیید پرداخت
+        <label>آدرس API تأیید پرداخت
           <input [(ngModel)]="payment.customVerifyUrl" dir="ltr" placeholder="https://gateway.example/api/verify">
         </label>
         <label>قالب آدرس انتقال مشتری
           <input [(ngModel)]="payment.customPaymentUrlTemplate" dir="ltr" placeholder="https://gateway.example/pay/{authority}">
         </label>
-        <label>کلید API
+        <label>کلید یا توکن API شرکت پرداخت
           <input [(ngModel)]="payment.customApiKey" dir="ltr" type="password" autocomplete="new-password">
         </label>
       }

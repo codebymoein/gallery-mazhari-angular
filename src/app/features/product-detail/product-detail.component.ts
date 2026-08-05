@@ -119,6 +119,7 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
   veilPrintError = '';
   readonly veilPrintFee = 10_000_000;
   cartNoticeVisible = false;
+  descriptionExpanded = false;
   rentalSelected = false;
   ceremonyDate = '';
   rentalError = '';
@@ -199,6 +200,7 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
       this.rentalError = '';
       this.selectedModelIndex = -1;
       this.modelSelectionError = '';
+      this.descriptionExpanded = false;
       this.applyPrice(found);
       this.productIdNumber = productIdToNumber(found.id);
       this.onDreamBoard = this.dreamCanvas.has(this.productIdNumber);
@@ -208,7 +210,7 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
       this.seo.applyProductSeo({
         metaTitle: `${found.name} | گالری مظهری`,
         metaDescription: `${found.name} از مجموعه عروس گالری مظهری — مشاهده جزئیات و تکمیل استایل.`,
-        canonical: `https://gallery-mazhari.ir/product/${encodeURIComponent(found.id)}`,
+        canonical: `https://gallerymazhari.com/product/${encodeURIComponent(found.id)}`,
         altTexts: { primary: `${found.name} — گالری مظهری` },
         openGraph: {
           title: `${found.name} | گالری مظهری`,
@@ -222,7 +224,7 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
           sku: found.id,
           image: found.image ? [found.image] : undefined,
           brand: { '@type': 'Brand', name: 'گالری مظهری' },
-          url: `https://gallery-mazhari.ir/product/${encodeURIComponent(found.id)}`
+          url: `https://gallerymazhari.com/product/${encodeURIComponent(found.id)}`
         }
       }, found.name);
       this.cdr.markForCheck();
@@ -363,6 +365,11 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
     return product.highlights.filter(item =>
       !/^\s*(موجودی|قیمت(?:\s*فروش)?)\s*[:：-]?/u.test(item)
     );
+  }
+
+  toggleDescription(): void {
+    this.descriptionExpanded = !this.descriptionExpanded;
+    this.cdr.markForCheck();
   }
 
   galleryImages(): string[] {

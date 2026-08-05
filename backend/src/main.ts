@@ -43,6 +43,11 @@ async function bootstrap() {
     }),
   );
 
-  await app.listen(process.env.PORT ?? 3000);
+  const port = process.env.PORT ?? 3000;
+  if (isProduction) {
+    await app.listen(port, '127.0.0.1');
+  } else {
+    await app.listen(port);
+  }
 }
 bootstrap();

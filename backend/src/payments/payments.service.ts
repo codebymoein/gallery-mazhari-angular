@@ -65,12 +65,8 @@ export class PaymentsService {
       current.customApiKey = dto.customApiKey.trim();
     }
     current.sandbox = dto.sandbox;
-    if (
-      current.enabled &&
-      current.provider === 'zarinpal' &&
-      !current.merchantId
-    ) {
-      throw new BadRequestException('شناسه پذیرنده زرین‌پال الزامی است.');
+    if (current.enabled && current.provider === 'zibal' && !current.merchantId) {
+      throw new BadRequestException('کد پذیرنده زیبال الزامی است.');
     }
     return this.settingsRepo.save(current);
   }
@@ -217,8 +213,8 @@ export class PaymentsService {
     let gateway;
     try {
       gateway =
-        settings.provider === 'zarinpal'
-          ? await this.requestZarinpal(settings, transaction, callbackUrl)
+        settings.provider === 'zibal'
+          ? await this.requestZibal(settings, transaction, callbackUrl)
           : await this.requestCustom(settings, transaction, callbackUrl);
     } catch (error) {
       transaction.status = 'failed';
@@ -246,8 +242,8 @@ export class PaymentsService {
     if (!transaction) throw new NotFoundException('تراکنش پیدا نشد.');
     if (transaction.status === 'paid') return transaction;
     const settings = await this.getSettings();
-    if (transaction.provider === 'zarinpal') {
-      if (query['Status'] !== 'OK' || !query['Authority']) {
+    if (transaction.provider === 'zibal') {
+      if (query['success'] !== '1') {
         transaction.status = 'cancelled';
         await this.transactions.save(transaction);
         if (transaction.orderId) {
@@ -259,17 +255,11 @@ export class PaymentsService {
         }
         return transaction;
       }
-      if (
-        transaction.authority &&
-        query['Authority'] !== transaction.authority
-      ) {
+      const callbackTrackId = query['trackId'];
+      if (transaction.authority && callbackTrackId && callbackTrackId !== transaction.authority) {
         throw new BadRequestException('payment_authority_mismatch');
       }
-      const result = await this.verifyZarinpal(
-        settings,
-        transaction,
-        query['Authority'],
-      );
+      const result = await this.verifyZibal(settings, transaction);
       transaction.status = result.paid ? 'paid' : 'failed';
       transaction.referenceId = result.referenceId;
       transaction.gatewayResponse = result.raw;
@@ -324,75 +314,67 @@ export class PaymentsService {
     );
   }
 
-  private async requestZarinpal(
+  private async requestZibal(
     settings: PaymentSettingsEntity,
     tx: PaymentTransactionEntity,
     callbackUrl: string,
   ) {
-    if (!settings.merchantId)
-      throw new ServiceUnavailableException('زرین‌پال پیکربندی نشده است.');
-    const host = settings.sandbox
-      ? 'https://sandbox.zarinpal.com'
-      : 'https://api.zarinpal.com';
-    const response = await fetch(`${host}/pg/v4/payment/request.json`, {
+    const merchant = settings.sandbox ? 'zibal' : settings.merchantId;
+    if (!merchant)
+      throw new ServiceUnavailableException('زیبال پیکربندی نشده است.');
+    const response = await fetch('https://gateway.zibal.ir/v1/request', {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
         accept: 'application/json',
       },
       body: JSON.stringify({
-        merchant_id: settings.merchantId,
+        merchant,
         amount: tx.amount,
-        callback_url: callbackUrl,
+        callbackUrl,
         description: `سفارش ${tx.orderNumber} گالری مظهری`,
-        metadata: {
-          mobile: tx.customer?.['phone'] || undefined,
-          email: tx.customer?.['email'] || undefined,
-        },
+        mobile: tx.customer?.['phone'] || undefined,
+        orderId: tx.orderNumber,
       }),
     });
     const raw = (await response.json()) as Record<string, any>;
-    const authority = String(raw?.['data']?.['authority'] || '');
-    if (!response.ok || !authority)
+    const authority = String(raw['trackId'] || '');
+    if (!response.ok || Number(raw['result']) !== 100 || !authority)
       throw new BadGatewayException(
-        raw?.['errors'] || 'خطا در ایجاد پرداخت زرین‌پال.',
+        raw['message'] || 'خطا در ایجاد پرداخت زیبال.',
       );
-    const payHost = settings.sandbox
-      ? 'https://sandbox.zarinpal.com'
-      : 'https://www.zarinpal.com';
     return {
       authority,
-      redirectUrl: `${payHost}/pg/StartPay/${authority}`,
+      redirectUrl: `https://gateway.zibal.ir/start/${encodeURIComponent(authority)}`,
       raw,
     };
   }
 
-  private async verifyZarinpal(
+  private async verifyZibal(
     settings: PaymentSettingsEntity,
     tx: PaymentTransactionEntity,
-    authority: string,
   ) {
-    const host = settings.sandbox
-      ? 'https://sandbox.zarinpal.com'
-      : 'https://api.zarinpal.com';
-    const response = await fetch(`${host}/pg/v4/payment/verify.json`, {
+    const merchant = settings.sandbox ? 'zibal' : settings.merchantId;
+    if (!merchant || !tx.authority) {
+      throw new ServiceUnavailableException('اطلاعات تأیید پرداخت زیبال ناقص است.');
+    }
+    const response = await fetch('https://gateway.zibal.ir/v1/verify', {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
         accept: 'application/json',
       },
       body: JSON.stringify({
-        merchant_id: settings.merchantId,
-        amount: tx.amount,
-        authority,
+        merchant,
+        trackId: Number(tx.authority),
       }),
     });
     const raw = (await response.json()) as Record<string, any>;
-    const code = Number(raw?.['data']?.['code']);
+    const code = Number(raw['result']);
     return {
-      paid: response.ok && (code === 100 || code === 101),
-      referenceId: raw?.['data']?.['ref_id']
-        ? String(raw['data']['ref_id'])
+      paid: response.ok && (code === 100 || code === 201),
+      referenceId: raw['refNumber']
+        ? String(raw['refNumber'])
         : null,
       raw,
     };

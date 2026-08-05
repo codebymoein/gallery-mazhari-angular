@@ -182,3 +182,28 @@
     transform: scale(1.06);
   }
 }
+
+@media (max-width: 759px) {
+  .accessory-store__mosaic {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-auto-flow: dense;
+    grid-auto-rows: 1rem;
+    gap: .7rem;
+  }
+
+  .accessory-store__card,
+  .accessory-store__card--hero,
+  .accessory-store__card--tall,
+  .accessory-store__card--wide,
+  .accessory-store__card--compact {
+    grid-column: span 3 !important;
+    grid-row: span 10;
+  }
+
+  .accessory-store__card:nth-child(3n + 2) { grid-row: span 12; }
+  .accessory-store__card:nth-child(4n) { grid-row: span 11; }
+
+  .accessory-store__content {
+    padding: .85rem .65rem;
+  }
+}

@@ -72,7 +72,7 @@ export class MarketingHubComponent {
   }
 
   toggleProduct(product: BackendProduct, checked: boolean): void {
-    checked ? this.selectedProductIds.add(product.id) : this.selectedProductIds.delete(product.id);
+    if (checked) { this.selectedProductIds.add(product.id); } else { this.selectedProductIds.delete(product.id); }
     this.syncProductTarget();
   }
 

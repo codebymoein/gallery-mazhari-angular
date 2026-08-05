@@ -96,10 +96,21 @@ select {
 /* Layout */
 html,
 body {
-  height: 100%;
+  min-height: 100%;
   max-width: 100%;
-  overflow-x: clip;
   scroll-behavior: smooth;
+}
+
+/*
+ * Keep the document as the only vertical scroll container. Setting just
+ * overflow-x:hidden on body makes its computed overflow-y become auto. That
+ * creates a second scroller in WebKit and can leave long pages partly
+ * unpainted after a fast iPhone scroll.
+ */
+body {
+  min-height: 100svh;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 html.dream-canvas-modal-open,
@@ -112,6 +123,21 @@ body {
   font-family: var(--font-persian);
   color: var(--color-text-main);
   background-color: var(--color-bg-cream);
+}
+
+/*
+ * Every iPhone browser uses WebKit. A long document containing several fixed
+ * translucent controls can exceed its compositor budget and show a large
+ * white, unpainted band. Gradients and opaque fallbacks remain visible; only
+ * the expensive live blur is removed on iPhone-sized WebKit viewports.
+ */
+@supports (-webkit-touch-callout: none) {
+  @media (max-width: 1023px) {
+    body * {
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+    }
+  }
 }
 
 main {
@@ -627,4 +653,59 @@ nav[aria-label="مسیر صفحه"] > * {
   line-height: 1.4;
   letter-spacing: .12em;
   pointer-events: none;
+}
+
+/* ================================================================
+   Mazhari UI law — mobile category and subcategory imagery
+   Category cards use a dense, irregular portrait mosaic. The homepage
+   discovery carousel intentionally keeps its own uniform domed silhouette.
+   ================================================================ */
+@media (max-width: 767px) {
+  :where(
+    .cat-story,
+    .cat-hub__card,
+    .accessory-store__card,
+    .bridal-catalog__chip
+  ) {
+    min-width: 0;
+    overflow: hidden;
+    border: 1px solid var(--ui-border) !important;
+    background: var(--ui-surface-muted);
+    box-shadow: var(--ui-shadow-card);
+  }
+
+  :where(
+    .cat-story,
+    .cat-hub__card,
+    .accessory-store__card,
+    .bridal-catalog__chip
+  ) {
+    border-radius: var(--ui-radius-card) !important;
+  }
+
+  :where(
+    .cat-story__ring,
+    .cat-story__img-wrap,
+    .cat-story__fallback,
+    .cat-hub__card-media,
+    .accessory-store__image,
+    .accessory-store__shade,
+    .bridal-catalog__chip-media,
+    .bridal-catalog__chip-img,
+    .bridal-catalog__chip-fallback
+  ) {
+    border-radius: inherit !important;
+  }
+
+  :where(
+    .cat-story__img,
+    .cat-hub__card-img,
+    .accessory-store__image,
+    .bridal-catalog__chip-img
+  ) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center top;
+  }
 }

@@ -11,7 +11,7 @@
   --adm-faint: #a8a29e;
   --adm-line: #e7e5e4;
   --adm-line-strong: #d6d3d1;
-  --adm-bg: #f5f4f2;
+  --adm-bg: #f6f3ed;
   --adm-surface: #ffffff;
   --adm-surface-soft: #fafaf9;
   --adm-sidebar: #141210;
@@ -31,10 +31,10 @@
   --adm-danger: #b91c1c;
   --adm-danger-bg: #fef2f2;
   --adm-danger-border: #fecaca;
-  --adm-shadow-sm: 0 1px 2px rgba(28, 25, 23, 0.05);
-  --adm-shadow: 0 8px 24px rgba(28, 25, 23, 0.06);
-  --adm-radius: 0.75rem;
-  --adm-radius-sm: 0.5rem;
+  --adm-shadow-sm: 0 3px 12px rgba(54, 42, 25, 0.055);
+  --adm-shadow: 0 14px 38px rgba(54, 42, 25, 0.08);
+  --adm-radius: 0.9rem;
+  --adm-radius-sm: 0.6rem;
   --adm-sidebar-w: 16.5rem;
   --adm-topbar-h: 3.75rem;
   --adm-font: var(--font-persian, 'IRANSansX', Tahoma, sans-serif);
@@ -107,10 +107,10 @@
 /* ── Cards / panels ──────────────────────────────────────────── */
 
 .adm-card {
-  background: var(--adm-surface);
-  border: 1px solid var(--adm-line);
+  background: linear-gradient(160deg, #fff 0%, #fffdfa 100%);
+  border: 1px solid #e5ddd1;
   border-radius: var(--adm-radius);
-  box-shadow: var(--adm-shadow-sm);
+  box-shadow: var(--adm-shadow);
 }
 
 .adm-card__head {
@@ -157,10 +157,10 @@
   display: grid;
   gap: 0.55rem;
   padding: 1rem 1.05rem;
-  background: var(--adm-surface);
-  border: 1px solid var(--adm-line);
+  background: linear-gradient(160deg, #fff 0%, #fffdf9 100%);
+  border: 1px solid #e5ddd1;
   border-radius: var(--adm-radius);
-  box-shadow: var(--adm-shadow-sm);
+  box-shadow: 0 8px 24px rgba(54, 42, 25, 0.065);
 }
 
 .adm-kpi::before {
@@ -217,11 +217,13 @@
   line-height: 1;
   text-decoration: none;
   cursor: pointer;
+  box-shadow: 0 4px 12px rgba(28, 25, 23, 0.08);
   transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
 }
 
 .adm-btn:hover:not(:disabled) {
   background: #292524;
+  transform: translateY(-1px);
 }
 
 .adm-btn:focus-visible {
@@ -235,12 +237,14 @@
 }
 
 .adm-btn--gold {
-  background: var(--adm-gold);
-  color: #141210;
+  border-color: #806023;
+  background: linear-gradient(135deg, #a98438, #765826);
+  color: #fffdf7;
+  box-shadow: 0 7px 18px rgba(118, 88, 38, 0.24);
 }
 
 .adm-btn--gold:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--adm-gold) 88%, #fff);
+  background: linear-gradient(135deg, #b28d3f, #806027);
 }
 
 .adm-btn--success {
@@ -257,6 +261,7 @@
   background: transparent;
   border-color: var(--adm-line-strong);
   color: var(--adm-ink-soft);
+  box-shadow: none;
 }
 
 .adm-btn--ghost:hover:not(:disabled) {
@@ -268,6 +273,7 @@
   background: var(--adm-surface-soft);
   border-color: var(--adm-line);
   color: var(--adm-ink);
+  box-shadow: 0 2px 8px rgba(54, 42, 25, 0.045);
 }
 
 .adm-btn--soft:hover:not(:disabled) {
@@ -311,10 +317,13 @@
   padding: 0 0.85rem;
   border: 1px solid var(--adm-line-strong);
   border-radius: var(--adm-radius-sm);
-  background: var(--adm-surface);
+  background: #fffdfa;
   color: var(--adm-ink);
   font-family: inherit;
   font-size: 0.875rem;
+  appearance: none;
+  -webkit-appearance: none;
+  box-shadow: inset 0 1px 2px rgba(54, 42, 25, 0.035);
   transition: border-color 0.18s ease, box-shadow 0.18s ease;
 }
 
@@ -446,9 +455,8 @@
 .adm-table-wrap {
   max-width: 100%;
   overflow-x: auto;
+  overflow-y: visible;
   overscroll-behavior-inline: contain;
-  -webkit-overflow-scrolling: touch;
-  overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
 
@@ -472,6 +480,9 @@
   .adm-kpi { min-width: 0; padding: 0.7rem; }
   .adm-kpi__value { font-size: 1.1rem; }
   .adm-card { min-width: 0; border-radius: 0.6rem; }
+  .adm-input,
+  .adm-select,
+  .adm-textarea { font-size: 1rem; }
 }
 
 .adm-table {
@@ -721,5 +732,20 @@
   .adm-btn {
     animation: none !important;
     transition: none !important;
+  }
+}
+
+/* Large entrance animations and translucent layers are especially costly in
+   iOS WebKit inside long admin pages. Keep the same visual styling without a
+   compositor animation on iPhone. */
+@supports (-webkit-touch-callout: none) {
+  @media (max-width: 1023px) {
+    .adm-page,
+    .adm-toast,
+    .adm-quick__item,
+    .adm-btn {
+      animation: none !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 }

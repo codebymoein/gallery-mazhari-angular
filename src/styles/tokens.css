@@ -127,9 +127,9 @@
   --gradient-cream-section: linear-gradient(180deg, var(--color-cream-warm) 0%, var(--color-bg-cream) 38%, var(--color-cream-soft) 100%);
 
   /* ── Typography ─────────────────────────────────────────────── */
-  --font-persian: 'IRANSansX', 'YekanBakh', Tahoma, sans-serif;
+  --font-persian: 'Mazhari Yekan', 'Yekan Bakh', 'B Yekan', Tahoma, sans-serif;
   --font-english: 'Inter', Arial, sans-serif;
-  --font-display: 'IRANSansX', 'YekanBakh', Tahoma, sans-serif;
+  --font-display: 'Mazhari Yekan', 'Yekan Bakh', 'B Yekan', Tahoma, sans-serif;
   --font-serif-en: 'Playfair Display', Georgia, 'Times New Roman', serif;
   --font-weight-regular: 400;
   --font-weight-medium: 500;
@@ -181,6 +181,28 @@
   --container-padding: 1.5rem;
   --container-padding-sm: 0.75rem;
   --touch-target: 2.75rem;
+
+  /* ── Mazhari UI law ──────────────────────────────────────────────
+     One visual grammar for every new or revised surface:
+     Yekan typography, warm neutral surfaces, champagne borders,
+     portrait imagery, alternating arches, restrained elevation and
+     touch targets no smaller than 44px. */
+  --ui-font: var(--font-persian);
+  --ui-surface: #fffdf9;
+  --ui-surface-muted: #f3eee5;
+  --ui-ink: #302a24;
+  --ui-muted: #756d64;
+  --ui-border: #dfd2bd;
+  --ui-accent: var(--color-gold-primary);
+  --ui-radius-control: 0.72rem;
+  --ui-radius-card: 1rem;
+  --ui-arch-top: 999px 999px 1rem 1rem;
+  --ui-arch-bottom: 1rem 1rem 999px 999px;
+  --ui-portrait: 3 / 4.35;
+  --ui-portrait-tall: 3 / 4.9;
+  --ui-shadow-card: 0 12px 34px rgba(57, 43, 26, 0.1);
+  --ui-shadow-hover: 0 18px 42px rgba(57, 43, 26, 0.15);
+  --ui-section-gap: clamp(2.5rem, 7vw, 5.5rem);
 
   /* ── MDS parity (WordPress migration) ───────────────────────── */
   --mds-color-primary: var(--color-gold-primary);
