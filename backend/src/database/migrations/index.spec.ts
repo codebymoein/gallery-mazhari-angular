@@ -9,6 +9,7 @@ describe('ALL_MIGRATIONS', () => {
       'CreatePasswordResetTokens1785700000000',
       'CreateCustomRequests1785800000000',
       'AddCustomRequestContactDetails1785900000000',
+      'CreateAuthSessions1786000000000',
     ]);
   });
 

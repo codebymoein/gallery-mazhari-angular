@@ -33,7 +33,7 @@ export class AuthController {
   ) {
     const result = await this.authService.register(dto);
     this.setSessionCookie(response, result.accessToken);
-    return result;
+    return { user: result.user };
   }
 
   @Post('login')
@@ -43,13 +43,9 @@ export class AuthController {
     @Res({ passthrough: true }) response: Response,
   ) {
     const result = await this.authService.login(dto);
-
-    if (!result) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
-
+    if (!result) throw new UnauthorizedException('Invalid credentials');
     this.setSessionCookie(response, result.accessToken);
-    return result;
+    return { user: result.user };
   }
 
   @Post('bootstrap-admin')
@@ -60,7 +56,7 @@ export class AuthController {
   ) {
     const result = await this.authService.bootstrapAdmin(dto);
     this.setSessionCookie(response, result.accessToken);
-    return result;
+    return { user: result.user };
   }
 
   @Post('forgot-password')
@@ -77,7 +73,11 @@ export class AuthController {
 
   @UseGuards(AuthGuard('jwt'))
   @Post('logout')
-  logout(@Res({ passthrough: true }) response: Response) {
+  async logout(
+    @Request() req: { user: { sessionId: string } },
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    await this.authService.revokeSession(req.user.sessionId);
     response.clearCookie('mazhari_admin_session', this.cookieOptions());
     return { loggedOut: true };
   }
@@ -85,7 +85,15 @@ export class AuthController {
   @UseGuards(AuthGuard('jwt'))
   @Get('profile')
   profile(
-    @Request() req: { user: { userId: string; email: string; role: string } },
+    @Request()
+    req: {
+      user: {
+        userId: string;
+        email: string;
+        role: string;
+        permissions: string[];
+      };
+    },
   ) {
     return req.user;
   }
@@ -101,7 +109,7 @@ export class AuthController {
     return {
       httpOnly: true,
       secure: this.config.get<string>('NODE_ENV') === 'production',
-      sameSite: 'lax' as const,
+      sameSite: 'strict' as const,
       path: '/api',
     };
   }

@@ -1,4 +1,5 @@
 import { SiteAppearanceEntity } from '../appearance/entities/site-appearance.entity';
+import { AuthSessionEntity } from '../auth/entities/auth-session.entity';
 import { PasswordResetTokenEntity } from '../auth/entities/password-reset-token.entity';
 import { ConsultationEntity } from '../consultations/entities/consultation.entity';
 import { CustomRequestEntity } from '../custom-requests/entities/custom-request.entity';
@@ -16,6 +17,7 @@ import { UserEntity } from '../users/entities/user.entity';
 /** Canonical TypeORM entity registry shared by runtime and migration tooling. */
 export const ALL_ENTITIES = [
   UserEntity,
+  AuthSessionEntity,
   GalleryItemEntity,
   ProductEntity,
   DiscountRuleEntity,
