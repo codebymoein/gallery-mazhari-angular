@@ -1,0 +1,26 @@
+name: Cleanup merged branches
+
+on:
+  pull_request:
+    types: [closed]
+
+permissions:
+  contents: write
+
+jobs:
+  delete-merged-branch:
+    if: >-
+      github.event.pull_request.merged == true &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.head.ref != 'main' &&
+      github.event.pull_request.head.ref != 'rm-baseline-2026-08-07'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete merged head branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          BRANCH: ${{ github.event.pull_request.head.ref }}
+        run: |
+          set -euo pipefail
+          gh api --method DELETE "repos/${REPO}/git/refs/heads/${BRANCH}"
