@@ -102,7 +102,7 @@
       "type": "directive"
     },
     "@schematics/angular:service": {
-      "typeSeparator": "."
+      "type": "service"
     },
     "@schematics/angular:guard": {
       "typeSeparator": "."
