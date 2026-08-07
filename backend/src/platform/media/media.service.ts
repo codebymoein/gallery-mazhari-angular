@@ -68,7 +68,7 @@ export class MediaService {
         '_',
       );
       const parsed = parseProductImageFilename(safeName);
-      const rawHash = createHash('sha256').update(file.buffer).digest('hex');
+      const rawHash = hashBuffer(file.buffer);
 
       if (!parsed.valid) {
         const q = await this.quarantine(
@@ -84,11 +84,12 @@ export class MediaService {
       }
 
       if (file.buffer.length > MAX_FILE_BYTES) {
+        const evidence = file.buffer.subarray(0, 64);
         const q = await this.quarantine(
-          file.buffer.slice(0, 64),
+          evidence,
           safeName,
-          rawHash,
-          'file_too_large',
+          hashBuffer(evidence),
+          `file_too_large:${rawHash}`,
           input.actor,
         );
         assets.push(q);
@@ -173,8 +174,6 @@ export class MediaService {
         continue;
       }
 
-      // Duplicate identity is computed from the metadata-stripped public bytes.
-      // Two images differing only by EXIF/XMP therefore collapse to one asset.
       const hash = sanitized.contentHash;
       const dup = await this.media.findOne({ where: { contentHash: hash } });
       if (dup) {
@@ -795,6 +794,10 @@ function extensionFromName(fileName: string): string {
 
 function safeReason(value: string): string {
   return value.replace(/[^a-zA-Z0-9_.:-]+/g, '_').slice(0, 160);
+}
+
+function hashBuffer(buffer: Buffer): string {
+  return createHash('sha256').update(buffer).digest('hex');
 }
 
 function isContentAddressedKey(value: string): boolean {
