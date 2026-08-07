@@ -48,12 +48,16 @@ jobs:
           test "$errors" -le 8
           test "$warnings" -le 90
       - run: npm test
+      - name: Frontend coverage evidence
+        run: npm run test:coverage -- --coverage.reporter=text --coverage.reporter=json-summary
       - run: npm run build:prod
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: frontend-lint
-          path: frontend-lint.txt
+          name: frontend-quality-evidence
+          path: |
+            frontend-lint.txt
+            coverage
           if-no-files-found: warn
           retention-days: 14
 
@@ -90,7 +94,7 @@ jobs:
           test "$errors" -le 283
           test "$warnings" -le 6
       - run: npm --prefix backend test -- --runInBand
-      - name: Backend coverage report
+      - name: Backend coverage threshold gate
         run: npm --prefix backend run test:cov -- --runInBand --coverageReporters=text --coverageReporters=json-summary
       - uses: actions/upload-artifact@v4
         if: always()
@@ -104,7 +108,7 @@ jobs:
       - run: npm --prefix backend run build
 
   postgres-migrations:
-    name: PostgreSQL migration chain
+    name: PostgreSQL migration chain and schema drift
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -142,11 +146,18 @@ jobs:
         run: npm --prefix backend run migration:run
       - name: Verify migration status
         run: npm --prefix backend run migration:show | tee migration-status.txt
+      - name: Verify entity and migrated schema parity
+        run: |
+          set -euo pipefail
+          npm --prefix backend run schema:log 2>&1 | tee schema-drift.txt
+          grep -qiE 'schema is up to date|no changes in database schema' schema-drift.txt
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: postgres-migration-status
-          path: migration-status.txt
+          name: postgres-migration-evidence
+          path: |
+            migration-status.txt
+            schema-drift.txt
           if-no-files-found: warn
           retention-days: 14
 
@@ -177,11 +188,50 @@ jobs:
       - run: npm ci
       - run: npm --prefix backend ci
       - run: npx playwright install --with-deps chromium
-      - run: npm run e2e
+      - name: Run business-critical E2E suite
+        run: npx playwright test e2e/backend.spec.ts e2e/cart-and-checkout.spec.ts e2e/routing-and-seo.spec.ts e2e/storefront.spec.ts
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: playwright-report
+          name: playwright-critical-report
+          path: playwright-report
+          if-no-files-found: warn
+          retention-days: 14
+
+  accessibility-report:
+    name: Accessibility debt report
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    env:
+      CI: true
+      DB_TYPE: sqlite
+      DB_SQLITE_PATH: /tmp/gallery-mazhari-a11y.sqlite
+      FRONTEND_ORIGIN: http://127.0.0.1:4200
+      BACKEND_PUBLIC_URL: http://127.0.0.1:3000
+      JWT_SECRET: ci_only_jwt_secret_not_for_production
+      ADMIN_SETUP_KEY: ci_only_admin_setup_key
+      NODE_ENV: test
+      E2E_BASE_URL: http://127.0.0.1:4200
+      E2E_API_URL: http://127.0.0.1:3000
+      PLAYWRIGHT_CHANNEL: chromium
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            backend/package-lock.json
+      - run: npm ci
+      - run: npm --prefix backend ci
+      - run: npx playwright install --with-deps chromium
+      - name: Run accessibility suite without masking existing RM-14 debt
+        run: npx playwright test e2e/accessibility.spec.ts
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: accessibility-report
           path: playwright-report
           if-no-files-found: warn
           retention-days: 14
