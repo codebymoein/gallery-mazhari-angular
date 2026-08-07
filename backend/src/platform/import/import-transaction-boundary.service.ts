@@ -49,9 +49,7 @@ export class ImportTransactionBoundaryService implements OnModuleInit {
         await this.acquireCommitLock(manager);
 
         const scoped = Object.create(service) as ImportServiceInternals;
-        const scopedAudit = Object.create(
-          this.audit,
-        ) as AuditServiceInternals;
+        const scopedAudit = Object.create(this.audit) as AuditServiceInternals;
 
         Object.assign(scopedAudit, {
           repo: manager.getRepository(AuditLogEntity),
@@ -66,6 +64,9 @@ export class ImportTransactionBoundaryService implements OnModuleInit {
           audit: scopedAudit,
         });
 
+        // The structural adapter intentionally preserves the original private
+        // handler contract while rebinding repositories to this transaction.
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return original.call(scoped, job);
       });
   }
@@ -73,10 +74,13 @@ export class ImportTransactionBoundaryService implements OnModuleInit {
   private async acquireCommitLock(manager: EntityManager): Promise<void> {
     if (this.dataSource.options.type !== 'postgres') return;
 
-    const rows = (await manager.query(
+    const rawRows: unknown = await manager.query(
       'SELECT pg_try_advisory_xact_lock($1, $2) AS locked',
       [IMPORT_LOCK_NAMESPACE, IMPORT_LOCK_KEY],
-    )) as Array<{ locked?: boolean }>;
+    );
+    const rows = Array.isArray(rawRows)
+      ? (rawRows as Array<{ locked?: unknown }>)
+      : [];
 
     if (rows[0]?.locked !== true) {
       throw new Error('import_commit_in_progress');
