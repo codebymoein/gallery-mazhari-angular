@@ -1,14 +1,14 @@
 import { expect, test } from '@playwright/test';
 
 const expectedTokens = {
-  '--color-matte-black': 'rgb(101, 101, 97)',
-  '--color-dark-charcoal': 'rgb(72, 72, 70)',
-  '--color-champagne-gold': 'rgb(157, 121, 55)',
-  '--color-gold-primary': 'rgb(137, 104, 47)',
-  '--color-bg-cream': 'rgb(244, 243, 240)',
-  '--color-surface': 'rgb(251, 250, 248)',
-  '--color-text-main': 'rgb(85, 85, 82)',
-  '--color-text-muted': 'rgb(102, 101, 96)',
+  '--color-matte-black': '#656561',
+  '--color-dark-charcoal': '#484846',
+  '--color-champagne-gold': '#9d7937',
+  '--color-gold-primary': '#89682f',
+  '--color-bg-cream': '#f4f3f0',
+  '--color-surface': '#fbfaf8',
+  '--color-text-main': '#555552',
+  '--color-text-muted': '#666560',
 } as const;
 
 test.describe('RM-08 design-system contract', () => {
