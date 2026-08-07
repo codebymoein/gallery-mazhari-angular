@@ -1,7 +1,7 @@
 /**
- * پل بین صف انتشار ادمین و ویترین سایت.
- * محصولاتی که مدیر منتشر می‌کند (status = published) از localStorage خوانده
- * و به شکل محصول قابل نمایش در کاتالوگ عمومی تبدیل می‌شوند.
+ * Projection bridge between the server-backed published catalog cache and
+ * public storefront product models. Browser staging state is never a public
+ * catalog authority.
  */
 
 import { environment } from '@env/environment';
@@ -18,6 +18,14 @@ export interface PublishedCatalogProduct extends BridalSampleProduct {
   discountPercent?: number;
   discountTitle?: string;
   discountBadge?: string;
+}
+
+interface PublishedCatalogCache {
+  revision: string;
+  generatedAt: string;
+  cachedAt: string;
+  expiresAt: string;
+  products: StagingProduct[];
 }
 
 const FALLBACK_IMAGE = 'assets/images/cat-special.webp';
@@ -46,48 +54,53 @@ let cacheRaw: string | null = null;
 let cacheProducts: PublishedCatalogProduct[] = [];
 
 /**
- * محصولات منتشرشده و موجود (stock > 0).
- * منبع اصلی: کش سرور (PublishedCatalogSyncService آن را از API پر می‌کند)؛
- * صف انتشار محلی هم برای حالت آفلاین/فروش‌گاه تک‌دستگاهی ادغام می‌شود.
- * کش سبک روی محتوای localStorage تا فراخوانی‌های پیاپی هزینه‌ای نداشته باشند.
+ * محصولات منتشرشده و موجود (stock > 0) فقط از snapshot سرور خوانده می‌شوند.
+ * cache منقضی یا legacy array معتبر نیست و stagingQueue هرگز merge نمی‌شود.
  */
 export function getPublishedProducts(): PublishedCatalogProduct[] {
   try {
-    const serverRaw = localStorage.getItem(environment.storageKeys.publishedProducts);
-    const localRaw = localStorage.getItem(environment.storageKeys.stagingQueue);
-    const combinedRaw = `${serverRaw ?? ''}|${localRaw ?? ''}`;
+    const raw = localStorage.getItem(environment.storageKeys.publishedProducts);
+    if (raw === cacheRaw) return cacheProducts;
 
-    if (combinedRaw === cacheRaw) {
+    const cache = parseCache(raw);
+    if (!cache || isExpired(cache)) {
+      cacheRaw = raw;
+      cacheProducts = [];
       return cacheProducts;
     }
 
-    const isLive = (item: StagingProduct) =>
-      item.status === 'published' && (item.stock ?? 0) > 0;
-
-    const serverItems = parseItems(serverRaw).filter(isLive);
-    const seenCodes = new Set(serverItems.map((i) => i.code.toUpperCase()));
-    const localOnly = parseItems(localRaw).filter(
-      (i) => isLive(i) && !seenCodes.has(i.code.toUpperCase())
-    );
-
-    cacheProducts = [...serverItems, ...localOnly]
+    cacheProducts = cache.products
+      .filter(item => item.status === 'published' && (item.stock ?? 0) > 0)
       .flatMap(expandStagingVariations)
       .map(toCatalogProduct);
-    cacheRaw = combinedRaw;
+    cacheRaw = raw;
     return cacheProducts;
   } catch {
     return [];
   }
 }
 
-function parseItems(raw: string | null): StagingProduct[] {
-  if (!raw) return [];
+function parseCache(raw: string | null): PublishedCatalogCache | null {
+  if (!raw) return null;
   try {
-    const parsed = JSON.parse(raw) as StagingProduct[];
-    return Array.isArray(parsed) ? parsed : [];
+    const parsed = JSON.parse(raw) as PublishedCatalogCache;
+    if (
+      !parsed ||
+      typeof parsed.revision !== 'string' ||
+      typeof parsed.expiresAt !== 'string' ||
+      !Array.isArray(parsed.products)
+    ) {
+      return null;
+    }
+    return parsed;
   } catch {
-    return [];
+    return null;
   }
+}
+
+function isExpired(cache: PublishedCatalogCache): boolean {
+  const expiry = Date.parse(cache.expiresAt);
+  return !Number.isFinite(expiry) || expiry <= Date.now();
 }
 
 export function getPublishedProductById(
@@ -107,9 +120,9 @@ function expandStagingVariations(item: StagingProduct): StagingProduct[] {
 
 export function getStagedProductById(id: string): PublishedCatalogProduct | undefined {
   try {
-    const serverRaw = localStorage.getItem(environment.storageKeys.publishedProducts);
-    const localRaw = localStorage.getItem(environment.storageKeys.stagingQueue);
-    const item = [...parseItems(serverRaw), ...parseItems(localRaw)].find(row => row.id === id);
+    const cache = parseCache(localStorage.getItem(environment.storageKeys.publishedProducts));
+    if (!cache || isExpired(cache)) return undefined;
+    const item = cache.products.find(row => row.id === id);
     return item ? toCatalogProduct(item) : undefined;
   } catch {
     return undefined;
