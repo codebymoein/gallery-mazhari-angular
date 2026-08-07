@@ -10,22 +10,22 @@ describe('ObservabilityService', () => {
   });
 
   it('reports readiness when PostgreSQL responds', async () => {
-    const dataSource = {
-      query: jest.fn().mockResolvedValue([{ '?column?': 1 }]),
-    } as unknown as DataSource;
+    const query = jest.fn().mockResolvedValue([{ '?column?': 1 }]);
+    const dataSource = { query } as unknown as DataSource;
     const service = new ObservabilityService(dataSource);
 
     await expect(service.ready()).resolves.toMatchObject({
       status: 'ready',
       database: 'up',
     });
-    expect(dataSource.query).toHaveBeenCalledWith('SELECT 1');
+    expect(query).toHaveBeenCalledWith('SELECT 1');
   });
 
   it('fails readiness without leaking database error details', async () => {
-    const dataSource = {
-      query: jest.fn().mockRejectedValue(new Error('secret connection detail')),
-    } as unknown as DataSource;
+    const query = jest
+      .fn()
+      .mockRejectedValue(new Error('secret connection detail'));
+    const dataSource = { query } as unknown as DataSource;
     const service = new ObservabilityService(dataSource);
 
     const result = await service.ready();
