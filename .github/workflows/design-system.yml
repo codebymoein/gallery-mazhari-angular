@@ -1,0 +1,53 @@
+name: Design System Contract
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/styles/**'
+      - 'DESIGN_SYSTEM.md'
+      - 'docs/handbook/08-design-system.md'
+      - 'e2e/design-system.spec.ts'
+      - '.github/workflows/design-system.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  design-contract:
+    name: Token, font, and visual baseline contract
+    runs-on: ubuntu-latest
+    env:
+      CI: true
+      DB_TYPE: sqlite
+      DB_SQLITE_PATH: /tmp/gallery-mazhari-design-system.sqlite
+      FRONTEND_ORIGIN: http://127.0.0.1:4200
+      BACKEND_PUBLIC_URL: http://127.0.0.1:3000
+      JWT_SECRET: ci_only_jwt_secret_not_for_production
+      ADMIN_SETUP_KEY: ci_only_admin_setup_key
+      NODE_ENV: test
+      E2E_BASE_URL: http://127.0.0.1:4200
+      E2E_API_URL: http://127.0.0.1:3000
+      PLAYWRIGHT_CHANNEL: chromium
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            backend/package-lock.json
+      - run: npm ci
+      - run: npm --prefix backend ci
+      - run: npx playwright install --with-deps chromium
+      - name: Verify canonical design contract and capture visual evidence
+        run: npx playwright test e2e/design-system.spec.ts
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: design-system-baseline-evidence
+          path: playwright-report
+          if-no-files-found: error
+          retention-days: 14
