@@ -44,7 +44,7 @@
     <div class="adm-card__head">
       <div>
         <h2 class="adm-card__title">همه محصولات انبار</h2>
-        <p class="adm-card__sub">فیلتر هوشمند و ویرایش گروهی</p>
+        <p class="adm-card__sub">فیلتر هوشمند و تخفیف گروهی ثبت‌شده روی سرور</p>
       </div>
     </div>
     <div class="adm-toolbar inv-toolbar">
@@ -67,9 +67,14 @@
       <div class="inv-bulk">
         <span>{{ selectedCount() | number:'1.0-0':'fa-IR' }} مورد انتخاب‌شده</span>
         <div class="inv-bulk__actions">
-          <button type="button" class="adm-btn adm-btn--sm adm-btn--gold" (click)="bulkDiscount()">اعمال تخفیف ۱۰٪</button>
-          <button type="button" class="adm-btn adm-btn--sm adm-btn--soft" (click)="bulkSale()">افزودن به حراج</button>
-          <button type="button" class="adm-btn adm-btn--sm adm-btn--ghost" (click)="bulkOutOfStock()">ناموجود کردن</button>
+          <button
+            type="button"
+            class="adm-btn adm-btn--sm adm-btn--gold"
+            [disabled]="bulkPending()"
+            (click)="bulkDiscount()"
+          >
+            {{ bulkPending() ? 'در حال ثبت…' : 'اعمال تخفیف ۱۰٪' }}
+          </button>
         </div>
       </div>
     }
