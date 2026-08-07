@@ -20,47 +20,31 @@ import { ForgotPasswordDto, ResetPasswordDto } from './dto/password-reset.dto';
 
 @Controller('auth')
 export class AuthController {
-  constructor(
-    private readonly authService: AuthService,
-    private readonly config: ConfigService,
-  ) {}
+  constructor(private readonly authService: AuthService, private readonly config: ConfigService) {}
 
   @Post('register')
   @Throttle({ default: { limit: 5, ttl: 60_000 } })
-  async register(
-    @Body() dto: RegisterDto,
-    @Res({ passthrough: true }) response: Response,
-  ) {
+  async register(@Body() dto: RegisterDto, @Res({ passthrough: true }) response: Response) {
     const result = await this.authService.register(dto);
     this.setSessionCookie(response, result.accessToken);
-    return result;
+    return { user: result.user };
   }
 
   @Post('login')
   @Throttle({ default: { limit: 8, ttl: 60_000 } })
-  async login(
-    @Body() dto: LoginDto,
-    @Res({ passthrough: true }) response: Response,
-  ) {
+  async login(@Body() dto: LoginDto, @Res({ passthrough: true }) response: Response) {
     const result = await this.authService.login(dto);
-
-    if (!result) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
-
+    if (!result) throw new UnauthorizedException('Invalid credentials');
     this.setSessionCookie(response, result.accessToken);
-    return result;
+    return { user: result.user };
   }
 
   @Post('bootstrap-admin')
   @Throttle({ default: { limit: 3, ttl: 3_600_000 } })
-  async bootstrapAdmin(
-    @Body() dto: BootstrapAdminDto,
-    @Res({ passthrough: true }) response: Response,
-  ) {
+  async bootstrapAdmin(@Body() dto: BootstrapAdminDto, @Res({ passthrough: true }) response: Response) {
     const result = await this.authService.bootstrapAdmin(dto);
     this.setSessionCookie(response, result.accessToken);
-    return result;
+    return { user: result.user };
   }
 
   @Post('forgot-password')
@@ -77,31 +61,30 @@ export class AuthController {
 
   @UseGuards(AuthGuard('jwt'))
   @Post('logout')
-  logout(@Res({ passthrough: true }) response: Response) {
+  async logout(
+    @Request() req: { user: { sessionId: string } },
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    await this.authService.revokeSession(req.user.sessionId);
     response.clearCookie('mazhari_admin_session', this.cookieOptions());
     return { loggedOut: true };
   }
 
   @UseGuards(AuthGuard('jwt'))
   @Get('profile')
-  profile(
-    @Request() req: { user: { userId: string; email: string; role: string } },
-  ) {
+  profile(@Request() req: { user: { userId: string; email: string; role: string; permissions: string[] } }) {
     return req.user;
   }
 
   private setSessionCookie(response: Response, token: string): void {
-    response.cookie('mazhari_admin_session', token, {
-      ...this.cookieOptions(),
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    response.cookie('mazhari_admin_session', token, { ...this.cookieOptions(), maxAge: 7 * 24 * 60 * 60 * 1000 });
   }
 
   private cookieOptions() {
     return {
       httpOnly: true,
       secure: this.config.get<string>('NODE_ENV') === 'production',
-      sameSite: 'lax' as const,
+      sameSite: 'strict' as const,
       path: '/api',
     };
   }
