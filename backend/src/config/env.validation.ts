@@ -1,3 +1,4 @@
+import { plainToInstance } from 'class-transformer';
 import {
   IsEmail,
   IsEnum,
@@ -5,14 +6,35 @@ import {
   IsOptional,
   IsString,
   IsUrl,
+  validateSync,
 } from 'class-validator';
 
-class EnvironmentVariables {
+const PRODUCTION_PLACEHOLDERS = new Set([
+  'change_me',
+  'changeme',
+  'change_me_super_secret',
+  'change_this_admin_setup_key',
+  'change_this',
+  'default',
+  'example',
+  'password',
+  'secret',
+  'test',
+]);
+
+const PRODUCTION_SECRET_FIELDS = [
+  'JWT_SECRET',
+  'ADMIN_SETUP_KEY',
+  'DB_PASSWORD',
+  'SMTP_PASSWORD',
+] as const;
+
+export class EnvironmentVariables {
   @IsOptional()
   @IsNumberString()
   PORT: string;
 
-  /** postgres (پیش‌فرض) یا sqlite برای توسعه محلی */
+  /** postgres (default) or sqlite for local development only */
   @IsOptional()
   @IsEnum(['postgres', 'sqlite'])
   DB_TYPE: 'postgres' | 'sqlite';
@@ -66,6 +88,59 @@ class EnvironmentVariables {
   @IsOptional()
   @IsEnum(['development', 'production', 'test'])
   NODE_ENV: 'development' | 'production' | 'test';
+}
+
+function normalizeSecret(value: unknown): string {
+  return typeof value === 'string' ? value.trim().toLowerCase() : '';
+}
+
+function assertProductionSecrets(config: EnvironmentVariables): void {
+  if (config.NODE_ENV !== 'production') {
+    return;
+  }
+
+  if (!config.JWT_SECRET || config.JWT_SECRET.trim().length < 32) {
+    throw new Error(
+      'Production configuration requires JWT_SECRET with at least 32 characters.',
+    );
+  }
+
+  for (const field of PRODUCTION_SECRET_FIELDS) {
+    const rawValue = config[field];
+    if (!rawValue) {
+      continue;
+    }
+
+    const normalized = normalizeSecret(rawValue);
+    if (
+      PRODUCTION_PLACEHOLDERS.has(normalized) ||
+      normalized.startsWith('change_me') ||
+      normalized.startsWith('change_this')
+    ) {
+      throw new Error(
+        `Production configuration rejects placeholder value for ${field}.`,
+      );
+    }
+  }
+}
+
+export function validateEnvironment(
+  config: Record<string, unknown>,
+): EnvironmentVariables {
+  const validatedConfig = plainToInstance(EnvironmentVariables, config, {
+    enableImplicitConversion: true,
+  });
+
+  const errors = validateSync(validatedConfig, {
+    skipMissingProperties: false,
+  });
+
+  if (errors.length > 0) {
+    throw new Error(errors.toString());
+  }
+
+  assertProductionSecrets(validatedConfig);
+  return validatedConfig;
 }
 
 export default EnvironmentVariables;

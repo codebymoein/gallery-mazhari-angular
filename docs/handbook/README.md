@@ -22,6 +22,13 @@ This is version-controlled Living Documentation for the real Angular + NestJS + 
 17. [SEO, Performance & Accessibility](17-seo-performance-accessibility.md)
 18. [Documentation Governance](18-documentation-governance.md)
 
+## Canonical operational indexes
+- [`../DOCUMENTATION_INDEX.md`](../DOCUMENTATION_INDEX.md) — topic ownership and documentation precedence.
+- [`../operations/ENVIRONMENT.md`](../operations/ENVIRONMENT.md) — canonical environment contract.
+- [`../operations/SECRETS.md`](../operations/SECRETS.md) — secret management and rotation.
+- [`../operations/TOOL_MANIFEST.md`](../operations/TOOL_MANIFEST.md) — commands, migrations, and operational tools.
+- [`../operations/STALE_DOCUMENT_REGISTER.md`](../operations/STALE_DOCUMENT_REGISTER.md) — legacy/stale classification without deletion authority.
+
 ## Existing project references
 - [`../../DESIGN_SYSTEM.md`](../../DESIGN_SYSTEM.md)
 - [`../INTELLIGENT_INGESTION_ARCHITECTURE.md`](../INTELLIGENT_INGESTION_ARCHITECTURE.md)
@@ -33,4 +40,4 @@ This is version-controlled Living Documentation for the real Angular + NestJS + 
 - [`../../PRODUCTION_AUDIT.md`](../../PRODUCTION_AUDIT.md)
 
 ## Maintenance contract
-Every PR that changes architecture, workflow semantics, security boundaries, deployment procedure, persistent schema, public API contracts, or design-system rules MUST update the relevant chapter. Broken links are defects. Documentation-only changes must still be reviewed for correctness against current code.
+Every PR that changes architecture, workflow semantics, security boundaries, deployment procedure, persistent schema, public API contracts, design-system rules, environment configuration, secret policy, or required operational tooling MUST update the relevant chapter/index. Broken links are defects. Documentation-only changes must still be reviewed for correctness against current code.
