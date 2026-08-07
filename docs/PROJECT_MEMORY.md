@@ -41,11 +41,11 @@ The following are intentional product systems and must not be deleted, flattened
 - Legacy/stale document classification: `docs/operations/STALE_DOCUMENT_REGISTER.md`
 
 ## Current remediation sequence
-Wave 0 is complete. Wave 1 implementation slices through PR-015 are complete on the approved `main` lineage. Wave 2 design-system work PR-016/PR-017 is complete. PR-018 removed the proven dormant direct Angular WordPress/WooCommerce product path. PR-019 attempted to establish RM-09 evidence but its analyzer job was invalid; the corrective PR #40 then produced the first trustworthy RM-09 dependency/dead-code/duplication evidence and was merged at `main@d87a0f191d561445f42fb454c6bb94ddf8abca3c`.
+Wave 0 is complete. Wave 1 implementation slices through PR-015 are complete on the approved `main` lineage. Wave 2 design-system work PR-016/PR-017 is complete. PR-018 removed the proven dormant direct Angular WordPress/WooCommerce product path. PR-019 attempted to establish RM-09 evidence but its analyzer job was invalid; corrective PR #40 produced the first trustworthy RM-09 dependency/dead-code/duplication evidence. PR #41 then retired the proven one-off WordPress migration preparation/reconciliation tools and merged at `main@d9844c1a67246f267751c539ad1d7b15c34b808a`.
 
-The current permitted work is the first small **RM-09 evidence-backed legacy-removal slice**. It retires only the historical one-off WordPress migration preparation/reconciliation scripts after valid static evidence, consumer/package/tool-manifest inspection and Git-history review. The protected Excel dry-run/confirm import, product/variation, inventory, taxonomy, media and publication workflows remain canonical and unchanged. Further RM-09 removals must each repeat candidate-specific usage proof; bulk deletion remains forbidden.
+The current permitted work is the next small **RM-09 evidence-backed legacy-removal slice**: retire only the unused direct-SQLite `backend/scripts/tag-products-from-descriptions.ts` entry point. The reusable tagging engine and protected taxonomy/tag approval workflow remain canonical and unchanged. Other legacy description scripts, dependencies and RM-12+ work are outside this slice.
 
-PR-020 / RM-12 SSR/prerender begins only after the RM-09 cleanup gate is deliberately closed or the owner explicitly advances the Roadmap.
+Further RM-09 removals must each repeat candidate-specific usage proof; bulk deletion remains forbidden. PR-020 / RM-12 SSR/prerender begins only after the RM-09 cleanup gate is deliberately closed or the owner explicitly advances the Roadmap.
 
 This file records sequence/context only; the Master Remediation Roadmap remains authoritative for scope and ordering.
 
