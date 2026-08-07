@@ -7,13 +7,14 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { AuthSessionEntity } from './entities/auth-session.entity';
 import { PasswordResetTokenEntity } from './entities/password-reset-token.entity';
 import { RecoveryMailService } from './recovery-mail.service';
 
 @Module({
   imports: [
     UsersModule,
-    TypeOrmModule.forFeature([PasswordResetTokenEntity]),
+    TypeOrmModule.forFeature([PasswordResetTokenEntity, AuthSessionEntity]),
     PassportModule,
     ConfigModule,
     JwtModule.registerAsync({
@@ -21,13 +22,13 @@ import { RecoveryMailService } from './recovery-mail.service';
       useFactory: (configService: ConfigService) => ({
         secret: configService.getOrThrow<string>('JWT_SECRET'),
         signOptions: {
-          expiresIn: (configService.get<string>('JWT_EXPIRES_IN') ??
-            '7d') as any,
+          expiresIn: (configService.get<string>('JWT_EXPIRES_IN') ?? '7d') as any,
         },
       }),
     }),
   ],
   providers: [AuthService, JwtStrategy, RecoveryMailService],
   controllers: [AuthController],
+  exports: [AuthService],
 })
 export class AuthModule {}
