@@ -1,10 +1,8 @@
 import { Injectable, computed, effect, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { catchError, of } from 'rxjs';
+import { Observable, tap } from 'rxjs';
 import { environment } from '@env/environment';
 import { InventorySku } from '@shared/models/admin-enterprise.model';
-import { AdminActivityService } from '@core/services/admin-activity.service';
-import { AdminAuthService } from '@core/services/admin-auth.service';
 import { StagingQueueService } from '@core/services/staging-queue.service';
 import { StagingProduct } from '@shared/models/staging-product.model';
 import { CATALOG_CATEGORIES } from '@shared/data/catalog-categories';
@@ -17,19 +15,21 @@ export type InventorySmartFilter =
   | 'internal'
   | 'on_sale';
 
-const STORAGE_KEY = 'mazhariAdminInventoryV1';
+interface BulkProductDiscountResult {
+  updated: number;
+  percent: number;
+  productIds: string[];
+}
 
 /**
- * انبار ادمین — همگام با محصولات منتشرشده صف Staging و localStorage.
- * HttpClient برای اتصال API آماده است.
+ * نمای عملیاتی انبار ادمین. وضعیت ماندگار محصول فقط از API/Staging سرور می‌آید؛
+ * این سرویس هیچ localStorage یا write fallback برای داده‌های کسب‌وکار ندارد.
  */
 @Injectable({ providedIn: 'root' })
 export class AdminInventoryService {
-  private readonly activity = inject(AdminActivityService);
-  private readonly auth = inject(AdminAuthService);
   private readonly staging = inject(StagingQueueService);
   private readonly http = inject(HttpClient);
-  private readonly itemsSignal = signal<InventorySku[]>(this.loadLocal());
+  private readonly itemsSignal = signal<InventorySku[]>([]);
 
   readonly items = this.itemsSignal.asReadonly();
   readonly lowStockCount = computed(
@@ -56,26 +56,13 @@ export class AdminInventoryService {
   });
 
   constructor() {
-    // هر بار که محصولی منتشر می‌شود، انبار بلافاصله همگام می‌شود.
     effect(
       () => {
-        // Inventory is an operational view of the whole server catalogue, not
-        // only the public storefront. Include both publication queue and live
-        // products so an item never disappears while moving between states.
         const catalogue = this.staging.items();
         this.syncFromStaging(catalogue);
       },
       { allowSignalWrites: true }
     );
-    this.http
-      .get<InventorySku[]>(`${environment.apiBaseUrl}${environment.apiPath}/mazhari/v1/inventory`)
-      .pipe(catchError(() => of(null)))
-      .subscribe((remote) => {
-        if (remote?.length) {
-          this.itemsSignal.set(remote.map((i) => this.normalize(i)));
-          this.persist();
-        }
-      });
   }
 
   filtered(filter: InventorySmartFilter, query = '', categorySlug?: string): InventorySku[] {
@@ -106,105 +93,47 @@ export class AdminInventoryService {
     return this.filtered('all', '', slug);
   }
 
-  bulkDiscount(ids: string[], percent: number): void {
-    this.itemsSignal.update((list) =>
-      list.map((item) =>
-        ids.includes(item.id)
-          ? {
-              ...item,
-              onSale: true,
-              discountPercent: percent,
-              price: Math.round(item.price * (1 - percent / 100))
-            }
-          : item
+  bulkDiscount(ids: string[], percent: number): Observable<BulkProductDiscountResult> {
+    return this.http
+      .post<BulkProductDiscountResult>(
+        `${environment.apiBaseUrl}${environment.apiPath}/discounts/rules/bulk-products`,
+        { productIds: ids, percent }
       )
-    );
-    this.persist();
-    this.log(`اعمال تخفیف ${percent}٪ روی ${ids.length} محصول`);
-  }
-
-  bulkOutOfStock(ids: string[]): void {
-    this.itemsSignal.update((list) =>
-      list.map((item) =>
-        ids.includes(item.id)
-          ? { ...item, stock: 0, status: 'out_of_stock' as const }
-          : item
-      )
-    );
-    this.persist();
-    this.log(`تغییر وضعیت ${ids.length} محصول به ناموجود`);
-  }
-
-  bulkAddToSale(ids: string[]): void {
-    this.itemsSignal.update((list) =>
-      list.map((item) => (ids.includes(item.id) ? { ...item, onSale: true } : item))
-    );
-    this.persist();
-    this.log(`افزودن ${ids.length} محصول به دسته حراج`);
+      .pipe(
+        tap((result) => {
+          const updated = new Set(result.productIds);
+          this.itemsSignal.update((list) =>
+            list.map((item) =>
+              updated.has(item.id)
+                ? { ...item, onSale: true, discountPercent: result.percent }
+                : item
+            )
+          );
+        })
+      );
   }
 
   private syncFromStaging(catalogue: StagingProduct[]): void {
-    if (!catalogue.length) return;
-
     this.itemsSignal.update((current) => {
-      const byCode = new Map(current.map((c) => [c.code.toUpperCase(), c]));
-      for (const p of catalogue) {
-        const existing = byCode.get(p.code.toUpperCase());
-        const next: InventorySku = {
-          id: existing?.id || `inv-${p.code}`,
+      const currentById = new Map(current.map((item) => [item.id, item]));
+      return catalogue.map((p) => {
+        const existing = currentById.get(p.id);
+        return {
+          id: p.id,
           code: p.code,
           name: p.name,
           category: p.category,
           parentCategorySlug: p.parentCategorySlug,
           categorySlug: p.categorySlug,
-          price: p.salePrice ?? p.price ?? existing?.price ?? 0,
+          price: p.salePrice ?? p.price ?? 0,
           stock: p.stock,
-          status: p.stock > 0 ? 'active' : 'out_of_stock',
+          status: p.stock > 0 ? ('active' as const) : ('out_of_stock' as const),
           hasPhoto: (p.photos?.length || 0) > 0 || !!p.photoUrl,
           photoUrl: assetUrl(p.photos?.[0]?.url || p.photoUrl),
-          onSale: existing?.onSale,
-          discountPercent: existing?.discountPercent
+          onSale: p.discountPercent ? true : existing?.onSale,
+          discountPercent: p.discountPercent ?? existing?.discountPercent
         };
-        byCode.set(p.code.toUpperCase(), next);
-      }
-      return [...byCode.values()];
-    });
-    this.persist();
-  }
-
-  private normalize(item: InventorySku): InventorySku {
-    return {
-      ...item,
-      photoUrl: assetUrl(item.photoUrl)
-    };
-  }
-
-  private loadLocal(): InventorySku[] {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return [];
-      const parsed = JSON.parse(raw) as InventorySku[];
-      return Array.isArray(parsed) ? parsed.map((i) => this.normalize(i)) : [];
-    } catch {
-      return [];
-    }
-  }
-
-  private persist(): void {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(this.itemsSignal()));
-    } catch {
-      // ignore
-    }
-  }
-
-  private log(summary: string): void {
-    const user = this.auth.user();
-    this.activity.log({
-      action: 'status_override',
-      actor: user?.username || 'manager',
-      actorRole: user?.role || 'manager',
-      summary
+      });
     });
   }
 }
