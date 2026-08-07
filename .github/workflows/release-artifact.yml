@@ -41,11 +41,13 @@ jobs:
         run: |
           set -euo pipefail
           release_dir="release-${RELEASE_SHA}"
-          mkdir -p "${release_dir}/frontend" "${release_dir}/backend"
+          mkdir -p "${release_dir}/frontend" "${release_dir}/backend" "${release_dir}/deploy"
           cp -a dist/gallery-mazhari-angular/browser/. "${release_dir}/frontend/"
           cp -a backend/dist "${release_dir}/backend/dist"
           cp -a backend/node_modules "${release_dir}/backend/node_modules"
           cp backend/package.json backend/package-lock.json "${release_dir}/backend/"
+          cp -a deploy/. "${release_dir}/deploy/"
+          chmod +x "${release_dir}/deploy/release.sh" "${release_dir}/deploy/backup-postgres.sh"
           printf '%s\n' "${RELEASE_SHA}" > "${release_dir}/REVISION"
           printf '{"revision":"%s","workflow_run":"%s"}\n' "${RELEASE_SHA}" "${GITHUB_RUN_ID}" > "${release_dir}/BUILD.json"
           tar -czf "gallery-mazhari-${RELEASE_SHA}.tar.gz" "${release_dir}"
