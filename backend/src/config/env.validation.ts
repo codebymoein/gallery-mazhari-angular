@@ -27,6 +27,7 @@ const PRODUCTION_SECRET_FIELDS = [
   'ADMIN_SETUP_KEY',
   'DB_PASSWORD',
   'SMTP_PASSWORD',
+  'MEDIA_S3_SECRET_ACCESS_KEY',
 ] as const;
 
 const REQUIRED_PRODUCTION_DB_FIELDS = [
@@ -34,6 +35,15 @@ const REQUIRED_PRODUCTION_DB_FIELDS = [
   'DB_USERNAME',
   'DB_PASSWORD',
   'DB_NAME',
+] as const;
+
+const REQUIRED_PRODUCTION_MEDIA_FIELDS = [
+  'MEDIA_S3_ENDPOINT',
+  'MEDIA_S3_REGION',
+  'MEDIA_S3_BUCKET',
+  'MEDIA_S3_ACCESS_KEY_ID',
+  'MEDIA_S3_SECRET_ACCESS_KEY',
+  'MEDIA_PUBLIC_BASE_URL',
 ] as const;
 
 export class EnvironmentVariables {
@@ -96,6 +106,34 @@ export class EnvironmentVariables {
   TRUST_PROXY: 'true' | 'false';
 
   @IsOptional()
+  @IsEnum(['local', 's3'])
+  MEDIA_STORAGE_DRIVER: 'local' | 's3';
+
+  @IsOptional()
+  @IsUrl({ require_tld: false })
+  MEDIA_S3_ENDPOINT: string;
+
+  @IsOptional()
+  @IsString()
+  MEDIA_S3_REGION: string;
+
+  @IsOptional()
+  @IsString()
+  MEDIA_S3_BUCKET: string;
+
+  @IsOptional()
+  @IsString()
+  MEDIA_S3_ACCESS_KEY_ID: string;
+
+  @IsOptional()
+  @IsString()
+  MEDIA_S3_SECRET_ACCESS_KEY: string;
+
+  @IsOptional()
+  @IsUrl({ require_tld: false })
+  MEDIA_PUBLIC_BASE_URL: string;
+
+  @IsOptional()
   @IsEnum(['development', 'production', 'test'])
   NODE_ENV: 'development' | 'production' | 'test';
 }
@@ -116,6 +154,24 @@ function assertProductionDatabase(config: EnvironmentVariables): void {
   }
 
   for (const field of REQUIRED_PRODUCTION_DB_FIELDS) {
+    if (!config[field] || String(config[field]).trim().length === 0) {
+      throw new Error(`Production configuration requires ${field}.`);
+    }
+  }
+}
+
+function assertProductionMediaStorage(config: EnvironmentVariables): void {
+  if (config.NODE_ENV !== 'production') {
+    return;
+  }
+
+  if (config.MEDIA_STORAGE_DRIVER !== 's3') {
+    throw new Error(
+      'Production configuration requires MEDIA_STORAGE_DRIVER=s3.',
+    );
+  }
+
+  for (const field of REQUIRED_PRODUCTION_MEDIA_FIELDS) {
     if (!config[field] || String(config[field]).trim().length === 0) {
       throw new Error(`Production configuration requires ${field}.`);
     }
@@ -168,6 +224,7 @@ export function validateEnvironment(
   }
 
   assertProductionDatabase(validatedConfig);
+  assertProductionMediaStorage(validatedConfig);
   assertProductionSecrets(validatedConfig);
   return validatedConfig;
 }
