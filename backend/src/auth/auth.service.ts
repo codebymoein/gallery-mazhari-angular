@@ -223,7 +223,6 @@ export class AuthService {
         id: sessionId,
         userId,
         expiresAt,
-        revokedAt: null,
       }),
     );
     return {
