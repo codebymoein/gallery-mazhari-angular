@@ -1,7 +1,23 @@
 import { BadRequestException } from '@nestjs/common';
-import { assertCanonicalCatalogClassification } from './catalog-taxonomy';
+import { CATALOG_CATEGORIES } from '../../../src/app/shared/data/catalog-categories';
+import {
+  assertCanonicalCatalogClassification,
+  CANONICAL_CATALOG_TAXONOMY,
+} from './catalog-taxonomy';
 
 describe('canonical catalog taxonomy', () => {
+  it('stays synchronized with the Angular catalog projection', () => {
+    const frontendContract = CATALOG_CATEGORIES.map((category) => ({
+      title: category.title,
+      slug: category.slug,
+      subcategories: category.subcategories.map((subcategory) => ({
+        label: subcategory.label,
+        slug: subcategory.slug,
+      })),
+    }));
+    expect(CANONICAL_CATALOG_TAXONOMY).toEqual(frontendContract);
+  });
+
   it('accepts a canonical parent/subcategory pair', () => {
     expect(() =>
       assertCanonicalCatalogClassification({
