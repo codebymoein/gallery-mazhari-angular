@@ -27,18 +27,26 @@ const PRIVATE_CLIENT_ROUTES = [
   'admin/**'
 ] as const;
 
-export const serverRoutes: ServerRoute[] = [
-  ...PUBLIC_SERVER_ROUTES.map((path) => ({
+const publicServerRoutes: ServerRoute[] = PUBLIC_SERVER_ROUTES.map(
+  (path): ServerRoute => ({
     path,
     renderMode: RenderMode.Server
-  })),
-  ...PRIVATE_CLIENT_ROUTES.map((path) => ({
+  })
+);
+
+const privateClientRoutes: ServerRoute[] = PRIVATE_CLIENT_ROUTES.map(
+  (path): ServerRoute => ({
     path,
     renderMode: RenderMode.Client,
     headers: {
       'X-Robots-Tag': 'noindex, nofollow'
     }
-  })),
+  })
+);
+
+export const serverRoutes: ServerRoute[] = [
+  ...publicServerRoutes,
+  ...privateClientRoutes,
   {
     path: '**',
     renderMode: RenderMode.Server,
