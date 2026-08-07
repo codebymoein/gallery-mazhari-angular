@@ -119,14 +119,27 @@ export async function sanitizeImageBuffer(buffer: Buffer): Promise<SanitizedImag
     throw new Error('image_sanitize_failed');
   }
 
+  let sanitizedMetadata: SharpMetadata;
+  try {
+    sanitizedMetadata = await sharp(sanitized, {
+      animated: true,
+      failOn: 'error',
+    }).metadata();
+  } catch {
+    throw new Error('image_sanitize_failed');
+  }
+  if (!sanitizedMetadata.width || !sanitizedMetadata.height) {
+    throw new Error('image_sanitize_failed');
+  }
+
   const descriptor = descriptorFor(format);
   return {
     buffer: sanitized,
     contentHash: sha256(sanitized),
     extension: descriptor.extension,
     contentType: descriptor.contentType,
-    width: metadata.width,
-    height: metadata.height,
+    width: sanitizedMetadata.width,
+    height: sanitizedMetadata.height,
   };
 }
 
