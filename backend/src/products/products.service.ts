@@ -20,6 +20,11 @@ import {
 } from './entities/product.entity';
 import { ProductVariationEntity } from '../platform/import/entities/product-variation.entity';
 import { DiscountsService } from '../discounts/discounts.service';
+import { assertCanonicalCatalogClassification } from './catalog-taxonomy';
+import {
+  assertManualProductTransition,
+  isProductStatus,
+} from './product-workflow.policy';
 
 export const MAX_PRODUCT_PHOTOS = 5;
 const NEW_PRODUCTS_CATEGORY_SLUG = 'new-products';
@@ -121,7 +126,11 @@ export class ProductsService {
     const incomingCodes = positiveRows.map((p) => p.code.trim().toUpperCase());
     const positiveCodeSet = new Set(incomingCodes);
     const removeCodes = [
-      ...new Set([...dto.removedOutOfStock, ...zeroRowCodes].map((c) => c.trim().toUpperCase())),
+      ...new Set(
+        [...dto.removedOutOfStock, ...zeroRowCodes].map((c) =>
+          c.trim().toUpperCase(),
+        ),
+      ),
     ].filter((code) => Boolean(code) && !positiveCodeSet.has(code));
 
     let removed = 0;
@@ -214,7 +223,10 @@ export class ProductsService {
   }
 
   private moveToAwaitingStock(product: ProductEntity): void {
-    if (product.status !== 'awaiting_stock' && INVENTORY_RESUMABLE_STATUSES.has(product.status)) {
+    if (
+      product.status !== 'awaiting_stock' &&
+      INVENTORY_RESUMABLE_STATUSES.has(product.status)
+    ) {
       product.enrichment = {
         ...(product.enrichment ?? {}),
         inventoryResumeStatus: product.status,
@@ -226,11 +238,13 @@ export class ProductsService {
 
   private restoreAfterRestock(product: ProductEntity): void {
     const saved = product.enrichment?.['inventoryResumeStatus'];
-    product.status = typeof saved === 'string' && INVENTORY_RESUMABLE_STATUSES.has(saved as ProductStatus)
-      ? saved as ProductStatus
-      : (product.photos ?? []).length
-        ? 'ready_for_approval'
-        : 'waiting_photo';
+    product.status =
+      typeof saved === 'string' &&
+      INVENTORY_RESUMABLE_STATUSES.has(saved as ProductStatus)
+        ? (saved as ProductStatus)
+        : (product.photos ?? []).length
+          ? 'ready_for_approval'
+          : 'waiting_photo';
     if (product.enrichment && 'inventoryResumeStatus' in product.enrichment) {
       const { inventoryResumeStatus: _removed, ...rest } = product.enrichment;
       product.enrichment = rest;
@@ -397,6 +411,9 @@ export class ProductsService {
     dto: OverrideStatusDto,
   ): Promise<ProductEntity> {
     const product = await this.getById(id);
+    assertManualProductTransition(product, dto.status);
+    if (dto.status === product.status) return product;
+
     if (dto.status === 'ready_for_approval' && !(product.photos ?? []).length) {
       throw new BadRequestException(
         'محصول بدون عکس قابل ارسال برای مدیر نیست.',
@@ -452,7 +469,11 @@ export class ProductsService {
       target.price =
         row['price'] == null ? null : Math.max(0, Number(row['price']) || 0);
       target.isNewImport = Boolean(row['isNewImport']);
-      target.status = String(row['status'] || 'waiting_photo') as ProductStatus;
+      const restoredStatus = row['status'] || 'waiting_photo';
+      if (!isProductStatus(restoredStatus)) {
+        throw new BadRequestException('backup_product_status_invalid');
+      }
+      target.status = restoredStatus;
       target.photos = Array.isArray(row['photos'])
         ? (row['photos'] as ProductPhoto[]).slice(0, 12)
         : [];
@@ -506,6 +527,7 @@ export class ProductsService {
       modelSelectionEnabled?: boolean;
     },
   ): Promise<ProductEntity> {
+    assertCanonicalCatalogClassification(dto);
     const product = await this.getById(id);
     product.category = dto.category.trim();
     product.categorySlug = dto.categorySlug.trim();
@@ -527,7 +549,10 @@ export class ProductsService {
       };
     }
     if (dto.modelSelectionEnabled !== undefined) {
-      product.enrichment = { ...(product.enrichment ?? {}), modelSelectionEnabled: dto.modelSelectionEnabled };
+      product.enrichment = {
+        ...(product.enrichment ?? {}),
+        modelSelectionEnabled: dto.modelSelectionEnabled,
+      };
     }
     return this.repo.save(product);
   }
