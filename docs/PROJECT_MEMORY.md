@@ -8,10 +8,11 @@ Status: **Operational context; subordinate to `CONSTITUTION.md` and the Engineer
 - RM-00 established the remediation baseline lineage. New remediation work starts from the current approved `main`, never from reused/diverged work branches.
 
 ## Architecture
-- Frontend: Angular 21.
+- Frontend: Angular 21 with Angular SSR/hydration introduced by RM-12 PR-020.
 - Backend: NestJS 11.
 - Persistence: TypeORM with PostgreSQL as the production system of record.
 - Angular owns presentation/client orchestration; NestJS owns authoritative business logic, authorization, validation, workflow transitions, jobs and persistence orchestration.
+- Public storefront HTML is rendered through the supervised Angular SSR runtime; browser hydration resumes the same application without making client state authoritative.
 - Media binary storage is behind the NestJS `MediaStorageService` boundary. Production uses S3-compatible Object Storage; PostgreSQL remains authoritative for media metadata, workflow state, attachment and audit. Public and private/quarantine objects are separate namespaces.
 
 ## Protected Gallery Mazhari workflows
@@ -41,11 +42,11 @@ The following are intentional product systems and must not be deleted, flattened
 - Legacy/stale document classification: `docs/operations/STALE_DOCUMENT_REGISTER.md`
 
 ## Current remediation sequence
-Wave 0 is complete. Wave 1 implementation slices through PR-015 are complete on the approved `main` lineage. Wave 2 design-system work PR-016/PR-017 is complete. PR-018 removed the proven dormant direct Angular WordPress/WooCommerce product path. PR-019 attempted to establish RM-09 evidence but its analyzer job was invalid; corrective PR #40 produced the first trustworthy RM-09 dependency/dead-code/duplication evidence. PR #41 then retired the proven one-off WordPress migration preparation/reconciliation tools and merged at `main@d9844c1a67246f267751c539ad1d7b15c34b808a`.
+Wave 0 and Wave 1 are complete. Wave 2 design-system and evidence-backed RM-09 cleanup slices through PR #42 are complete on the approved `main` lineage; PR #42 merged at `main@5873726f0a2b7e012f46c55a9c49aee63a355eb2`.
 
-The current permitted work is the next small **RM-09 evidence-backed legacy-removal slice**: retire only the unused direct-SQLite `backend/scripts/tag-products-from-descriptions.ts` entry point. The reusable tagging engine and protected taxonomy/tag approval workflow remain canonical and unchanged. Other legacy description scripts, dependencies and RM-12+ work are outside this slice.
+The owner explicitly advanced the Roadmap to **Wave 3 / RM-12 / PR-020 — SSR/prerender foundation**. The active slice establishes Angular SSR/hydration, server-visible route metadata, true HTTP status handling for unmatched routes, and the supervised SSR deployment path. PR-021 dynamic entity SEO, JSON-LD lifecycle, sitemap indexes and redirect registry remain out of scope until PR-020 is merged.
 
-Further RM-09 removals must each repeat candidate-specific usage proof; bulk deletion remains forbidden. PR-020 / RM-12 SSR/prerender begins only after the RM-09 cleanup gate is deliberately closed or the owner explicitly advances the Roadmap.
+Further RM-09 deletion remains evidence-gated and may not be mixed into RM-12. RM-13 performance/CWV and RM-14 accessibility also remain separate Roadmap programs.
 
 This file records sequence/context only; the Master Remediation Roadmap remains authoritative for scope and ordering.
 
