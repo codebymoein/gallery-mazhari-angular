@@ -9,6 +9,7 @@ import {
   ProductEntity,
   ProductStatus,
 } from '../../products/entities/product.entity';
+import { assertPlatformTransition } from '../../products/product-workflow.policy';
 import { AuditService } from '../audit/audit.service';
 import { ImportRunEntity } from '../import/entities/import-run.entity';
 
@@ -63,6 +64,19 @@ export class WorkflowService {
     const products = await this.products.find({
       where: { id: In(input.productIds) },
     });
+
+    // Validate the entire batch before the first write so an invalid product
+    // cannot leave a partially advanced workflow batch.
+    for (const product of products) {
+      assertPlatformTransition(product.status, 'approved');
+      if (input.publish) {
+        assertPlatformTransition(
+          'approved',
+          product.photos?.length ? 'published' : 'pending_image_review',
+        );
+      }
+    }
+
     let approved = 0;
     let published = 0;
     const now = new Date().toISOString();
@@ -107,6 +121,9 @@ export class WorkflowService {
     const products = await this.products.find({
       where: { id: In(input.productIds) },
     });
+    for (const product of products) {
+      assertPlatformTransition(product.status, 'rejected');
+    }
     for (const p of products) {
       const prev = p.status;
       p.status = 'rejected';
