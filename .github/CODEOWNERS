@@ -1,0 +1,28 @@
+# Gallery Mazhari CODEOWNERS
+# Repository owner remains the default reviewer until additional human owners are explicitly appointed.
+* @codebymoein
+
+# Governance and repository controls
+/AGENTS.md @codebymoein
+/CONSTITUTION.md @codebymoein
+/.github/ @codebymoein
+/docs/handbook/ @codebymoein
+/docs/governance/ @codebymoein
+/docs/remediation/ @codebymoein
+
+# Sensitive runtime and business-authority surfaces
+/backend/src/auth/ @codebymoein
+/backend/src/database/ @codebymoein
+/backend/src/payments/ @codebymoein
+/backend/src/platform/ @codebymoein
+/backend/src/products/ @codebymoein
+/backend/src/orders/ @codebymoein
+/backend/src/main.ts @codebymoein
+/backend/src/database/data-source.ts @codebymoein
+/backend/.env.example @codebymoein
+/deploy/ @codebymoein
+/src/environments/ @codebymoein
+/package.json @codebymoein
+/package-lock.json @codebymoein
+/backend/package.json @codebymoein
+/backend/package-lock.json @codebymoein
