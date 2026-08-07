@@ -1,7 +1,7 @@
 import 'dotenv/config';
-import { DataSource } from 'typeorm';
 import { join } from 'path';
-import { ALL_ENTITIES } from '../app.module';
+import { DataSource } from 'typeorm';
+import { ALL_ENTITIES } from './entities';
 
 const sqlite = process.env.DB_TYPE === 'sqlite';
 
@@ -26,5 +26,6 @@ export default new DataSource(
         entities: ALL_ENTITIES,
         migrations: [join(__dirname, 'migrations', '*.{ts,js}')],
         synchronize: false,
+        connectTimeoutMS: Number(process.env.DB_CONNECT_TIMEOUT_MS ?? 10_000),
       },
 );
