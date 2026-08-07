@@ -7,25 +7,28 @@ Status: **Normative operational documentation** for RM-16.
 - NestJS runtime configuration: `backend/.env.example` + `backend/src/config/env.validation.ts`.
 - Angular/browser configuration: must contain public/browser-safe values only. Root `.env.example` is legacy/frontend compatibility documentation and is not a production secret contract.
 - Production durable data: PostgreSQL through NestJS. WordPress environment values are compatibility-only and do not define business authority.
+- Media binary storage: production uses server-side S3-compatible Object Storage. PostgreSQL remains authoritative for media metadata/workflow state.
 
 ## Environment classes
 
 ### Local development
 
-`NODE_ENV=development`. SQLite may be used only as the documented local-development compatibility path. Development placeholder secrets are allowed only because the environment is explicitly non-production.
+`NODE_ENV=development`. SQLite may be used only as the documented local-development compatibility path. Development placeholder secrets are allowed only because the environment is explicitly non-production. `MEDIA_STORAGE_DRIVER=local` is permitted for development and writes public originals under `uploads/media` and private/quarantine content outside the public upload tree under `storage/private/media`.
 
 ### Test / CI
 
-`NODE_ENV=test` unless a test intentionally exercises production validation. CI credentials must be ephemeral, non-production and supplied by the workflow/environment rather than committed as secrets.
+`NODE_ENV=test` unless a test intentionally exercises production validation. CI credentials must be ephemeral, non-production and supplied by the workflow/environment rather than committed as secrets. Tests may use the local driver or mocked S3 transport.
 
 ### Production
 
-`NODE_ENV=production`. Production must use the NestJS backend contract and PostgreSQL deployment variables. Real secret values are supplied by the deployment secret store/environment, never by committed `.env` files.
+`NODE_ENV=production`. Production must use the NestJS backend contract, PostgreSQL deployment variables, and `MEDIA_STORAGE_DRIVER=s3`. Real secret values are supplied by the deployment secret store/environment, never by committed `.env` files.
 
 The runtime validator rejects:
 
 - a missing or shorter-than-32-character `JWT_SECRET`;
-- documented/default placeholder values for configured secret fields such as `JWT_SECRET`, `ADMIN_SETUP_KEY`, `DB_PASSWORD`, and `SMTP_PASSWORD`.
+- documented/default placeholder values for configured secret fields such as `JWT_SECRET`, `ADMIN_SETUP_KEY`, `DB_PASSWORD`, `SMTP_PASSWORD`, and `MEDIA_S3_SECRET_ACCESS_KEY`;
+- `MEDIA_STORAGE_DRIVER=local` in production;
+- incomplete S3-compatible media configuration in production.
 
 ## Canonical backend variables
 
@@ -44,11 +47,26 @@ The runtime validator rejects:
 | `JWT_SECRET` | JWT signing secret | secret; production placeholder rejection enforced |
 | `JWT_EXPIRES_IN` | token lifetime | security-sensitive configuration |
 | `ADMIN_SETUP_KEY` | bootstrap/setup protection | secret when configured |
+| `MEDIA_STORAGE_DRIVER` | media binary backend | production must be `s3` |
+| `MEDIA_S3_ENDPOINT` | S3-compatible API endpoint | environment-specific, server-only |
+| `MEDIA_S3_REGION` | signing region (`auto` where provider supports it) | environment-specific |
+| `MEDIA_S3_BUCKET` | media bucket/container | environment-specific |
+| `MEDIA_S3_ACCESS_KEY_ID` | Object Storage principal | sensitive identifier; server-only |
+| `MEDIA_S3_SECRET_ACCESS_KEY` | Object Storage credential | secret; server-only and placeholder-rejected |
+| `MEDIA_PUBLIC_BASE_URL` | public media/CDN origin used only for public objects | non-secret |
 | `ADMIN_RECOVERY_EMAIL` | recovery recipient | sensitive operational config |
 | `SMTP_HOST` / `SMTP_PORT` | mail endpoint | environment-specific |
 | `SMTP_USER` | mail principal | sensitive identifier |
 | `SMTP_PASSWORD` | mail credential | secret |
 | `SMTP_FROM` | sender identity | non-secret |
+
+## Media storage contract
+
+- Object keys are server-generated from the SHA-256 content hash: `public/<hash-prefix>/<hash>.<ext>` or `private/<hash-prefix>/<hash>.<ext>`.
+- Public product originals may resolve through `MEDIA_PUBLIC_BASE_URL`; immutable public objects receive a one-year immutable cache policy.
+- Quarantine/private objects never receive a public HTTP URL. Application metadata stores a non-public `private-object://...` reference instead.
+- S3 credentials never appear in Angular environments, API responses, logs, committed files, or public URLs.
+- PR-012 establishes durable original storage and visibility boundaries. Malware scanning, metadata stripping, object-storage derivative upload and full media reconciliation remain PR-013 scope.
 
 ## Rules
 
@@ -58,9 +76,11 @@ The runtime validator rejects:
 4. Production secret injection happens outside Git using the deployment platform/secret store.
 5. A configuration rename/removal requires updating this document, `backend/.env.example`, validation code, deployment docs and CI where applicable.
 6. Configuration changes do not authorize schema, authentication, import or deployment redesign outside the owning remediation program.
+7. Object Storage is binary storage, not a competing business database. PostgreSQL/NestJS remain authoritative for media identity, workflow status, product attachment and audit.
 
 ## Verification
 
-- Backend tests cover production placeholder rejection.
+- Backend tests cover production placeholder rejection and required Object Storage configuration.
+- Media storage tests cover deterministic content keys, public/private URL separation and failed-provider writes.
 - RM-02 Gitleaks remains a required repository check.
 - The backend build/tests must pass after environment-validation changes.

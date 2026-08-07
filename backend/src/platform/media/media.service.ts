@@ -6,14 +6,14 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import AdmZip from 'adm-zip';
 import { createHash } from 'crypto';
-import { existsSync, mkdirSync, writeFileSync } from 'fs';
-import { basename, join } from 'path';
+import { basename } from 'path';
 import { Repository } from 'typeorm';
 import { AuditService } from '../audit/audit.service';
 import { ProductEntity } from '../../products/entities/product.entity';
 import { assignImageRoles, parseProductImageFilename } from './image-filename';
 import { MediaAssetEntity } from './entities/media-asset.entity';
 import { generateImageDerivatives } from './image-derivatives';
+import { MediaStorageService } from './media-storage.service';
 
 const MAX_FILE_BYTES = 12 * 1024 * 1024;
 const MAX_ZIP_ENTRIES = 5000;
@@ -27,6 +27,7 @@ export class MediaService {
     @InjectRepository(ProductEntity)
     private readonly products: Repository<ProductEntity>,
     private readonly audit: AuditService,
+    private readonly storage: MediaStorageService,
   ) {}
 
   async ingestFiles(input: {
@@ -42,9 +43,6 @@ export class MediaService {
     skippedPublished: number;
     assets: MediaAssetEntity[];
   }> {
-    const destination = join(process.cwd(), 'uploads', 'products');
-    if (!existsSync(destination)) mkdirSync(destination, { recursive: true });
-
     const assets: MediaAssetEntity[] = [];
     let attached = 0;
     let orphans = 0;
@@ -81,9 +79,7 @@ export class MediaService {
           safeName,
           hash,
           parsed.reason || 'invalid_filename',
-          input.uploadsBaseUrl,
           input.actor,
-          destination,
         );
         assets.push(q);
         quarantined += 1;
@@ -96,9 +92,7 @@ export class MediaService {
           safeName,
           hash,
           'file_too_large',
-          input.uploadsBaseUrl,
           input.actor,
-          destination,
         );
         assets.push(q);
         quarantined += 1;
@@ -112,9 +106,7 @@ export class MediaService {
           safeName,
           hash,
           'unsupported_or_corrupt_mime',
-          input.uploadsBaseUrl,
           input.actor,
-          destination,
         );
         assets.push(q);
         quarantined += 1;
@@ -128,9 +120,7 @@ export class MediaService {
           safeName,
           hash,
           'image_too_small',
-          input.uploadsBaseUrl,
           input.actor,
-          destination,
         );
         assets.push(q);
         quarantined += 1;
@@ -153,14 +143,48 @@ export class MediaService {
         continue;
       }
 
-      const stored = `p-${parsed.productCode}-${parsed.sequence ?? 'base'}-${hash.slice(0, 10)}.${ft.ext}`;
-      writeFileSync(join(destination, stored), file.buffer);
-      const url = `${input.uploadsBaseUrl}/uploads/products/${stored}`;
+      const role: MediaAssetEntity['role'] =
+        parsed.sequence == null ? 'primary' : 'gallery';
+
+      // Sequence/filename conflicts are private quarantine data. Validate them
+      // before writing any public object so rejected media is never exposed.
+      if (product) {
+        const photos = [...(product.photos || [])];
+        const conflict = photos.find(
+          (p) =>
+            p.fileName === safeName ||
+            (role === 'primary' && p.role === 'primary') ||
+            (parsed.sequence != null &&
+              parseProductImageFilename(p.fileName).sequence ===
+                parsed.sequence),
+        );
+        if (conflict) {
+          const q = await this.quarantine(
+            file.buffer,
+            safeName,
+            hash,
+            'sequence_or_filename_conflict',
+            input.actor,
+          );
+          assets.push(q);
+          quarantined += 1;
+          continue;
+        }
+      }
+
+      const storedObject = await this.storage.put({
+        buffer: file.buffer,
+        contentHash: hash,
+        extension: ft.ext,
+        contentType: ft.mime,
+        visibility: 'public',
+        uploadsBaseUrl: input.uploadsBaseUrl,
+      });
+      const stored = storedObject.key;
+      const url = storedObject.url;
 
       let status: MediaAssetEntity['status'] = 'orphan';
       let productId: string | null = null;
-      const role: MediaAssetEntity['role'] =
-        parsed.sequence == null ? 'primary' : 'gallery';
 
       if (!product) {
         orphans += 1;
@@ -179,30 +203,6 @@ export class MediaService {
             role === 'primary' ? ('primary' as const) : ('gallery' as const),
           contentHash: hash,
         };
-
-        // Sequence conflict: do not silently overwrite
-        const conflict = photos.find(
-          (p) =>
-            p.fileName === safeName ||
-            (role === 'primary' && p.role === 'primary') ||
-            (parsed.sequence != null &&
-              parseProductImageFilename(p.fileName).sequence ===
-                parsed.sequence),
-        );
-        if (conflict) {
-          const q = await this.quarantine(
-            file.buffer,
-            safeName,
-            hash,
-            'sequence_or_filename_conflict',
-            input.uploadsBaseUrl,
-            input.actor,
-            destination,
-          );
-          assets.push(q);
-          quarantined += 1;
-          continue;
-        }
 
         if (role === 'primary') {
           photos.unshift(entry);
@@ -228,22 +228,24 @@ export class MediaService {
         await this.products.save(product);
       }
 
-      const absPath = join(destination, stored);
       let width: number | null = null;
       let height: number | null = null;
       let derivatives: Record<string, string> | null = null;
-      try {
-        const derived = await generateImageDerivatives(
-          absPath,
-          `${input.uploadsBaseUrl}/uploads/products`,
-        );
-        width = derived.width;
-        height = derived.height;
-        if (Object.keys(derived.derivatives).length) {
-          derivatives = derived.derivatives;
+      if (storedObject.localPath) {
+        try {
+          const derived = await generateImageDerivatives(
+            storedObject.localPath,
+            `${input.uploadsBaseUrl}/uploads/media/${hash.slice(0, 2)}`,
+          );
+          width = derived.width;
+          height = derived.height;
+          if (Object.keys(derived.derivatives).length) {
+            derivatives = derived.derivatives;
+          }
+        } catch {
+          // Soft-fail: originals remain usable. Object-storage derivative
+          // processing is deliberately completed in PR-013.
         }
-      } catch {
-        // Soft-fail: originals remain usable
       }
 
       const asset = await this.media.save(
@@ -276,6 +278,7 @@ export class MediaService {
           productCode: parsed.productCode,
           status,
           role,
+          storageKey: stored,
         },
       });
     }
@@ -433,26 +436,23 @@ export class MediaService {
     originalName: string,
     hash: string,
     reason: string,
-    uploadsBaseUrl: string,
     actor: string | null | undefined,
-    destination: string,
   ): Promise<MediaAssetEntity> {
-    const quarantineDir = join(destination, '_quarantine');
-    if (!existsSync(quarantineDir))
-      mkdirSync(quarantineDir, { recursive: true });
-    const stored = `q-${hash.slice(0, 16)}-${basename(originalName)}`;
-    try {
-      writeFileSync(join(quarantineDir, stored), buffer);
-    } catch {
-      // still record metadata
-    }
+    const extension = extensionFromName(originalName);
+    const storedObject = await this.storage.put({
+      buffer,
+      contentHash: hash,
+      extension,
+      contentType: 'application/octet-stream',
+      visibility: 'private',
+    });
     return this.media.save(
       this.media.create({
         productCode: '',
         productId: null,
         originalFileName: originalName,
-        storedFileName: stored,
-        url: `${uploadsBaseUrl}/uploads/products/_quarantine/${stored}`,
+        storedFileName: storedObject.key,
+        url: storedObject.url,
         contentHash: hash,
         sequence: null,
         role: 'unknown',
@@ -572,6 +572,7 @@ export class MediaService {
       quarantine,
       productsMissingImages: missing.length,
       assetsWithDerivatives: withDerivatives,
+      storageDriver: this.storage.driver,
       note: 'Orphans = images without product; missing = products without images',
     };
   }
@@ -615,4 +616,9 @@ function detectAllowedImage(
       return { ext: 'avif', mime: 'image/avif' };
   }
   return null;
+}
+
+function extensionFromName(fileName: string): string {
+  const match = /\.([a-z0-9]{1,10})$/i.exec(fileName);
+  return match?.[1]?.toLowerCase() || 'bin';
 }
