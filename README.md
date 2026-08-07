@@ -104,19 +104,23 @@ deploy/              Deployment configuration
 
 ## Remediation baseline
 
-RM-00 یک baseline واحد برای برنامه remediation تعریف می‌کند.
+RM-00 baseline واحد برنامه remediation را تثبیت کرده است.
 
+- RM-00 status: **COMPLETE**
 - Repository: `codebymoein/gallery-mazhari-angular`
 - Canonical implementation SHA: `1703dc79fae78d7d7ed97a1966b25787458a8e98`
 - Audit source SHA: `a3c7af97ff447040433a041f83b785197595d26e`
-- RM-00 branch: `chore/rm-00-baseline-reconciliation`
+- RM-00 working branch: `chore/rm-00-baseline-reconciliation`
+- Baseline marker ref: `rm-baseline-2026-08-07` → `1703dc79fae78d7d7ed97a1966b25787458a8e98`
 - Baseline record: [`docs/remediation/RM-00-BASELINE.md`](docs/remediation/RM-00-BASELINE.md)
+
+`rm-baseline-2026-08-07` is a stable marker branch created because the connected automation does not expose Git tag creation; it MUST NOT be represented as a Git tag and MUST NOT be moved. The canonical SHA is the immutable authority.
 
 هیچ remediation بعدی نباید از یک branch واگرا یا branch قدیمی reuse شده شروع شود. وضعیت تست‌ها و migrationهای baseline فقط بر اساس evidence ثبت‌شده در گزارش RM-00 معتبر است؛ نبودن evidence نباید به‌عنوان pass تفسیر شود.
 
 ## وضعیت پروژه
 
-پروژه در حال توسعه فعال است. برای استقرار نهایی، تنظیم سرویس‌های بیرونی، دیتابیس production، ایمیل، پیامک و پرداخت متناسب با محیط مقصد ضروری است. وضعیت build/test مربوط به baseline remediation در [`docs/remediation/rm-00/BASELINE-VERIFICATION.md`](docs/remediation/rm-00/BASELINE-VERIFICATION.md) ثبت می‌شود و نباید از متن تاریخی README استنباط شود.
+پروژه در حال توسعه فعال است. برای استقرار نهایی، تنظیم سرویس‌های بیرونی، دیتابیس production، ایمیل، پیامک و پرداخت متناسب با محیط مقصد ضروری است. وضعیت build/test مربوط به baseline remediation در [`docs/remediation/rm-00/BASELINE-VERIFICATION.md`](docs/remediation/rm-00/BASELINE-VERIFICATION.md) ثبت شده و نباید از متن تاریخی README استنباط شود.
 
 ## مالکیت
 
