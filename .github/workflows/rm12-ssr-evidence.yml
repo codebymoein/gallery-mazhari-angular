@@ -1,0 +1,66 @@
+name: RM-12 SSR Evidence
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'angular.json'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'deploy/**'
+      - '.github/workflows/rm12-ssr-evidence.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  ssr-evidence:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - run: npm ci
+      - name: Build production SSR artifact
+        run: npm run build:prod
+      - name: Verify SSR raw HTML and HTTP status contract
+        run: |
+          set -euo pipefail
+          node dist/gallery-mazhari-angular/server/server.mjs > ssr-server.log 2>&1 &
+          ssr_pid=$!
+          trap 'kill "$ssr_pid" 2>/dev/null || true' EXIT
+
+          ready=false
+          for _ in 1 2 3 4 5 6 7 8 9 10; do
+            if curl --fail --silent --show-error http://127.0.0.1:4000/ > home.html; then
+              ready=true
+              break
+            fi
+            sleep 1
+          done
+          if [ "$ready" != true ]; then
+            cat ssr-server.log
+            exit 1
+          fi
+
+          grep -F '<title>گالری مظهری | لباس عروس و اکسسوری عروس</title>' home.html
+          grep -F 'name="description"' home.html
+          grep -F 'rel="canonical"' home.html
+
+          status=$(curl --silent --show-error --output missing.html --write-out '%{http_code}' http://127.0.0.1:4000/this-route-must-not-exist)
+          test "$status" = '404'
+          grep -F 'صفحه پیدا نشد | گالری مظهری' missing.html
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: rm12-ssr-evidence
+          path: |
+            ssr-server.log
+            home.html
+            missing.html
+          if-no-files-found: warn
+          retention-days: 14
