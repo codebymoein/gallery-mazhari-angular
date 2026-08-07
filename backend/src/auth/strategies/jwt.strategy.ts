@@ -1,36 +1,27 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
-import { ExtractJwt, Strategy } from 'passport-jwt';
+import { Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
+import { AuthService } from '../auth.service';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor(configService: ConfigService) {
+  constructor(configService: ConfigService, private readonly authService: AuthService) {
     super({
-      jwtFromRequest: ExtractJwt.fromExtractors([
-        ExtractJwt.fromAuthHeaderAsBearerToken(),
-        (request: { headers?: { cookie?: string } }) => {
-          const cookie = request?.headers?.cookie || '';
-          const match = cookie.match(/(?:^|;\s*)mazhari_admin_session=([^;]+)/);
-          return match ? decodeURIComponent(match[1]) : null;
-        },
-      ]),
+      jwtFromRequest: (request: { headers?: { cookie?: string } }) => {
+        const cookie = request?.headers?.cookie || '';
+        const match = cookie.match(/(?:^|;\s*)mazhari_admin_session=([^;]+)/);
+        return match ? decodeURIComponent(match[1]) : null;
+      },
       ignoreExpiration: false,
       secretOrKey: configService.getOrThrow<string>('JWT_SECRET'),
     });
   }
 
-  validate(payload: {
-    sub: string;
-    email: string;
-    role: string;
-    permissions?: string[];
-  }) {
-    return {
-      userId: payload.sub,
-      email: payload.email,
-      role: payload.role,
-      permissions: payload.permissions ?? [],
-    };
+  async validate(payload: { sub: string; sid?: string }) {
+    if (!payload.sid) throw new UnauthorizedException('session_required');
+    const principal = await this.authService.validateSession(payload.sub, payload.sid);
+    if (!principal) throw new UnauthorizedException('session_revoked_or_invalid');
+    return principal;
   }
 }
