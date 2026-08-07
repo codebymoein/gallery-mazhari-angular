@@ -58,6 +58,12 @@ Host requirements for the baseline: Node.js 22, systemd, util-linux `flock`, Ngi
 
 Backup host requirements include `pg_dump`, `age`, AWS CLI compatible with the configured S3 provider, and credentials supplied outside Git. Restore tooling/evidence is PR-015 scope; backup commands are not restore authorization.
 
+## Supported product/import tooling
+
+The supported product/inventory ingestion path is the reviewed application workflow: Excel upload -> dry-run/validation -> human confirmation -> NestJS/PostgreSQL commit/upsert -> inventory/media/review/publication processing. Operators must use the current application/API workflow and its documented controls rather than standalone migration scripts.
+
+The historical one-off scripts `scripts/prepare-wordpress-migration.mjs` and `scripts/reconcile-wordpress-with-inventory.mjs` were retired under RM-09 after valid static-analysis evidence plus consumer/package/history inspection showed no supported caller. They are **not** operational commands and must not be recreated as a parallel product/inventory authority. Any future external migration utility requires an explicit scoped contract, owner, input/output validation, reconciliation/rollback plan and documentation here.
+
 ## Security tools
 
 - Gitleaks: required CI secret scan.
@@ -66,7 +72,7 @@ Backup host requirements include `pg_dump`, `age`, AWS CLI compatible with the c
 
 ## Static debt reports
 
-RM-02 produces report artifacts for Stylelint, Dependency Cruiser and Knip. Existing debt is evidence for its owning remediation program; reports are not permission for bulk deletion or unrelated refactors.
+RM-02 produces report artifacts for Stylelint, Dependency Cruiser and Knip. RM-09 also runs `.github/workflows/rm09-static-analysis.yml` to produce validated dependency-cruiser, Knip and jscpd evidence. Existing findings are evidence for their owning remediation program; reports are not permission for bulk deletion or unrelated refactors.
 
 ## Ownership and updates
 
