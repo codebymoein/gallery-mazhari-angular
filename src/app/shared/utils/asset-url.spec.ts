@@ -14,12 +14,12 @@ describe('assetUrl', () => {
     );
   });
 
-  it('normalizes bundled asset paths and empty input', () => {
-    expect(assetUrl('assets/images/item.webp')).toBe(
-      '/assets/images/item.webp',
+  it('normalizes and versions bundled asset paths while preserving empty input', () => {
+    expect(assetUrl('assets/images/item.webp')).toMatch(
+      /^\/assets\/images\/item\.webp\?v=/,
     );
-    expect(assetUrl('./assets/images/item.webp')).toBe(
-      '/assets/images/item.webp',
+    expect(assetUrl('./assets/images/item.webp')).toMatch(
+      /^\/assets\/images\/item\.webp\?v=/,
     );
     expect(assetUrl('   ')).toBe('');
     expect(assetUrl(undefined)).toBe('');

@@ -1,0 +1,329 @@
+name: Quality Gates
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: quality-gates-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  frontend:
+    name: Frontend lint, test, build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - run: npm ci
+      - name: Frontend lint regression gate
+        run: |
+          set -euo pipefail
+          set +e
+          npm run lint 2>&1 | tee frontend-lint.txt
+          lint_exit=${PIPESTATUS[0]}
+          set -e
+          summary=$(grep -E '✖ [0-9]+ problems \([0-9]+ errors, [0-9]+ warnings\)' frontend-lint.txt | tail -1 || true)
+          if [ -z "$summary" ]; then
+            if [ "$lint_exit" -eq 0 ]; then
+              echo "Frontend lint passed with zero reported errors."
+              exit 0
+            fi
+            echo "Unable to parse frontend lint result."
+            exit 1
+          fi
+          errors=$(printf '%s' "$summary" | sed -E 's/.*\(([0-9]+) errors, ([0-9]+) warnings\).*/\1/')
+          warnings=$(printf '%s' "$summary" | sed -E 's/.*\(([0-9]+) errors, ([0-9]+) warnings\).*/\2/')
+          echo "Frontend lint baseline: errors=${errors}, warnings=${warnings}; allowed <=8 errors and <=90 warnings."
+          test "$errors" -le 8
+          test "$warnings" -le 90
+      - run: npm test
+      - name: Frontend coverage evidence
+        run: npm run test:coverage -- --coverage.reporter=text --coverage.reporter=json-summary
+      - run: npm run build:prod
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: frontend-quality-evidence
+          path: |
+            frontend-lint.txt
+            coverage
+          if-no-files-found: warn
+          retention-days: 14
+
+  backend:
+    name: Backend lint, test, build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm --prefix backend ci
+      - name: Backend lint regression gate
+        run: |
+          set -euo pipefail
+          set +e
+          npm --prefix backend run lint 2>&1 | tee backend-lint.txt
+          lint_exit=${PIPESTATUS[0]}
+          set -e
+          summary=$(grep -E '✖ [0-9]+ problems \([0-9]+ errors, [0-9]+ warnings\)' backend-lint.txt | tail -1 || true)
+          if [ -z "$summary" ]; then
+            if [ "$lint_exit" -eq 0 ]; then
+              echo "Backend lint passed with zero reported errors."
+              exit 0
+            fi
+            echo "Unable to parse backend lint result."
+            exit 1
+          fi
+          errors=$(printf '%s' "$summary" | sed -E 's/.*\(([0-9]+) errors, ([0-9]+) warnings\).*/\1/')
+          warnings=$(printf '%s' "$summary" | sed -E 's/.*\(([0-9]+) errors, ([0-9]+) warnings\).*/\2/')
+          echo "Backend lint baseline: errors=${errors}, warnings=${warnings}; allowed <=283 errors and <=6 warnings."
+          test "$errors" -le 283
+          test "$warnings" -le 6
+      - run: npm --prefix backend test -- --runInBand
+      - name: Backend coverage threshold gate
+        run: npm --prefix backend run test:cov -- --runInBand --coverageReporters=text --coverageReporters=json-summary
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: backend-quality-evidence
+          path: |
+            backend-lint.txt
+            backend/coverage
+          if-no-files-found: warn
+          retention-days: 14
+      - run: npm --prefix backend run build
+
+  postgres-migrations:
+    name: PostgreSQL migration chain and schema drift
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: gallery_ci
+          POSTGRES_PASSWORD: gallery_ci_password
+          POSTGRES_DB: gallery_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U gallery_ci -d gallery_ci"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DB_TYPE: postgres
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_USERNAME: gallery_ci
+      DB_PASSWORD: gallery_ci_password
+      DB_NAME: gallery_ci
+      JWT_SECRET: ci_only_jwt_secret_not_for_production
+      ADMIN_SETUP_KEY: ci_only_admin_setup_key
+      NODE_ENV: test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm --prefix backend ci
+      - name: Apply migrations to empty PostgreSQL database
+        run: npm --prefix backend run migration:run
+      - name: Verify migration status
+        run: npm --prefix backend run migration:show | tee migration-status.txt
+      - name: Report existing entity/migrated-schema drift
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          npm --prefix backend run schema:log 2>&1 | tee schema-drift.txt
+          if grep -qiE 'schema is up to date|no changes in database schema' schema-drift.txt; then
+            echo "Entity and migrated schema are in parity."
+          else
+            echo "::warning::Existing entity/migration schema drift detected. This is recorded as remediation debt and does not weaken the blocking fresh-migration gate."
+            exit 1
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: postgres-migration-evidence
+          path: |
+            migration-status.txt
+            schema-drift.txt
+          if-no-files-found: warn
+          retention-days: 14
+
+  e2e:
+    name: Playwright critical journeys
+    runs-on: ubuntu-latest
+    env:
+      CI: true
+      DB_TYPE: sqlite
+      DB_SQLITE_PATH: /tmp/gallery-mazhari-e2e.sqlite
+      FRONTEND_ORIGIN: http://127.0.0.1:4200
+      BACKEND_PUBLIC_URL: http://127.0.0.1:3000
+      JWT_SECRET: ci_only_jwt_secret_not_for_production
+      ADMIN_SETUP_KEY: ci_only_admin_setup_key
+      NODE_ENV: test
+      E2E_BASE_URL: http://127.0.0.1:4200
+      E2E_API_URL: http://127.0.0.1:3000
+      PLAYWRIGHT_CHANNEL: chromium
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            backend/package-lock.json
+      - run: npm ci
+      - run: npm --prefix backend ci
+      - run: npx playwright install --with-deps chromium
+      - name: Run business-critical E2E suite
+        run: npx playwright test e2e/backend.spec.ts e2e/cart-and-checkout.spec.ts e2e/routing-and-seo.spec.ts e2e/storefront.spec.ts
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-critical-report
+          path: playwright-report
+          if-no-files-found: warn
+          retention-days: 14
+
+  accessibility-report:
+    name: Accessibility debt report
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    env:
+      CI: true
+      DB_TYPE: sqlite
+      DB_SQLITE_PATH: /tmp/gallery-mazhari-a11y.sqlite
+      FRONTEND_ORIGIN: http://127.0.0.1:4200
+      BACKEND_PUBLIC_URL: http://127.0.0.1:3000
+      JWT_SECRET: ci_only_jwt_secret_not_for_production
+      ADMIN_SETUP_KEY: ci_only_admin_setup_key
+      NODE_ENV: test
+      E2E_BASE_URL: http://127.0.0.1:4200
+      E2E_API_URL: http://127.0.0.1:3000
+      PLAYWRIGHT_CHANNEL: chromium
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            backend/package-lock.json
+      - run: npm ci
+      - run: npm --prefix backend ci
+      - run: npx playwright install --with-deps chromium
+      - name: Run accessibility suite without masking existing RM-14 debt
+        run: npx playwright test e2e/accessibility.spec.ts
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: accessibility-report
+          path: playwright-report
+          if-no-files-found: warn
+          retention-days: 14
+
+  dependency-security:
+    name: Dependency security audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm audit --package-lock-only --omit=dev --audit-level=high
+      - run: npm --prefix backend audit --package-lock-only --omit=dev --audit-level=high
+
+  secret-scan:
+    name: Secret scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  static-analysis-report:
+    name: Static debt reports
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            backend/package-lock.json
+      - run: npm ci
+      - run: npm --prefix backend ci
+      - run: mkdir -p reports
+      - name: CSS governance report
+        continue-on-error: true
+        run: npx --yes stylelint@16.23.1 "src/**/*.css" --config .stylelintrc.json > reports/stylelint.txt 2>&1
+      - name: Architecture dependency report
+        continue-on-error: true
+        run: npx --yes dependency-cruiser@17.3.1 --validate .dependency-cruiser.cjs src backend/src > reports/dependency-cruiser.txt 2>&1
+      - name: Dead-code report
+        continue-on-error: true
+        run: npx --yes knip@5.62.0 > reports/knip.txt 2>&1
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: static-analysis-reports
+          path: reports
+          if-no-files-found: error
+          retention-days: 14
+
+  required-quality-gates:
+    name: Required quality gates
+    if: always()
+    needs:
+      - frontend
+      - backend
+      - postgres-migrations
+      - e2e
+      - dependency-security
+      - secret-scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Enforce blocking gate results
+        env:
+          FRONTEND: ${{ needs.frontend.result }}
+          BACKEND: ${{ needs.backend.result }}
+          POSTGRES: ${{ needs.postgres-migrations.result }}
+          E2E: ${{ needs.e2e.result }}
+          DEPENDENCY_SECURITY: ${{ needs.dependency-security.result }}
+          SECRET_SCAN: ${{ needs.secret-scan.result }}
+        run: |
+          set -euo pipefail
+          printf 'frontend=%s\nbackend=%s\npostgres=%s\ne2e=%s\ndependency-security=%s\nsecret-scan=%s\n' \
+            "$FRONTEND" "$BACKEND" "$POSTGRES" "$E2E" "$DEPENDENCY_SECURITY" "$SECRET_SCAN"
+          test "$FRONTEND" = success
+          test "$BACKEND" = success
+          test "$POSTGRES" = success
+          test "$E2E" = success
+          test "$DEPENDENCY_SECURITY" = success
+          test "$SECRET_SCAN" = success
