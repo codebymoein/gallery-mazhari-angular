@@ -2,12 +2,10 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { plainToInstance } from 'class-transformer';
-import { validateSync } from 'class-validator';
 import { join } from 'path';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import EnvironmentVariables from './config/env.validation';
+import { validateEnvironment } from './config/env.validation';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { GalleryModule } from './gallery/gallery.module';
@@ -57,21 +55,7 @@ export const ALL_ENTITIES = [
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      validate: (config) => {
-        const validatedConfig = plainToInstance(EnvironmentVariables, config, {
-          enableImplicitConversion: true,
-        });
-
-        const errors = validateSync(validatedConfig, {
-          skipMissingProperties: false,
-        });
-
-        if (errors.length > 0) {
-          throw new Error(errors.toString());
-        }
-
-        return validatedConfig;
-      },
+      validate: validateEnvironment,
     }),
     ThrottlerModule.forRoot([
       {
@@ -84,8 +68,8 @@ export const ALL_ENTITIES = [
       serveRoot: '/uploads',
     }),
     TypeOrmModule.forRoot(
-      // DB_TYPE=sqlite → توسعه محلی بدون نیاز به نصب Postgres؛
-      // در سرور، DB_TYPE=postgres (یا خالی) با متغیرهای DB_* کار می‌کند.
+      // DB_TYPE=sqlite → local development without installing Postgres;
+      // on server, DB_TYPE=postgres (or empty) uses DB_* variables.
       process.env.DB_TYPE === 'sqlite'
         ? {
             type: 'better-sqlite3',

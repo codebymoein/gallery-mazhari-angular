@@ -17,9 +17,9 @@ Status: **Operational context; subordinate to `CONSTITUTION.md` and the Engineer
 The following are intentional product systems and must not be deleted, flattened or bypassed for convenience: Excel inventory import; dry-run/confirm import; product/variation workflow; photo/media queue; orphan/quarantine handling; staging/publish queue; stock lifecycle/audit; taxonomy; SEO enrichment; merchandising; orders/payments; consultations; custom requests; and related approval/audit gates.
 
 ## Remediation operating model
-- Master Remediation Roadmap controls implementation scope.
+- Master Remediation Roadmap controls implementation scope and Wave gates.
 - A raw audit finding is not permission to modify code.
-- One focused branch/PR per approved remediation purpose.
+- One focused branch/PR per approved remediation purpose unless the Roadmap explicitly groups programs.
 - No adjacent RM program starts opportunistically.
 - Every PR states base SHA, scope/non-scope, risk, verification evidence and rollback/recovery.
 
@@ -32,8 +32,15 @@ The following are intentional product systems and must not be deleted, flattened
 - Never expose or commit secrets, credentials, private data or production dumps.
 - Never push directly to `main` or self-merge without explicit owner authorization.
 
+## Canonical operations documentation
+- Environment contract: `docs/operations/ENVIRONMENT.md`
+- Secret management/rotation: `docs/operations/SECRETS.md`
+- Tool/migration manifest: `docs/operations/TOOL_MANIFEST.md`
+- Documentation ownership/index: `docs/DOCUMENTATION_INDEX.md`
+- Legacy/stale document classification: `docs/operations/STALE_DOCUMENT_REGISTER.md`
+
 ## Current remediation sequence
-RM-00 is complete. Wave 0 continues with RM-01, then RM-02 and RM-16 according to roadmap dependencies and gates. This file records sequence/context only; each RM document is authoritative for its own scope.
+RM-00, RM-01 and RM-02 are complete. RM-16 is the remaining Wave 0 program. Wave 1 must not begin until RM-16 passes its exit criteria and is merged. This file records sequence/context only; each RM document and the Master Remediation Roadmap remain authoritative for scope.
 
 ## Updating this file
-Update Project Memory when repository-wide operating facts change: architecture authority, canonical workflows, governance process, active remediation sequence, or durable handoff information. Do not use it as a scratchpad, secret store, duplicate audit ledger or substitute for task-specific documentation.
+Update Project Memory when repository-wide operating facts change: architecture authority, canonical workflows, governance process, active remediation sequence, canonical operations documentation, or durable handoff information. Do not use it as a scratchpad, secret store, duplicate audit ledger or substitute for task-specific documentation.
