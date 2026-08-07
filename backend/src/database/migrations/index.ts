@@ -4,6 +4,7 @@ import { AddConsultationPreferenceProfile1785700000000 } from './1785700000000-A
 import { CreatePasswordResetTokens1785700000000 } from './1785700000000-CreatePasswordResetTokens';
 import { CreateCustomRequests1785800000000 } from './1785800000000-CreateCustomRequests';
 import { AddCustomRequestContactDetails1785900000000 } from './1785900000000-AddCustomRequestContactDetails';
+import { CreateAuthSessions1786000000000 } from './1786000000000-CreateAuthSessions';
 
 /**
  * Canonical migration order. Two historical migrations share timestamp
@@ -18,4 +19,5 @@ export const ALL_MIGRATIONS = [
   CreatePasswordResetTokens1785700000000,
   CreateCustomRequests1785800000000,
   AddCustomRequestContactDetails1785900000000,
+  CreateAuthSessions1786000000000,
 ];
