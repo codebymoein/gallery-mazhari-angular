@@ -1,4 +1,8 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { createHash } from 'crypto';
 import { Repository } from 'typeorm';
@@ -33,7 +37,10 @@ export class CatalogContractService {
     };
   }
 
-  async updateCatalog(id: string, dto: UpdateCatalogDto): Promise<ProductEntity> {
+  async updateCatalog(
+    id: string,
+    dto: UpdateCatalogDto,
+  ): Promise<ProductEntity> {
     assertCanonicalCatalogClassification(dto);
 
     return this.repo.manager.transaction(async (manager) => {
@@ -64,7 +71,9 @@ export class CatalogContractService {
       if (dto.hiddenTags !== undefined) {
         product.enrichment = {
           ...(product.enrichment ?? {}),
-          hiddenTags: [...new Set(dto.hiddenTags.map((tag) => tag.trim()).filter(Boolean))],
+          hiddenTags: [
+            ...new Set(dto.hiddenTags.map((tag) => tag.trim()).filter(Boolean)),
+          ],
         };
       }
       if (dto.modelSelectionEnabled !== undefined) {
