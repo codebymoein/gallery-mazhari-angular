@@ -5,11 +5,27 @@ describe('validateEnvironment', () => {
   const productionBase = {
     NODE_ENV: 'production',
     DB_TYPE: 'postgres',
+    DB_HOST: '127.0.0.1',
+    DB_USERNAME: 'gallery',
+    DB_PASSWORD: 'production-db-password-value',
+    DB_NAME: 'gallery',
     JWT_SECRET: `test-only-${'x'.repeat(40)}`,
   };
 
-  it('accepts a non-placeholder production JWT secret', () => {
+  it('accepts a complete non-placeholder PostgreSQL production configuration', () => {
     expect(() => validateEnvironment(productionBase)).not.toThrow();
+  });
+
+  it('rejects sqlite in production', () => {
+    expect(() =>
+      validateEnvironment({ ...productionBase, DB_TYPE: 'sqlite' }),
+    ).toThrow(/PostgreSQL/);
+  });
+
+  it('rejects missing production database variables', () => {
+    expect(() =>
+      validateEnvironment({ ...productionBase, DB_HOST: '' }),
+    ).toThrow(/DB_HOST/);
   });
 
   it('rejects the documented JWT placeholder in production', () => {

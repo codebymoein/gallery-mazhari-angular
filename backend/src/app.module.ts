@@ -1,55 +1,28 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { APP_GUARD } from '@nestjs/core';
 import { ServeStaticModule } from '@nestjs/serve-static';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { join } from 'path';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { validateEnvironment } from './config/env.validation';
-import { AuthModule } from './auth/auth.module';
-import { UsersModule } from './users/users.module';
-import { GalleryModule } from './gallery/gallery.module';
-import { ProductsModule } from './products/products.module';
-import { PlatformModule, PLATFORM_ENTITIES } from './platform/platform.module';
-import { UserEntity } from './users/entities/user.entity';
-import { GalleryItemEntity } from './gallery/entities/gallery-item.entity';
-import { ProductEntity } from './products/entities/product.entity';
-import { DiscountsModule } from './discounts/discounts.module';
-import { DiscountRuleEntity } from './discounts/entities/discount-rule.entity';
 import { AppearanceModule } from './appearance/appearance.module';
-import { SiteAppearanceEntity } from './appearance/entities/site-appearance.entity';
-import { PaymentsModule } from './payments/payments.module';
-import { PaymentSettingsEntity } from './payments/entities/payment-settings.entity';
-import { PaymentTransactionEntity } from './payments/entities/payment-transaction.entity';
-import { OrdersModule } from './orders/orders.module';
-import { OrderEntity } from './orders/entities/order.entity';
-import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
-import { APP_GUARD } from '@nestjs/core';
-import { NotificationsModule } from './notifications/notifications.module';
-import { NotificationSettingsEntity } from './notifications/entities/notification-settings.entity';
-import { NotificationDeliveryEntity } from './notifications/entities/notification-delivery.entity';
+import { AuthModule } from './auth/auth.module';
+import { validateEnvironment } from './config/env.validation';
 import { ConsultationsModule } from './consultations/consultations.module';
-import { ConsultationEntity } from './consultations/entities/consultation.entity';
-import { PasswordResetTokenEntity } from './auth/entities/password-reset-token.entity';
 import { CustomRequestsModule } from './custom-requests/custom-requests.module';
-import { CustomRequestEntity } from './custom-requests/entities/custom-request.entity';
+import { ALL_ENTITIES } from './database/entities';
+import { DiscountsModule } from './discounts/discounts.module';
+import { GalleryModule } from './gallery/gallery.module';
+import { NotificationsModule } from './notifications/notifications.module';
+import { OrdersModule } from './orders/orders.module';
+import { PaymentsModule } from './payments/payments.module';
+import { PlatformModule } from './platform/platform.module';
+import { ProductsModule } from './products/products.module';
+import { UsersModule } from './users/users.module';
 
-export const ALL_ENTITIES = [
-  UserEntity,
-  GalleryItemEntity,
-  ProductEntity,
-  DiscountRuleEntity,
-  SiteAppearanceEntity,
-  PaymentSettingsEntity,
-  PaymentTransactionEntity,
-  OrderEntity,
-  NotificationSettingsEntity,
-  NotificationDeliveryEntity,
-  ConsultationEntity,
-  PasswordResetTokenEntity,
-  CustomRequestEntity,
-  ...PLATFORM_ENTITIES,
-];
+export { ALL_ENTITIES } from './database/entities';
 
 @Module({
   imports: [
@@ -68,8 +41,6 @@ export const ALL_ENTITIES = [
       serveRoot: '/uploads',
     }),
     TypeOrmModule.forRoot(
-      // DB_TYPE=sqlite → local development without installing Postgres;
-      // on server, DB_TYPE=postgres (or empty) uses DB_* variables.
       process.env.DB_TYPE === 'sqlite'
         ? {
             type: 'better-sqlite3',
@@ -77,7 +48,7 @@ export const ALL_ENTITIES = [
               process.env.DB_SQLITE_PATH ||
               join(process.cwd(), 'data', 'gallery-mazhari.sqlite'),
             entities: ALL_ENTITIES,
-            synchronize: process.env.NODE_ENV !== 'production',
+            synchronize: false,
           }
         : {
             type: 'postgres',
@@ -87,7 +58,10 @@ export const ALL_ENTITIES = [
             password: process.env.DB_PASSWORD,
             database: process.env.DB_NAME,
             entities: ALL_ENTITIES,
-            synchronize: process.env.NODE_ENV !== 'production',
+            synchronize: false,
+            connectTimeoutMS: Number(
+              process.env.DB_CONNECT_TIMEOUT_MS ?? 10_000,
+            ),
           },
     ),
     AuthModule,

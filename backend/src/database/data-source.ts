@@ -1,7 +1,8 @@
 import 'dotenv/config';
-import { DataSource } from 'typeorm';
 import { join } from 'path';
-import { ALL_ENTITIES } from '../app.module';
+import { DataSource } from 'typeorm';
+import { ALL_ENTITIES } from './entities';
+import { ALL_MIGRATIONS } from './migrations';
 
 const sqlite = process.env.DB_TYPE === 'sqlite';
 
@@ -13,7 +14,7 @@ export default new DataSource(
           process.env.DB_SQLITE_PATH ||
           join(process.cwd(), 'data', 'gallery-mazhari.sqlite'),
         entities: ALL_ENTITIES,
-        migrations: [join(__dirname, 'migrations', '*.{ts,js}')],
+        migrations: ALL_MIGRATIONS,
         synchronize: false,
       }
     : {
@@ -24,7 +25,8 @@ export default new DataSource(
         password: process.env.DB_PASSWORD,
         database: process.env.DB_NAME,
         entities: ALL_ENTITIES,
-        migrations: [join(__dirname, 'migrations', '*.{ts,js}')],
+        migrations: ALL_MIGRATIONS,
         synchronize: false,
+        connectTimeoutMS: Number(process.env.DB_CONNECT_TIMEOUT_MS ?? 10_000),
       },
 );
