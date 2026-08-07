@@ -1,6 +1,6 @@
 # Agent Task Manifest
 
-Use one manifest per active material agent task. Copy this template into the PR description, issue, or a task-specific file. A material task MUST NOT begin writes until the required-reading and preflight sections are complete.
+Use one manifest per active material agent task. Copy this template into the PR description, issue, or a task-specific file. A material task MUST NOT begin writes until the applicable preflight items are complete.
 
 ## Identity
 - Task / RM / Finding ID:
@@ -12,23 +12,22 @@ Use one manifest per active material agent task. Copy this template into the PR 
 - Base branch: `main`
 - Verified base SHA:
 - Working branch:
-- Open predecessor/dependency PRs checked:
+- Relevant predecessor/dependency PRs checked:
 
-## Governance preflight acknowledgement
+## Fast preflight acknowledgement
 - [ ] Repository identity verified from GitHub, not assumed from prompt/history.
-- [ ] Current `main` SHA independently fetched.
+- [ ] Current `main` SHA and relevant PR/branch state independently fetched.
 - [ ] `AGENTS.md` read completely.
 - [ ] `CONSTITUTION.md` read completely.
-- [ ] `docs/PROJECT_MEMORY.md` read.
-- [ ] `docs/handbook/README.md` read.
-- [ ] Mandatory Handbook chapters 01, 02, 03, 07, 10, 11 and 12 read.
-- [ ] Task-specific Handbook chapters read.
-- [ ] `docs/remediation/MASTER_REMEDIATION_ROADMAP.md` read for remediation/audit work.
-- [ ] Exact Wave/RM/PR scope, dependencies, finding IDs, deliverables and exit criteria identified from the Roadmap.
+- [ ] Current/task-relevant `docs/PROJECT_MEMORY.md` context read.
+- [ ] `docs/handbook/README.md` read and task-risk chapter set selected.
+- [ ] Selected Handbook chapters actually read: ____________________
+- [ ] `docs/remediation/MASTER_REMEDIATION_ROADMAP.md` hard gates + exact RM/PR/DoD read when this is remediation/audit work.
+- [ ] Exact Wave/RM/PR scope, dependencies, finding IDs, deliverables and exit criteria identified when applicable.
 - [ ] Actual affected implementation and existing tests/docs inspected.
-- [ ] Mandatory pre-write report provided to the human owner before material mutation.
+- [ ] Compact mandatory pre-write report provided to the human owner before material mutation.
 
-If any box above that applies to the task is incomplete, **STOP: write authorization is not established.**
+If any applicable box is incomplete, **STOP: write authorization is not established.** Do not expand reading merely to tick boxes; select by the risk matrix in `AGENTS.md`, and expand if task boundaries expand.
 
 ## Authorization
 - Requested outcome:
@@ -44,35 +43,20 @@ If any box above that applies to the task is incomplete, **STOP: write authoriza
 - Destructive operations authorized: **none unless explicitly listed**
 - Merge authorization: **human owner only unless explicitly delegated**
 
-## Impact map
-- Business workflows touched:
-- Protected workflows confirmed preserved:
-- Source of truth affected:
-- API contracts affected:
-- Database/schema/migration impact:
-- Authentication/authorization impact:
-- Security/input/file impact:
-- Media/storage impact:
-- SEO/accessibility/performance impact:
-- Deployment/operations impact:
-- Documentation impact:
+## Compact impact map
+- Business workflows / source of truth:
+- API / auth / security:
+- Database / migration / data recovery:
+- Media / SEO / accessibility / performance:
+- Deployment / operations:
+- Documentation:
 
-## Verification plan
-- Commands to run:
-- Required CI jobs/gates:
-- Critical success cases:
-- Rejection/invalid-transition cases:
-- Authorization cases:
-- Retry/idempotency/data-integrity cases:
-- PostgreSQL/migration cases:
-- Browser/E2E cases:
-- Manual evidence required:
-
-## Recovery plan
-- Code rollback / revert approach:
-- Migration rollback / roll-forward:
-- Data recovery/backup requirement:
-- Deployment rollback (if applicable):
+## Verification and recovery
+- Commands / required CI gates:
+- Critical success + rejection/authorization/data-integrity cases:
+- Browser/PostgreSQL/manual evidence when applicable:
+- Code rollback / revert:
+- Migration/data/deployment recovery when applicable:
 
 ## Handoff / completion
 - Current head SHA:
