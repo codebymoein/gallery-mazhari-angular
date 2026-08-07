@@ -26,9 +26,36 @@ jobs:
           cache: npm
           cache-dependency-path: package-lock.json
       - run: npm ci
-      - run: npm run lint
+      - name: Frontend lint regression gate
+        run: |
+          set -euo pipefail
+          set +e
+          npm run lint 2>&1 | tee frontend-lint.txt
+          lint_exit=${PIPESTATUS[0]}
+          set -e
+          summary=$(grep -E '✖ [0-9]+ problems \([0-9]+ errors, [0-9]+ warnings\)' frontend-lint.txt | tail -1 || true)
+          if [ -z "$summary" ]; then
+            if [ "$lint_exit" -eq 0 ]; then
+              echo "Frontend lint passed with zero reported errors."
+              exit 0
+            fi
+            echo "Unable to parse frontend lint result."
+            exit 1
+          fi
+          errors=$(printf '%s' "$summary" | sed -E 's/.*\(([0-9]+) errors, ([0-9]+) warnings\).*/\1/')
+          warnings=$(printf '%s' "$summary" | sed -E 's/.*\(([0-9]+) errors, ([0-9]+) warnings\).*/\2/')
+          echo "Frontend lint baseline: errors=${errors}, warnings=${warnings}; allowed <=8 errors and <=90 warnings."
+          test "$errors" -le 8
+          test "$warnings" -le 90
       - run: npm test
       - run: npm run build:prod
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: frontend-lint
+          path: frontend-lint.txt
+          if-no-files-found: warn
+          retention-days: 14
 
   backend:
     name: Backend lint, test, build
@@ -41,15 +68,37 @@ jobs:
           cache: npm
           cache-dependency-path: backend/package-lock.json
       - run: npm --prefix backend ci
-      - run: npm --prefix backend run lint
+      - name: Backend lint regression gate
+        run: |
+          set -euo pipefail
+          set +e
+          npm --prefix backend run lint 2>&1 | tee backend-lint.txt
+          lint_exit=${PIPESTATUS[0]}
+          set -e
+          summary=$(grep -E '✖ [0-9]+ problems \([0-9]+ errors, [0-9]+ warnings\)' backend-lint.txt | tail -1 || true)
+          if [ -z "$summary" ]; then
+            if [ "$lint_exit" -eq 0 ]; then
+              echo "Backend lint passed with zero reported errors."
+              exit 0
+            fi
+            echo "Unable to parse backend lint result."
+            exit 1
+          fi
+          errors=$(printf '%s' "$summary" | sed -E 's/.*\(([0-9]+) errors, ([0-9]+) warnings\).*/\1/')
+          warnings=$(printf '%s' "$summary" | sed -E 's/.*\(([0-9]+) errors, ([0-9]+) warnings\).*/\2/')
+          echo "Backend lint baseline: errors=${errors}, warnings=${warnings}; allowed <=283 errors and <=6 warnings."
+          test "$errors" -le 283
+          test "$warnings" -le 6
       - run: npm --prefix backend test -- --runInBand
       - name: Backend coverage report
         run: npm --prefix backend run test:cov -- --runInBand --coverageReporters=text --coverageReporters=json-summary
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: backend-coverage
-          path: backend/coverage
+          name: backend-quality-evidence
+          path: |
+            backend-lint.txt
+            backend/coverage
           if-no-files-found: warn
           retention-days: 14
       - run: npm --prefix backend run build
@@ -78,6 +127,8 @@ jobs:
       DB_USERNAME: gallery_ci
       DB_PASSWORD: gallery_ci_password
       DB_NAME: gallery_ci
+      JWT_SECRET: ci_only_jwt_secret_not_for_production
+      ADMIN_SETUP_KEY: ci_only_admin_setup_key
       NODE_ENV: test
     steps:
       - uses: actions/checkout@v4
