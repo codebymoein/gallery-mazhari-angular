@@ -5,10 +5,13 @@ Applies to Codex, Claude, Cursor, ChatGPT, IDE agents, scripts, and human-assist
 ## Mandatory pre-edit sequence
 1. Confirm repository is `codebymoein/gallery-mazhari-angular`, fetch current `main`, record its SHA, and work on a non-`main` branch.
 2. Read [`CONSTITUTION.md`](CONSTITUTION.md).
-3. Read [`docs/handbook/README.md`](docs/handbook/README.md).
-4. Read at minimum: engineering principles, system architecture, development rules, business workflows, testing/quality, Git/PR/releases, and AI-agent rules.
-5. Read task-specific chapters: Angular for `src/`; NestJS/database for `backend/`; security for auth/input/files; media for uploads/images; deployment/operations for runtime changes; design system and SEO/performance/accessibility for UI.
-6. Inspect the actual affected implementation and existing tests/docs before proposing edits.
+3. Read [`docs/PROJECT_MEMORY.md`](docs/PROJECT_MEMORY.md).
+4. Read [`docs/handbook/README.md`](docs/handbook/README.md).
+5. Read at minimum: engineering principles, system architecture, development rules, business workflows, testing/quality, Git/PR/releases, and AI-agent rules.
+6. Read task-specific chapters: Angular for `src/`; NestJS/database for `backend/`; security for auth/input/files; media for uploads/images; deployment/operations for runtime changes; design system and SEO/performance/accessibility for UI.
+7. Read [`docs/governance/AGENT_TASK_MANIFEST.md`](docs/governance/AGENT_TASK_MANIFEST.md) and ensure the task has an explicit base SHA, scope/non-scope, allowed write surfaces, verification plan, and rollback/recovery before material edits.
+8. Follow [`docs/governance/BRANCH-COMMIT-CONVENTIONS.md`](docs/governance/BRANCH-COMMIT-CONVENTIONS.md).
+9. Inspect the actual affected implementation and existing tests/docs before proposing edits.
 
 ## Hard rules
 - Never create a replacement repository. Never push directly to `main`. Never merge a PR unless the human owner explicitly asks.
@@ -19,10 +22,14 @@ Applies to Codex, Claude, Cursor, ChatGPT, IDE agents, scripts, and human-assist
 - No unrelated refactors. Keep the diff minimal and reversible.
 - Schema changes require migrations and migration review. Do not enable production schema synchronization.
 - Behavioral changes require tests; workflow/architecture changes require handbook updates.
+- Do not start an adjacent remediation program or unassigned audit finding merely because it is visible.
+- Do not reuse stale/diverged branches as remediation bases. Create a fresh focused branch from the approved `main` lineage.
+- CODEOWNERS/sensitive-path review rules are governance controls; an AI agent's own review is not independent human approval.
 
 ## Before completion
 - Review `git diff`/PR file list for accidental executable or generated changes.
 - Run applicable repository checks described in [`docs/handbook/10-testing-quality.md`](docs/handbook/10-testing-quality.md).
 - Validate documentation links when documentation changed.
-- Report changed files, tests/checks, assumptions, unresolved risks, migration/deployment impact, and rollback path.
+- Report branch, base/current SHA, changed files, tests/checks, assumptions, unresolved risks, migration/deployment impact, and rollback path.
+- Ensure the PR uses `.github/pull_request_template.md` contract fields.
 - Stop at the requested scope. An audit finding is not permission to remediate it.
