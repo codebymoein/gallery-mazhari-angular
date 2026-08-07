@@ -17,7 +17,9 @@ describe('ALL_MIGRATIONS', () => {
       migration.name.endsWith('1785700000000'),
     );
 
-    expect(duplicateTimestampMigrations.map((migration) => migration.name)).toEqual([
+    expect(
+      duplicateTimestampMigrations.map((migration) => migration.name),
+    ).toEqual([
       'AddConsultationPreferenceProfile1785700000000',
       'CreatePasswordResetTokens1785700000000',
     ]);
