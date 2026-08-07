@@ -19,7 +19,7 @@ RM-11 PR-014 establishes the deploy contract:
 3. Confirm environment configuration/secrets and backup readiness.
 4. Execute the release script as the deployment principal; do not manually edit files under a release directory.
 5. The release script applies compatible migrations before the symlink switch.
-6. After activation, perform health/smoke/monitoring checks. Expanded health/version/alerting and rollback rehearsal are PR-015 scope.
+6. After activation, verify `/api/ops/health/live`, `/api/ops/health/ready`, `/api/ops/version`, logs and monitoring before declaring the release healthy.
 
 ## Operational rules
 - No manual production code edits as normal deployment practice.
@@ -29,8 +29,18 @@ RM-11 PR-014 establishes the deploy contract:
 - Long-running jobs and migrations require operational visibility; do not terminate/retry blindly.
 - A failed deployment must be reported as failed even if a previous release remains healthy.
 
-## Rollback boundary
+## Rollback contract
 
-PR-014 preserves the previous release target and restores it automatically on immediate backend restart failure. Full rollback rehearsal, health/version evidence and operational rollback runbooks are completed in PR-015. Code rollback is never permission to restore an older database over newer valid business transactions.
+`deploy/rollback-release.sh <target-release-sha>` performs an explicit code-release rollback under the same host `flock` used for deploys. The target MUST already exist as an immutable release and its `REVISION` metadata MUST match the requested SHA. The script atomically swaps `/srv/gallery-mazhari/current`, restarts the backend, then requires the readiness endpoint to pass. If the selected rollback target fails restart/readiness, the previous symlink is restored when available.
 
-References: [`../PLATFORM_DEPLOYMENT.md`](../PLATFORM_DEPLOYMENT.md), [`../SERVER_DEPLOYMENT_HANDOFF_FA.md`](../SERVER_DEPLOYMENT_HANDOFF_FA.md), [`../../deploy/nginx.conf.example`](../../deploy/nginx.conf.example), [`../../deploy/release.sh`](../../deploy/release.sh).
+A release rollback **does not roll PostgreSQL backward**. Operators MUST NOT restore an old database snapshot over newer valid business transactions merely to match an older application release. Rollback candidates therefore require migration compatibility; if a migration is not backward compatible, use the documented roll-forward/recovery plan instead of blindly selecting an older release.
+
+## Rehearsal evidence
+Before production certification, staging/recovery rehearsal MUST record:
+- source and target release SHAs;
+- start/end time and observed rollback duration;
+- readiness/version evidence after the switch;
+- confirmation that database state was not destructively reverted;
+- any failed probe/restart and automatic prior-symlink restoration evidence.
+
+References: [`../PLATFORM_DEPLOYMENT.md`](../PLATFORM_DEPLOYMENT.md), [`../SERVER_DEPLOYMENT_HANDOFF_FA.md`](../SERVER_DEPLOYMENT_HANDOFF_FA.md), [`../../deploy/nginx.conf.example`](../../deploy/nginx.conf.example), [`../../deploy/release.sh`](../../deploy/release.sh), [`../../deploy/rollback-release.sh`](../../deploy/rollback-release.sh).
