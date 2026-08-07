@@ -17,6 +17,8 @@ describe('validateEnvironment', () => {
     MEDIA_S3_ACCESS_KEY_ID: 'test-access-key-id',
     MEDIA_S3_SECRET_ACCESS_KEY: 'test-secret-access-key-value',
     MEDIA_PUBLIC_BASE_URL: 'https://media.example.test',
+    MEDIA_MALWARE_SCAN_MODE: 'http',
+    MEDIA_MALWARE_SCAN_URL: 'https://scanner.example.test/scan',
   };
 
   it('accepts a complete non-placeholder PostgreSQL production configuration', () => {
@@ -45,6 +47,21 @@ describe('validateEnvironment', () => {
     expect(() =>
       validateEnvironment({ ...productionBase, MEDIA_S3_BUCKET: '' }),
     ).toThrow(/MEDIA_S3_BUCKET/);
+  });
+
+  it('rejects disabled malware scanning in production', () => {
+    expect(() =>
+      validateEnvironment({
+        ...productionBase,
+        MEDIA_MALWARE_SCAN_MODE: 'disabled',
+      }),
+    ).toThrow(/MEDIA_MALWARE_SCAN_MODE=http/);
+  });
+
+  it('rejects a missing malware scanner endpoint in production', () => {
+    expect(() =>
+      validateEnvironment({ ...productionBase, MEDIA_MALWARE_SCAN_URL: '' }),
+    ).toThrow(/MEDIA_MALWARE_SCAN_URL/);
   });
 
   it('rejects placeholder object storage secrets in production', () => {
@@ -83,13 +100,14 @@ describe('validateEnvironment', () => {
     ).toThrow(/ADMIN_SETUP_KEY/);
   });
 
-  it('allows development placeholders and local media storage', () => {
+  it('allows development placeholders, local storage and disabled scanning', () => {
     expect(() =>
       validateEnvironment({
         NODE_ENV: 'development',
         DB_TYPE: 'sqlite',
         JWT_SECRET: 'change_me_super_secret',
         MEDIA_STORAGE_DRIVER: 'local',
+        MEDIA_MALWARE_SCAN_MODE: 'disabled',
       }),
     ).not.toThrow();
   });

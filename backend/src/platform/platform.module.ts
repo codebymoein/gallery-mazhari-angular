@@ -5,6 +5,8 @@ import { AuditService } from './audit/audit.service';
 import { ImportService } from './import/import.service';
 import { ImportTransactionBoundaryService } from './import/import-transaction-boundary.service';
 import { JobsService } from './jobs/jobs.service';
+import { MediaReconciliationController } from './media/media-reconciliation.controller';
+import { MediaSecurityService } from './media/media-security.service';
 import { MediaStorageService } from './media/media-storage.service';
 import { MediaService } from './media/media.service';
 import { MerchandisingService } from './merchandising/merchandising.service';
@@ -19,12 +21,17 @@ export { PLATFORM_ENTITIES } from './platform.entities';
 
 @Module({
   imports: [TypeOrmModule.forFeature([...PLATFORM_ENTITIES, ProductEntity])],
-  controllers: [PlatformController, PlatformPublicController],
+  controllers: [
+    PlatformController,
+    PlatformPublicController,
+    MediaReconciliationController,
+  ],
   providers: [
     AuditService,
     JobsService,
     ImportService,
     ImportTransactionBoundaryService,
+    MediaSecurityService,
     MediaStorageService,
     MediaService,
     MerchandisingService,
@@ -34,6 +41,7 @@ export { PLATFORM_ENTITIES } from './platform.entities';
     AuditService,
     JobsService,
     ImportService,
+    MediaSecurityService,
     MediaStorageService,
     MediaService,
     MerchandisingService,

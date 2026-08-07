@@ -12,12 +12,19 @@ import { AuditService } from '../audit/audit.service';
 import { ProductEntity } from '../../products/entities/product.entity';
 import { assignImageRoles, parseProductImageFilename } from './image-filename';
 import { MediaAssetEntity } from './entities/media-asset.entity';
-import { generateImageDerivatives } from './image-derivatives';
+import { MediaSecurityService } from './media-security.service';
 import { MediaStorageService } from './media-storage.service';
+import {
+  type GeneratedDerivative,
+  generateDerivativeBuffers,
+  type SanitizedImage,
+  sanitizeImageBuffer,
+} from './secure-image-processing';
 
 const MAX_FILE_BYTES = 12 * 1024 * 1024;
 const MAX_ZIP_ENTRIES = 5000;
 const MAX_ZIP_UNCOMPRESSED = 500 * 1024 * 1024;
+const RECONCILIATION_LIMIT = 1000;
 
 @Injectable()
 export class MediaService {
@@ -28,6 +35,7 @@ export class MediaService {
     private readonly products: Repository<ProductEntity>,
     private readonly audit: AuditService,
     private readonly storage: MediaStorageService,
+    private readonly security: MediaSecurityService,
   ) {}
 
   async ingestFiles(input: {
@@ -62,22 +70,13 @@ export class MediaService {
         '_',
       );
       const parsed = parseProductImageFilename(safeName);
-      const hash = createHash('sha256').update(file.buffer).digest('hex');
-
-      // Exact duplicate content
-      const dup = await this.media.findOne({ where: { contentHash: hash } });
-      if (dup) {
-        // Idempotent upload: the same binary is the same media identity.
-        // Do not create another asset/quarantine record or touch a product.
-        assets.push(dup);
-        continue;
-      }
+      const rawHash = hashBuffer(file.buffer);
 
       if (!parsed.valid) {
         const q = await this.quarantine(
           file.buffer,
           safeName,
-          hash,
+          rawHash,
           parsed.reason || 'invalid_filename',
           input.actor,
         );
@@ -87,11 +86,12 @@ export class MediaService {
       }
 
       if (file.buffer.length > MAX_FILE_BYTES) {
+        const evidence = file.buffer.subarray(0, 64);
         const q = await this.quarantine(
-          file.buffer.slice(0, 64),
+          evidence,
           safeName,
-          hash,
-          'file_too_large',
+          hashBuffer(evidence),
+          `file_too_large:${rawHash}`,
           input.actor,
         );
         assets.push(q);
@@ -99,12 +99,12 @@ export class MediaService {
         continue;
       }
 
-      const ft = detectAllowedImage(file.buffer);
-      if (!ft) {
+      const signature = detectAllowedImage(file.buffer);
+      if (!signature) {
         const q = await this.quarantine(
           file.buffer,
           safeName,
-          hash,
+          rawHash,
           'unsupported_or_corrupt_mime',
           input.actor,
         );
@@ -113,12 +113,11 @@ export class MediaService {
         continue;
       }
 
-      // Very small image warning → quarantine for review (do not delete)
       if (file.buffer.length < 2048) {
         const q = await this.quarantine(
           file.buffer,
           safeName,
-          hash,
+          rawHash,
           'image_too_small',
           input.actor,
         );
@@ -127,7 +126,64 @@ export class MediaService {
         continue;
       }
 
-      validNames.push(safeName);
+      const scan = await this.security.scan(file.buffer);
+      if (scan.status !== 'clean') {
+        const reason =
+          scan.status === 'infected'
+            ? `malware_detected:${safeReason(scan.signature)}`
+            : `malware_scan_unavailable:${safeReason(scan.reason)}`;
+        const q = await this.quarantine(
+          file.buffer,
+          safeName,
+          rawHash,
+          reason,
+          input.actor,
+        );
+        assets.push(q);
+        quarantined += 1;
+        continue;
+      }
+
+      let sanitized: SanitizedImage;
+      try {
+        sanitized = await sanitizeImageBuffer(file.buffer);
+      } catch (error) {
+        const q = await this.quarantine(
+          file.buffer,
+          safeName,
+          rawHash,
+          error instanceof Error
+            ? safeReason(error.message)
+            : 'image_sanitize_failed',
+          input.actor,
+        );
+        assets.push(q);
+        quarantined += 1;
+        continue;
+      }
+
+      if (
+        sanitized.extension !== signature.ext ||
+        sanitized.contentType !== signature.mime
+      ) {
+        const q = await this.quarantine(
+          file.buffer,
+          safeName,
+          rawHash,
+          'signature_decode_mismatch',
+          input.actor,
+        );
+        assets.push(q);
+        quarantined += 1;
+        continue;
+      }
+
+      const hash = sanitized.contentHash;
+      const dup = await this.media.findOne({ where: { contentHash: hash } });
+      if (dup) {
+        assets.push(dup);
+        continue;
+      }
 
       const product = await this.products.findOne({
         where: { code: parsed.productCode },
@@ -146,8 +202,6 @@ export class MediaService {
       const role: MediaAssetEntity['role'] =
         parsed.sequence == null ? 'primary' : 'gallery';
 
-      // Sequence/filename conflicts are private quarantine data. Validate them
-      // before writing any public object so rejected media is never exposed.
       if (product) {
         const photos = [...(product.photos || [])];
         const conflict = photos.find(
@@ -162,7 +216,7 @@ export class MediaService {
           const q = await this.quarantine(
             file.buffer,
             safeName,
-            hash,
+            rawHash,
             'sequence_or_filename_conflict',
             input.actor,
           );
@@ -172,17 +226,66 @@ export class MediaService {
         }
       }
 
+      let generatedDerivatives: GeneratedDerivative[];
+      try {
+        generatedDerivatives = await generateDerivativeBuffers(
+          sanitized.buffer,
+        );
+      } catch {
+        const q = await this.quarantine(
+          file.buffer,
+          safeName,
+          rawHash,
+          'derivative_generation_failed',
+          input.actor,
+        );
+        assets.push(q);
+        quarantined += 1;
+        continue;
+      }
+
       const storedObject = await this.storage.put({
-        buffer: file.buffer,
+        buffer: sanitized.buffer,
         contentHash: hash,
-        extension: ft.ext,
-        contentType: ft.mime,
+        extension: sanitized.extension,
+        contentType: sanitized.contentType,
         visibility: 'public',
         uploadsBaseUrl: input.uploadsBaseUrl,
       });
+
+      const derivatives: Record<string, string> = {};
+      let derivativeStorageFailed = false;
+      for (const derivative of generatedDerivatives) {
+        try {
+          const storedDerivative = await this.storage.put({
+            buffer: derivative.buffer,
+            contentHash: derivative.contentHash,
+            extension: derivative.extension,
+            contentType: derivative.contentType,
+            visibility: 'public',
+            uploadsBaseUrl: input.uploadsBaseUrl,
+          });
+          derivatives[derivative.key] = storedDerivative.url;
+        } catch {
+          derivativeStorageFailed = true;
+          break;
+        }
+      }
+      if (derivativeStorageFailed) {
+        const q = await this.quarantine(
+          file.buffer,
+          safeName,
+          rawHash,
+          'derivative_storage_failed',
+          input.actor,
+        );
+        assets.push(q);
+        quarantined += 1;
+        continue;
+      }
+
       const stored = storedObject.key;
       const url = storedObject.url;
-
       let status: MediaAssetEntity['status'] = 'orphan';
       let productId: string | null = null;
 
@@ -193,7 +296,6 @@ export class MediaService {
         status = 'attached';
         attached += 1;
 
-        // Attach without publishing
         const photos = [...(product.photos || [])];
         const entry = {
           url,
@@ -218,34 +320,12 @@ export class MediaService {
           prevStatus !== 'rejected' &&
           prevStatus !== 'archived'
         ) {
-          // A photographed queue product is ready for review and moves ahead
-          // in its existing category without being auto-published.
           product.status = 'ready_for_approval';
           product.processedAt = new Date().toISOString();
           product.processedBy = input.actor ?? null;
         }
 
         await this.products.save(product);
-      }
-
-      let width: number | null = null;
-      let height: number | null = null;
-      let derivatives: Record<string, string> | null = null;
-      if (storedObject.localPath) {
-        try {
-          const derived = await generateImageDerivatives(
-            storedObject.localPath,
-            `${input.uploadsBaseUrl}/uploads/media/${hash.slice(0, 2)}`,
-          );
-          width = derived.width;
-          height = derived.height;
-          if (Object.keys(derived.derivatives).length) {
-            derivatives = derived.derivatives;
-          }
-        } catch {
-          // Soft-fail: originals remain usable. Object-storage derivative
-          // processing is deliberately completed in PR-013.
-        }
       }
 
       const asset = await this.media.save(
@@ -260,14 +340,15 @@ export class MediaService {
           role,
           status,
           quarantineReason: null,
-          width,
-          height,
-          byteSize: file.buffer.length,
+          width: sanitized.width,
+          height: sanitized.height,
+          byteSize: sanitized.buffer.length,
           derivatives,
           uploadedBy: input.actor ?? null,
         }),
       );
       assets.push(asset);
+      validNames.push(safeName);
 
       await this.audit.record({
         action: 'media.ingested',
@@ -279,11 +360,12 @@ export class MediaService {
           status,
           role,
           storageKey: stored,
+          sanitized: true,
+          derivativeCount: Object.keys(derivatives).length,
         },
       });
     }
 
-    // Primary suggestion confirmation for groups missing base image
     const roles = assignImageRoles(validNames);
     for (const assignment of roles.values()) {
       if (
@@ -389,9 +471,6 @@ export class MediaService {
     });
   }
 
-  /**
-   * ZIP extraction with zip-bomb and path-traversal protection.
-   */
   safeExtractZip(
     buffer: Buffer,
   ): Array<{ originalName: string; buffer: Buffer }> {
@@ -457,7 +536,7 @@ export class MediaService {
         sequence: null,
         role: 'unknown',
         status: 'quarantine',
-        quarantineReason: reason,
+        quarantineReason: reason.slice(0, 300),
         width: null,
         height: null,
         byteSize: buffer.length,
@@ -528,12 +607,11 @@ export class MediaService {
   }
 
   async getAsset(id: string): Promise<MediaAssetEntity> {
-    const a = await this.media.findOne({ where: { id } });
-    if (!a) throw new NotFoundException('media_not_found');
-    return a;
+    const asset = await this.media.findOne({ where: { id } });
+    if (!asset) throw new NotFoundException('media_not_found');
+    return asset;
   }
 
-  /** Products that exist without any attached photos — operator warning queue */
   async listProductsMissingImages(
     limit = 200,
   ): Promise<
@@ -552,6 +630,85 @@ export class MediaService {
         status: p.status,
         stock: p.stock,
       }));
+  }
+
+  async reconciliationReport(): Promise<{
+    checkedAssets: number;
+    missingStorageKeys: string[];
+    missingDerivativeKeys: string[];
+    danglingAttachedAssets: string[];
+    productPhotoWithoutAsset: string[];
+    legacyStorageReferences: string[];
+    storageErrors: string[];
+  }> {
+    const [assets, products] = await Promise.all([
+      this.media.find({
+        take: RECONCILIATION_LIMIT,
+        order: { createdAt: 'DESC' },
+      }),
+      this.products.find({
+        take: RECONCILIATION_LIMIT,
+        order: { updatedAt: 'DESC' },
+      }),
+    ]);
+    const productsById = new Map(
+      products.map((product) => [product.id, product]),
+    );
+    const assetHashes = new Set(assets.map((asset) => asset.contentHash));
+    const missingStorageKeys: string[] = [];
+    const missingDerivativeKeys: string[] = [];
+    const danglingAttachedAssets: string[] = [];
+    const productPhotoWithoutAsset: string[] = [];
+    const legacyStorageReferences: string[] = [];
+    const storageErrors: string[] = [];
+
+    for (const asset of assets) {
+      if (!isContentAddressedKey(asset.storedFileName)) {
+        legacyStorageReferences.push(asset.id);
+      } else {
+        await this.checkStorageKey(
+          asset.storedFileName,
+          missingStorageKeys,
+          storageErrors,
+        );
+      }
+
+      for (const reference of Object.values(asset.derivatives || {})) {
+        const key = contentKeyFromReference(reference);
+        if (!key) continue;
+        await this.checkStorageKey(key, missingDerivativeKeys, storageErrors);
+      }
+
+      if (asset.status === 'attached') {
+        const product = asset.productId
+          ? productsById.get(asset.productId)
+          : undefined;
+        const referenced = product?.photos?.some(
+          (photo) => photo.contentHash === asset.contentHash,
+        );
+        if (!product || !referenced) {
+          danglingAttachedAssets.push(asset.id);
+        }
+      }
+    }
+
+    for (const product of products) {
+      for (const photo of product.photos || []) {
+        if (photo.contentHash && !assetHashes.has(photo.contentHash)) {
+          productPhotoWithoutAsset.push(`${product.code}:${photo.contentHash}`);
+        }
+      }
+    }
+
+    return {
+      checkedAssets: assets.length,
+      missingStorageKeys,
+      missingDerivativeKeys,
+      danglingAttachedAssets,
+      productPhotoWithoutAsset,
+      legacyStorageReferences,
+      storageErrors,
+    };
   }
 
   async mediaHealthReport(): Promise<Record<string, number | string>> {
@@ -573,8 +730,25 @@ export class MediaService {
       productsMissingImages: missing.length,
       assetsWithDerivatives: withDerivatives,
       storageDriver: this.storage.driver,
+      malwareScanMode: process.env.MEDIA_MALWARE_SCAN_MODE || 'disabled',
       note: 'Orphans = images without product; missing = products without images',
     };
+  }
+
+  private async checkStorageKey(
+    key: string,
+    missing: string[],
+    errors: string[],
+  ): Promise<void> {
+    try {
+      if (!(await this.storage.exists(key))) {
+        missing.push(key);
+      }
+    } catch (error) {
+      errors.push(
+        `${key}:${error instanceof Error ? safeReason(error.message) : 'storage_check_failed'}`,
+      );
+    }
   }
 }
 
@@ -612,8 +786,9 @@ function detectAllowedImage(
   }
   if (buffer.length >= 12 && buffer.toString('ascii', 4, 8) === 'ftyp') {
     const brand = buffer.toString('ascii', 8, 12);
-    if (['avif', 'avis'].includes(brand))
+    if (['avif', 'avis'].includes(brand)) {
       return { ext: 'avif', mime: 'image/avif' };
+    }
   }
   return null;
 }
@@ -621,4 +796,25 @@ function detectAllowedImage(
 function extensionFromName(fileName: string): string {
   const match = /\.([a-z0-9]{1,10})$/i.exec(fileName);
   return match?.[1]?.toLowerCase() || 'bin';
+}
+
+function safeReason(value: string): string {
+  return value.replace(/[^a-zA-Z0-9_.:-]+/g, '_').slice(0, 160);
+}
+
+function hashBuffer(buffer: Buffer): string {
+  return createHash('sha256').update(buffer).digest('hex');
+}
+
+function isContentAddressedKey(value: string): boolean {
+  return /^(public|private)\/[a-f0-9]{2}\/[a-f0-9]{64}\.[a-z0-9]{1,10}$/.test(
+    value,
+  );
+}
+
+function contentKeyFromReference(reference: string): string | null {
+  const match = reference.match(
+    /((?:public|private)\/[a-f0-9]{2}\/[a-f0-9]{64}\.[a-z0-9]{1,10})(?:$|[?#])/,
+  );
+  return match?.[1] || null;
 }

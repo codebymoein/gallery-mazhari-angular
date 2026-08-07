@@ -13,22 +13,24 @@ Status: **Normative operational documentation** for RM-16.
 
 ### Local development
 
-`NODE_ENV=development`. SQLite may be used only as the documented local-development compatibility path. Development placeholder secrets are allowed only because the environment is explicitly non-production. `MEDIA_STORAGE_DRIVER=local` is permitted for development and writes public originals under `uploads/media` and private/quarantine content outside the public upload tree under `storage/private/media`.
+`NODE_ENV=development`. SQLite may be used only as the documented local-development compatibility path. Development placeholder secrets are allowed only because the environment is explicitly non-production. `MEDIA_STORAGE_DRIVER=local` is permitted for development and writes public originals under `uploads/media` and private/quarantine content outside the public upload tree under `storage/private/media`. Malware scanning may be explicitly disabled in local development.
 
 ### Test / CI
 
-`NODE_ENV=test` unless a test intentionally exercises production validation. CI credentials must be ephemeral, non-production and supplied by the workflow/environment rather than committed as secrets. Tests may use the local driver or mocked S3 transport.
+`NODE_ENV=test` unless a test intentionally exercises production validation. CI credentials must be ephemeral, non-production and supplied by the workflow/environment rather than committed as secrets. Tests may use the local driver or mocked S3 transport and may mock the malware scanner boundary.
 
 ### Production
 
-`NODE_ENV=production`. Production must use the NestJS backend contract, PostgreSQL deployment variables, and `MEDIA_STORAGE_DRIVER=s3`. Real secret values are supplied by the deployment secret store/environment, never by committed `.env` files.
+`NODE_ENV=production`. Production must use the NestJS backend contract, PostgreSQL deployment variables, `MEDIA_STORAGE_DRIVER=s3`, and `MEDIA_MALWARE_SCAN_MODE=http` with a configured scanner endpoint. Real secret values are supplied by the deployment secret store/environment, never by committed `.env` files.
 
 The runtime validator rejects:
 
 - a missing or shorter-than-32-character `JWT_SECRET`;
 - documented/default placeholder values for configured secret fields such as `JWT_SECRET`, `ADMIN_SETUP_KEY`, `DB_PASSWORD`, `SMTP_PASSWORD`, and `MEDIA_S3_SECRET_ACCESS_KEY`;
 - `MEDIA_STORAGE_DRIVER=local` in production;
-- incomplete S3-compatible media configuration in production.
+- incomplete S3-compatible media configuration in production;
+- disabled/invalid malware scan mode in production;
+- a missing `MEDIA_MALWARE_SCAN_URL` in production.
 
 ## Canonical backend variables
 
@@ -54,6 +56,8 @@ The runtime validator rejects:
 | `MEDIA_S3_ACCESS_KEY_ID` | Object Storage principal | sensitive identifier; server-only |
 | `MEDIA_S3_SECRET_ACCESS_KEY` | Object Storage credential | secret; server-only and placeholder-rejected |
 | `MEDIA_PUBLIC_BASE_URL` | public media/CDN origin used only for public objects | non-secret |
+| `MEDIA_MALWARE_SCAN_MODE` | malware scanning boundary | production must be `http` |
+| `MEDIA_MALWARE_SCAN_URL` | server-side scanner endpoint | security-sensitive, server-only |
 | `ADMIN_RECOVERY_EMAIL` | recovery recipient | sensitive operational config |
 | `SMTP_HOST` / `SMTP_PORT` | mail endpoint | environment-specific |
 | `SMTP_USER` | mail principal | sensitive identifier |
@@ -66,7 +70,10 @@ The runtime validator rejects:
 - Public product originals may resolve through `MEDIA_PUBLIC_BASE_URL`; immutable public objects receive a one-year immutable cache policy.
 - Quarantine/private objects never receive a public HTTP URL. Application metadata stores a non-public `private-object://...` reference instead.
 - S3 credentials never appear in Angular environments, API responses, logs, committed files, or public URLs.
-- PR-012 establishes durable original storage and visibility boundaries. Malware scanning, metadata stripping, object-storage derivative upload and full media reconciliation remain PR-013 scope.
+- Production media scanning is fail-closed: scanner errors, timeouts, invalid responses and infected results do not proceed to public storage/attachment.
+- Accepted images are decoded and re-encoded server-side before public storage; metadata is stripped and image dimensions/pixel counts are bounded.
+- Responsive derivatives are stored through the same media storage boundary and remain content-addressed.
+- `GET /platform/media/reconciliation` is a read-only protected report for storage/database drift; it does not repair or delete objects.
 
 ## Rules
 
@@ -80,7 +87,9 @@ The runtime validator rejects:
 
 ## Verification
 
-- Backend tests cover production placeholder rejection and required Object Storage configuration.
-- Media storage tests cover deterministic content keys, public/private URL separation and failed-provider writes.
+- Backend tests cover production placeholder rejection, required Object Storage configuration and production malware-scanner requirements.
+- Media scanner tests cover clean/infected/unavailable/invalid-response behavior.
+- Secure processing tests cover decode failure, metadata stripping and derivative generation.
+- Reconciliation tests cover missing objects, dangling references and provider errors.
 - RM-02 Gitleaks remains a required repository check.
 - The backend build/tests must pass after environment-validation changes.
