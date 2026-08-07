@@ -102,9 +102,21 @@ deploy/              Deployment configuration
 
 راهنماهای جزئی‌تر در پوشه [`docs`](docs) قرار دارند.
 
+## Remediation baseline
+
+RM-00 یک baseline واحد برای برنامه remediation تعریف می‌کند.
+
+- Repository: `codebymoein/gallery-mazhari-angular`
+- Canonical implementation SHA: `1703dc79fae78d7d7ed97a1966b25787458a8e98`
+- Audit source SHA: `a3c7af97ff447040433a041f83b785197595d26e`
+- RM-00 branch: `chore/rm-00-baseline-reconciliation`
+- Baseline record: [`docs/remediation/RM-00-BASELINE.md`](docs/remediation/RM-00-BASELINE.md)
+
+هیچ remediation بعدی نباید از یک branch واگرا یا branch قدیمی reuse شده شروع شود. وضعیت تست‌ها و migrationهای baseline فقط بر اساس evidence ثبت‌شده در گزارش RM-00 معتبر است؛ نبودن evidence نباید به‌عنوان pass تفسیر شود.
+
 ## وضعیت پروژه
 
-پروژه در حال توسعه فعال است. build نسخه فعلی با موفقیت بررسی شده است؛ برای استقرار نهایی، تنظیم سرویس‌های بیرونی، دیتابیس production، ایمیل، پیامک و پرداخت متناسب با محیط مقصد ضروری است.
+پروژه در حال توسعه فعال است. برای استقرار نهایی، تنظیم سرویس‌های بیرونی، دیتابیس production، ایمیل، پیامک و پرداخت متناسب با محیط مقصد ضروری است. وضعیت build/test مربوط به baseline remediation در [`docs/remediation/rm-00/BASELINE-VERIFICATION.md`](docs/remediation/rm-00/BASELINE-VERIFICATION.md) ثبت می‌شود و نباید از متن تاریخی README استنباط شود.
 
 ## مالکیت
 
