@@ -12,6 +12,7 @@ backend_service_name="${BACKEND_SERVICE_NAME:-gallery-mazhari-backend.service}"
 ssr_service_name="${SSR_SERVICE_NAME:-gallery-mazhari-ssr.service}"
 health_url="${BACKEND_READY_URL:-http://127.0.0.1:3000/api/ops/health/ready}"
 ssr_health_url="${SSR_READY_URL:-http://127.0.0.1:4000/}"
+ssr_host="${SSR_READY_HOST:-gallery-mazhari.ir}"
 lock_file="${DEPLOY_LOCK_FILE:-/var/lock/gallery-mazhari-deploy.lock}"
 
 case "$target_revision" in
@@ -62,7 +63,7 @@ fi
 healthy=false
 for _ in 1 2 3 4 5 6; do
   if curl --fail --silent --show-error --max-time 5 "$health_url" >/dev/null \
-    && curl --fail --silent --show-error --max-time 5 "$ssr_health_url" >/dev/null; then
+    && curl --fail --silent --show-error --max-time 5 -H "Host: ${ssr_host}" "$ssr_health_url" >/dev/null; then
     healthy=true
     break
   fi
