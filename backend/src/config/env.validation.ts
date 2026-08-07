@@ -117,7 +117,9 @@ function assertProductionSecrets(config: EnvironmentVariables): void {
       normalized.startsWith('change_me') ||
       normalized.startsWith('change_this')
     ) {
-      throw new Error(`Production configuration rejects placeholder value for ${field}.`);
+      throw new Error(
+        `Production configuration rejects placeholder value for ${field}.`,
+      );
     }
   }
 }
