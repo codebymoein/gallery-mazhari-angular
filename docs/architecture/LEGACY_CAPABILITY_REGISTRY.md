@@ -10,6 +10,7 @@ Status: **RM-09 active registry**. This document records legacy or compatibility
 | Product NgRx side effects | Server-backed storefront projection and current feature services | `src/app/core/store/product/product.effects.ts` | Removed in PR-018 (#38) after detaching it from root `EffectsModule`. It called only the removed WordPress client. Product reducer/selectors are retained because their remaining usage/deletion proof is a separate cleanup decision. |
 | WordPress/WooCommerce integration authority | NestJS/PostgreSQL are authoritative; any future external integration must be an explicit backend adapter | Direct Angular WooCommerce business API calls | Forbidden for new code. Reintroduction requires an explicit adapter contract, owner, expiry/migration plan, and tests; Angular must not regain authoritative business writes. |
 | One-off WordPress catalog migration tooling | Canonical Excel dry-run/confirm import, taxonomy, variation, inventory and media workflows implemented through the current NestJS/PostgreSQL platform | `scripts/prepare-wordpress-migration.mjs`, `scripts/reconcile-wordpress-with-inventory.mjs` | Retired in GitHub PR #41, the first post-evidence PR-019+ deletion slice. Valid PR #40 RM-09 evidence classified both as unused file candidates; repository/package/tool-manifest searches found no consumer or supported command; Git history shows both entered only in the initial platform-progress commit; both depend on an external migration tree and the reconciliation script contained a developer-local Windows inventory path. They are historical one-off utilities, not supported production/import authority. |
+| Description-derived tag backfill | NestJS/PostgreSQL taxonomy/tagging workflow using `backend/src/platform/taxonomy/tagging-engine.ts` and governed tag approval/state | `backend/scripts/tag-products-from-descriptions.ts` direct SQLite mutation utility | Retired in the next PR-019+ slice. Valid RM-09 evidence classified the script as unused; backend package scripts/tool manifest expose no command for it; Git history shows only the initial platform-progress commit; the script directly opened a SQLite DB and wrote `platform_product_tags`, which conflicts with the current PostgreSQL/NestJS authority model. The canonical tagging engine is retained. |
 | Storefront published cache | `PublishedCatalogSyncService` with server revision + TTL | Browser `publishedProducts` cache | Retained as a bounded non-authoritative projection, not legacy authority. Expired cache is rejected and local staging data is never merged. |
 | Static/mock catalog generator | Runtime uses server-backed published products | `BRIDAL_SAMPLE_PRODUCTS` / fixture generator in `bridal-collection-categories.ts` | Runtime fixtures are disabled. Retained temporarily because the file also owns presentation types/category helpers; later deletion requires consumer migration and tests. |
 
@@ -67,3 +68,18 @@ Candidate-specific evidence before deletion:
 - the protected/current Excel import, dry-run/confirm, variation, taxonomy, inventory and media workflows remain implemented in the NestJS/PostgreSQL platform and are not altered by retiring these one-off utilities.
 
 Rollback is a focused PR revert restoring the two scripts. No database, media, inventory or production data rollback is required.
+
+## Second evidence-backed removal slice — SQLite tag backfill
+
+The next candidate is `backend/scripts/tag-products-from-descriptions.ts`.
+
+Candidate-specific evidence before deletion:
+
+- the valid RM-09 Knip report classifies the file as unused;
+- repository search finds no supported caller and `backend/package.json` exposes no command for the script;
+- Git history contains only the initial `Publish current gallery platform progress` commit;
+- the script opens an operator-supplied SQLite database and writes directly to `platform_product_tags`, bypassing the current NestJS/PostgreSQL persistence boundary;
+- the reusable tagging rules remain in `backend/src/platform/taxonomy/tagging-engine.ts`; only the obsolete SQLite backfill entry point is retired;
+- protected taxonomy/tag approval semantics remain unchanged.
+
+Rollback is a focused PR revert restoring the script. No database or production-data rollback is required because this PR does not execute the script or mutate data.
