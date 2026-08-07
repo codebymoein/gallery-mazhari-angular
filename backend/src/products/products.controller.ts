@@ -22,6 +22,8 @@ import {
   OverrideStatusDto,
   PublishProductDto,
 } from './dto/publish-product.dto';
+import { UpdateCatalogDto } from './dto/update-catalog.dto';
+import { CatalogContractService } from './catalog-contract.service';
 import { ProductsService } from './products.service';
 
 interface RequestLike {
@@ -35,12 +37,15 @@ const actorFrom = (req: RequestLike): string =>
 
 @Controller('products')
 export class ProductsController {
-  constructor(private readonly productsService: ProductsService) {}
+  constructor(
+    private readonly productsService: ProductsService,
+    private readonly catalogContract: CatalogContractService,
+  ) {}
 
-  /** ویترین عمومی — فقط محصولات منتشرشده و موجود */
+  /** ویترین عمومی — snapshot مستقیم سرور با revision و TTL محدود */
   @Get('published')
   published() {
-    return this.productsService.getPublished();
+    return this.catalogContract.getPublishedSnapshot();
   }
 
   /** کل صف انتشار برای پنل ادمین */
@@ -144,19 +149,7 @@ export class ProductsController {
   @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
   @Roles(UserRole.ADMIN, UserRole.STAFF)
   @Permissions('catalog.manage')
-  updateCatalog(
-    @Param('id') id: string,
-    @Body()
-    dto: {
-      category: string;
-      categorySlug: string;
-      parentCategory: string;
-      parentCategorySlug: string;
-      collection?: string;
-      hiddenTags?: string[];
-      modelSelectionEnabled?: boolean;
-    },
-  ) {
-    return this.productsService.updateCatalog(id, dto);
+  updateCatalog(@Param('id') id: string, @Body() dto: UpdateCatalogDto) {
+    return this.catalogContract.updateCatalog(id, dto);
   }
 }

@@ -11,6 +11,10 @@ The existing product spine remains authoritative. Parent/variation detection, co
 ## Canonical taxonomy and classification
 `backend/src/products/catalog-taxonomy.ts` is the server-side classification authority for admin catalog assignment. A catalog mutation MUST supply a canonical parent/category slug pair and its matching labels; mismatched or unknown relationships are rejected before product mutation. `src/app/shared/data/catalog-categories.ts` is the Angular presentation projection and CI regression coverage MUST keep its hierarchy synchronized with the server contract. Excel may provide provisional classification for newly ingested rows, but subsequent inventory files MUST NOT overwrite an administrator's established catalog assignment.
 
+Catalog edits use optimistic concurrency. The admin client MUST submit the `updatedAt` version from its latest authoritative server read. NestJS compares that token while holding the product write lock; a stale token is rejected with `catalog_version_conflict` before catalog fields are saved. The operator must refresh/review the newer server state rather than silently overwrite another administrator's edit.
+
+The public catalog is queried directly from the NestJS/PostgreSQL published-product path and returned as a versioned snapshot with a bounded TTL. Browser cache is a disposable projection only. Expired snapshots are not live storefront data, and local staging/browser-only products MUST NOT be merged into public results.
+
 ## Photo/media queue
 Filename/code matching, orphan handling, quarantine, derivative generation, featured/gallery ordering, and products-without-images review are intentional. Missing/unmatched media must remain visible in a queue/state; do not silently discard or auto-publish around the gate.
 

@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, map } from 'rxjs';
+import { Observable, map, tap } from 'rxjs';
 import { BridalPreferenceService } from './bridal-preference.service';
 import { environment } from '@env/environment';
 import { AdminAuthService } from '@core/services/admin-auth.service';
@@ -41,6 +41,7 @@ export interface BackendProduct {
   material?: string | null;
   description?: string | null;
   enrichment?: Record<string, unknown> | null;
+  updatedAt: string;
   variations?: Array<{
     id: string;
     sku: string;
@@ -52,6 +53,13 @@ export interface BackendProduct {
     stock: number;
     available: boolean;
   }>;
+}
+
+export interface PublishedCatalogSnapshot {
+  revision: string;
+  generatedAt: string;
+  ttlSeconds: number;
+  products: BackendProduct[];
 }
 
 export interface ImportResponse {
@@ -125,6 +133,7 @@ export function backendProductToStaging(p: BackendProduct): StagingProduct {
     publishedAt: p.publishedAt ?? undefined,
     processedBy: p.processedBy ?? undefined,
     publishedBy: p.publishedBy ?? undefined,
+    updatedAt: p.updatedAt,
     notes: p.notes ?? undefined
   };
 }
@@ -135,18 +144,18 @@ export class ProductsApiService {
   private readonly auth = inject(AdminAuthService);
   private readonly preferences = inject(BridalPreferenceService);
   private readonly baseUrl = `${environment.backendApiBaseUrl}/products`;
+  private readonly catalogVersions = new Map<string, string>();
 
-  getPublished(): Observable<BackendProduct[]> {
-    return this.http.get<BackendProduct[]>(`${this.baseUrl}/published`).pipe(map(items => {
-      const wanted = new Set(this.preferences.tags());
-      if (!wanted.size) return items;
-      return items.map((item, index) => ({ item, index, score: Array.isArray(item.enrichment?.['hiddenTags']) ? (item.enrichment!['hiddenTags'] as unknown[]).filter(tag => wanted.has(String(tag))).length : 0 }))
-        .sort((a, b) => b.score - a.score || a.index - b.index).map(row => row.item);
-    }));
+  getPublished(): Observable<PublishedCatalogSnapshot> {
+    return this.http
+      .get<PublishedCatalogSnapshot>(`${this.baseUrl}/published`)
+      .pipe(map(snapshot => ({ ...snapshot, products: this.rankPublished(snapshot.products) })));
   }
 
   getQueue(): Observable<BackendProduct[]> {
-    return this.http.get<BackendProduct[]>(this.baseUrl, this.authOptions());
+    return this.http.get<BackendProduct[]>(this.baseUrl, this.authOptions()).pipe(
+      tap(items => this.rememberVersions(items))
+    );
   }
 
   applyImport(payload: {
@@ -184,7 +193,7 @@ export class ProductsApiService {
       `${this.baseUrl}/import`,
       payload,
       this.authOptions()
-    );
+    ).pipe(tap(result => this.rememberVersions(result.queue)));
   }
 
   attachPhotos(
@@ -192,42 +201,42 @@ export class ProductsApiService {
     photos: Array<{ url: string; fileName: string }>,
     processedBy: string
   ): Observable<BackendProduct> {
-    return this.http.post<BackendProduct>(
+    return this.trackVersion(this.http.post<BackendProduct>(
       `${this.baseUrl}/${id}/photos`,
       { photos, processedBy },
       this.authOptions()
-    );
+    ));
   }
 
   removePhoto(id: string, index: number): Observable<BackendProduct> {
-    return this.http.delete<BackendProduct>(
+    return this.trackVersion(this.http.delete<BackendProduct>(
       `${this.baseUrl}/${id}/photos/${index}`,
       this.authOptions()
-    );
+    ));
   }
 
   setPrimaryPhoto(id: string, index: number): Observable<BackendProduct> {
-    return this.http.patch<BackendProduct>(
+    return this.trackVersion(this.http.patch<BackendProduct>(
       `${this.baseUrl}/${id}/photos/${index}/primary`,
       {},
       this.authOptions()
-    );
+    ));
   }
 
   publish(id: string, publishedBy: string): Observable<BackendProduct> {
-    return this.http.post<BackendProduct>(
+    return this.trackVersion(this.http.post<BackendProduct>(
       `${this.baseUrl}/${id}/publish`,
       { publishedBy },
       this.authOptions()
-    );
+    ));
   }
 
   unpublish(id: string, actor: string): Observable<BackendProduct> {
-    return this.http.post<BackendProduct>(
+    return this.trackVersion(this.http.post<BackendProduct>(
       `${this.baseUrl}/${id}/unpublish`,
       { actor },
       this.authOptions()
-    );
+    ));
   }
 
   overrideStatus(
@@ -235,11 +244,11 @@ export class ProductsApiService {
     status: StagingStatus,
     actor: string
   ): Observable<BackendProduct> {
-    return this.http.patch<BackendProduct>(
+    return this.trackVersion(this.http.patch<BackendProduct>(
       `${this.baseUrl}/${id}/status`,
       { status, actor },
       this.authOptions()
-    );
+    ));
   }
 
   restoreProducts(products: StagingProduct[]): Observable<{ restored: number; queue: BackendProduct[] }> {
@@ -247,7 +256,7 @@ export class ProductsApiService {
       `${this.baseUrl}/restore`,
       { products },
       this.authOptions()
-    );
+    ).pipe(tap(result => this.rememberVersions(result.queue)));
   }
 
   updateCatalog(
@@ -262,11 +271,43 @@ export class ProductsApiService {
       modelSelectionEnabled?: boolean;
     }
   ): Observable<BackendProduct> {
-    return this.http.patch<BackendProduct>(
+    const expectedUpdatedAt = this.catalogVersions.get(id);
+    if (!expectedUpdatedAt) {
+      throw new Error('catalog_version_missing_refresh_required');
+    }
+    return this.trackVersion(this.http.patch<BackendProduct>(
       `${this.baseUrl}/${id}/catalog`,
-      payload,
+      { ...payload, expectedUpdatedAt },
       this.authOptions()
-    );
+    ));
+  }
+
+  private rankPublished(items: BackendProduct[]): BackendProduct[] {
+    const wanted = new Set(this.preferences.tags());
+    if (!wanted.size) return items;
+    return items
+      .map((item, index) => ({
+        item,
+        index,
+        score: Array.isArray(item.enrichment?.['hiddenTags'])
+          ? (item.enrichment!['hiddenTags'] as unknown[])
+              .filter(tag => wanted.has(String(tag))).length
+          : 0
+      }))
+      .sort((a, b) => b.score - a.score || a.index - b.index)
+      .map(row => row.item);
+  }
+
+  private rememberVersions(items: BackendProduct[]): void {
+    for (const item of items) {
+      if (item.updatedAt) this.catalogVersions.set(item.id, item.updatedAt);
+    }
+  }
+
+  private trackVersion(source: Observable<BackendProduct>): Observable<BackendProduct> {
+    return source.pipe(tap(item => {
+      if (item.updatedAt) this.catalogVersions.set(item.id, item.updatedAt);
+    }));
   }
 
   private authOptions(): { headers?: HttpHeaders } {

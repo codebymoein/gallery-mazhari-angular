@@ -85,6 +85,8 @@ export interface StagingProduct {
   publishedAt?: string;
   processedBy?: string;
   publishedBy?: string;
+  /** Server optimistic-concurrency token. Never synthesized by local state. */
+  updatedAt?: string;
   internalOnly?: boolean;
   notes?: string;
 }

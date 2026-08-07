@@ -212,8 +212,8 @@ export class AppearanceManagerComponent {
 
   loadPublishedProducts(): void {
     this.productsApi.getPublished().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: products => {
-        this.styleProducts = products.map(product => ({
+      next: snapshot => {
+        this.styleProducts = snapshot.products.map(product => ({
           code: product.code,
           name: product.name,
           category: product.category,

@@ -52,6 +52,8 @@ export class StagingQueueService {
 
   /** آخرین وضعیت اتصال به سرور — برای نمایش/عیب‌یابی */
   readonly serverSynced = signal(false);
+  /** آخرین ویرایش catalog با نسخه stale توسط سرور رد شده است. */
+  readonly catalogConflict = signal(false);
 
   readonly items = this.itemsSignal.asReadonly();
   readonly maxPhotos = MAX_STAGING_PHOTOS;
@@ -153,6 +155,7 @@ export class StagingQueueService {
       modelSelectionEnabled?: boolean;
     }
   ): Promise<boolean> {
+    this.catalogConflict.set(false);
     try {
       if (this.hasServerSession() && UUID_PATTERN.test(id)) {
         const saved = await firstValueFrom(this.api.updateCatalog(id, catalog));
@@ -171,7 +174,8 @@ export class StagingQueueService {
       }
       this.persist();
       return true;
-    } catch {
+    } catch (err) {
+      this.catalogConflict.set(err instanceof HttpErrorResponse && err.status === 409);
       return false;
     }
   }
