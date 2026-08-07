@@ -2,12 +2,12 @@
 
 This is version-controlled Living Documentation for the real Angular + NestJS + TypeORM/PostgreSQL system in this repository. Normative precedence: `CONSTITUTION.md` → `AGENTS.md` agent-entry contract → the Master Remediation Roadmap for remediation scope/sequencing → this handbook → task-specific docs → implementation comments. Existing specialized docs remain valuable evidence and must be reconciled rather than silently contradicted.
 
-> **Agent entry rule:** New AI/automation sessions MUST start at [`../../AGENTS.md`](../../AGENTS.md), complete its mandatory preflight, read the Constitution, Roadmap, this index and required chapters, then provide the pre-write report before material edits. Opening this Handbook directly does not waive the `AGENTS.md` preflight.
+> **Agent entry rule:** New AI/automation sessions MUST start at [`../../AGENTS.md`](../../AGENTS.md), complete its Fast Preflight Protocol, read the Constitution, Roadmap scope when applicable, this index and task-risk-selected chapters, then provide the compact pre-write report before material edits. Opening this Handbook directly does not waive the `AGENTS.md` preflight.
 
 ## Canonical remediation authority
 - [`../remediation/MASTER_REMEDIATION_ROADMAP.md`](../remediation/MASTER_REMEDIATION_ROADMAP.md) — authoritative 381-finding remediation program, Wave/RM/PR sequence, dependencies, exit criteria, Definition of Done and coverage manifest.
 - [`../governance/AGENT_TASK_MANIFEST.md`](../governance/AGENT_TASK_MANIFEST.md) — mandatory task-scoping and acknowledgement contract for material agent work.
-- [`../governance/NEW_AGENT_BOOTSTRAP.md`](../governance/NEW_AGENT_BOOTSTRAP.md) — reusable instructions for starting a new chat/agent without trusting stale copied state.
+- [`../governance/NEW_AGENT_BOOTSTRAP.md`](../governance/NEW_AGENT_BOOTSTRAP.md) — reusable minimal instructions for starting a new chat/agent without trusting stale copied state.
 
 ## Chapters
 1. [Engineering Principles](01-engineering-principles.md)
@@ -29,8 +29,19 @@ This is version-controlled Living Documentation for the real Angular + NestJS + 
 17. [SEO, Performance & Accessibility](17-seo-performance-accessibility.md)
 18. [Documentation Governance](18-documentation-governance.md)
 
-## Minimum mandatory reading for every material task
-Every agent MUST read chapters **01, 02, 03, 07, 10, 11 and 12**, plus task-specific chapters identified by `AGENTS.md`. Reading only a summary is insufficient when full repository file access is available.
+## Fast chapter selection
+Do not load every chapter for every task. Use the task-risk matrix in `AGENTS.md` and read only the chapters whose boundary is actually touched. The following compact map is an index, not a second policy:
+
+- Material code change → 03, 10, 11, 12.
+- Architecture/source-of-truth/workflow semantics → add 01, 02, 07.
+- Angular/UI/client state → add 04; add 08 and/or 17 when applicable.
+- NestJS/API/business logic → add 05; add 09 for security-sensitive behavior.
+- Database/schema/migrations/import persistence → add 06 and 07.
+- Media/uploads → add 09 and 13.
+- Deployment/runtime → add 14 and, as applicable, 15/16.
+- Documentation/governance-only → 11, 12, 18 unless the governance change modifies another domain contract.
+
+If a selected chapter links another document as mandatory for the touched behavior, read that linked document too. If task scope expands, expand the reading set before making out-of-boundary writes. A summary or previous chat memory is not a substitute for a required source when repository access is available.
 
 ## Canonical operational indexes
 - [`../DOCUMENTATION_INDEX.md`](../DOCUMENTATION_INDEX.md) — topic ownership and documentation precedence.
