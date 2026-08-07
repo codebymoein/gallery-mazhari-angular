@@ -44,7 +44,10 @@ type SharpPipeline = {
 
 type SharpFactory = (
   input: Buffer,
-  options?: { animated?: boolean; failOn?: 'none' | 'truncated' | 'error' | 'warning' },
+  options?: {
+    animated?: boolean;
+    failOn?: 'none' | 'truncated' | 'error' | 'warning';
+  },
 ) => SharpPipeline;
 
 let sharpFactory: SharpFactory | null | undefined;
@@ -56,7 +59,7 @@ const DERIVATIVE_SIZES = [
   { key: 'retina', edge: 2400 },
 ] as const;
 
-async function loadSharp(): Promise<SharpFactory> {
+function loadSharp(): SharpFactory {
   if (sharpFactory) return sharpFactory;
   if (sharpFactory === null) throw new Error('sharp_unavailable');
   try {
@@ -70,11 +73,16 @@ async function loadSharp(): Promise<SharpFactory> {
   }
 }
 
-export async function sanitizeImageBuffer(buffer: Buffer): Promise<SanitizedImage> {
-  const sharp = await loadSharp();
+export async function sanitizeImageBuffer(
+  buffer: Buffer,
+): Promise<SanitizedImage> {
+  const sharp = loadSharp();
   let metadata: SharpMetadata;
   try {
-    metadata = await sharp(buffer, { animated: true, failOn: 'error' }).metadata();
+    metadata = await sharp(buffer, {
+      animated: true,
+      failOn: 'error',
+    }).metadata();
   } catch {
     throw new Error('image_decode_failed');
   }
@@ -146,7 +154,7 @@ export async function sanitizeImageBuffer(buffer: Buffer): Promise<SanitizedImag
 export async function generateDerivativeBuffers(
   sanitizedBuffer: Buffer,
 ): Promise<GeneratedDerivative[]> {
-  const sharp = await loadSharp();
+  const sharp = loadSharp();
   const derivatives: GeneratedDerivative[] = [];
 
   for (const size of DERIVATIVE_SIZES) {
@@ -178,7 +186,9 @@ export async function generateDerivativeBuffers(
   return derivatives;
 }
 
-function normalizeFormat(format: string | undefined): ProcessedImageFormat | null {
+function normalizeFormat(
+  format: string | undefined,
+): ProcessedImageFormat | null {
   if (format === 'jpg') return 'jpeg';
   if (
     format === 'jpeg' ||
