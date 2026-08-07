@@ -44,27 +44,39 @@ export class MediaStorageService {
 
     if (this.driver === 's3') {
       const config = readS3Config();
-      await putS3Object(config, key, input.buffer, input.contentType, input.visibility);
+      await putS3Object(
+        config,
+        key,
+        input.buffer,
+        input.contentType,
+        input.visibility,
+      );
       return {
         key,
-        url: input.visibility === 'public'
-          ? `${stripTrailingSlash(config.publicBaseUrl)}/${key}`
-          : `private-object://${config.bucket}/${key}`,
+        url:
+          input.visibility === 'public'
+            ? `${stripTrailingSlash(config.publicBaseUrl)}/${key}`
+            : `private-object://${config.bucket}/${key}`,
         localPath: null,
         visibility: input.visibility,
       };
     }
 
-    const root = input.visibility === 'public'
-      ? join(process.cwd(), 'uploads', 'media')
-      : join(process.cwd(), 'storage', 'private', 'media');
+    const root =
+      input.visibility === 'public'
+        ? join(process.cwd(), 'uploads', 'media')
+        : join(process.cwd(), 'storage', 'private', 'media');
     const localPath = join(root, ...key.split('/').slice(1));
     mkdirSync(dirname(localPath), { recursive: true });
     writeFileSync(localPath, input.buffer);
 
-    const url = input.visibility === 'public'
-      ? `${stripTrailingSlash(input.uploadsBaseUrl || '')}/uploads/media/${key.split('/').slice(1).join('/')}`
-      : `private-local://${key}`;
+    const url =
+      input.visibility === 'public'
+        ? `${stripTrailingSlash(input.uploadsBaseUrl || '')}/uploads/media/${key
+            .split('/')
+            .slice(1)
+            .join('/')}`
+        : `private-local://${key}`;
 
     return { key, url, localPath, visibility: input.visibility };
   }
@@ -88,7 +100,9 @@ export function buildContentAddressedMediaKey(
 }
 
 function resolveDriver(): MediaStorageDriver {
-  const raw = (process.env.MEDIA_STORAGE_DRIVER || 'local').trim().toLowerCase();
+  const raw = (process.env.MEDIA_STORAGE_DRIVER || 'local')
+    .trim()
+    .toLowerCase();
   if (raw !== 'local' && raw !== 's3') {
     throw new Error('MEDIA_STORAGE_DRIVER must be local or s3.');
   }
@@ -110,7 +124,9 @@ function readS3Config(): S3Config {
 
 function requiredEnv(name: string): string {
   const value = process.env[name]?.trim();
-  if (!value) throw new Error(`Missing required media storage variable ${name}.`);
+  if (!value) {
+    throw new Error(`Missing required media storage variable ${name}.`);
+  }
   return value;
 }
 
@@ -128,18 +144,23 @@ async function putS3Object(
   const encodedKey = key.split('/').map(encodeRfc3986).join('/');
   const bucket = encodeRfc3986(config.bucket);
   const basePath = config.endpoint.pathname.replace(/\/$/, '');
-  const canonicalUri = `${basePath}/${bucket}/${encodedKey}`.replace(/\/+/g, '/');
+  const canonicalUri = `${basePath}/${bucket}/${encodedKey}`.replace(
+    /\/+/g,
+    '/',
+  );
   const host = config.endpoint.host;
-  const cacheControl = visibility === 'public'
-    ? 'public, max-age=31536000, immutable'
-    : 'private, no-store';
+  const cacheControl =
+    visibility === 'public'
+      ? 'public, max-age=31536000, immutable'
+      : 'private, no-store';
   const canonicalHeaders =
     `cache-control:${cacheControl}\n` +
     `content-type:${contentType}\n` +
     `host:${host}\n` +
     `x-amz-content-sha256:${payloadHash}\n` +
     `x-amz-date:${amzDate}\n`;
-  const signedHeaders = 'cache-control;content-type;host;x-amz-content-sha256;x-amz-date';
+  const signedHeaders =
+    'cache-control;content-type;host;x-amz-content-sha256;x-amz-date';
   const canonicalRequest = [
     'PUT',
     canonicalUri,
@@ -155,8 +176,14 @@ async function putS3Object(
     scope,
     sha256(Buffer.from(canonicalRequest)),
   ].join('\n');
-  const signingKey = getSignatureKey(config.secretAccessKey, dateStamp, config.region);
-  const signature = createHmac('sha256', signingKey).update(stringToSign).digest('hex');
+  const signingKey = getSignatureKey(
+    config.secretAccessKey,
+    dateStamp,
+    config.region,
+  );
+  const signature = createHmac('sha256', signingKey)
+    .update(stringToSign)
+    .digest('hex');
   const authorization =
     `AWS4-HMAC-SHA256 Credential=${config.accessKeyId}/${scope}, ` +
     `SignedHeaders=${signedHeaders}, Signature=${signature}`;
@@ -164,6 +191,7 @@ async function putS3Object(
   const target = new URL(config.endpoint.toString());
   target.pathname = canonicalUri;
   target.search = '';
+  const requestBody = Uint8Array.from(body);
   const response = await fetch(target, {
     method: 'PUT',
     headers: {
@@ -174,7 +202,7 @@ async function putS3Object(
       'X-Amz-Content-Sha256': payloadHash,
       'X-Amz-Date': amzDate,
     },
-    body,
+    body: requestBody,
   });
 
   if (!response.ok) {
@@ -182,7 +210,11 @@ async function putS3Object(
   }
 }
 
-function getSignatureKey(secret: string, dateStamp: string, region: string): Buffer {
+function getSignatureKey(
+  secret: string,
+  dateStamp: string,
+  region: string,
+): Buffer {
   const kDate = hmac(`AWS4${secret}`, dateStamp);
   const kRegion = hmac(kDate, region);
   const kService = hmac(kRegion, 's3');
@@ -202,8 +234,9 @@ function toAmzDate(date: Date): string {
 }
 
 function encodeRfc3986(value: string): string {
-  return encodeURIComponent(value).replace(/[!'()*]/g, char =>
-    `%${char.charCodeAt(0).toString(16).toUpperCase()}`,
+  return encodeURIComponent(value).replace(
+    /[!'()*]/g,
+    (char) => `%${char.charCodeAt(0).toString(16).toUpperCase()}`,
   );
 }
 
