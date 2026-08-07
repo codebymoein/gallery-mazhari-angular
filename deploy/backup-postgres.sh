@@ -57,7 +57,10 @@ PGPASSWORD="$DB_PASSWORD" pg_dump \
 
 age --recipient "$recipient" --output "$encrypted" "$tmp_dump"
 rm -f "$tmp_dump"
-sha256sum "$(basename "$encrypted")" > "$checksum"
+(
+  cd "$backup_root"
+  sha256sum "$(basename "$encrypted")" > "$(basename "$checksum")"
+)
 
 if [ -n "$remote_uri" ]; then
   command -v aws >/dev/null 2>&1 || { echo "required command missing: aws" >&2; exit 69; }
