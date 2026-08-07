@@ -26,5 +26,10 @@ jobs:
         run: shellcheck deploy/release.sh deploy/backup-postgres.sh deploy/backup-media.sh
       - name: Validate systemd unit syntax
         run: |
-          systemd-analyze verify deploy/gallery-mazhari-backend.service.example
-          systemd-analyze verify deploy/gallery-mazhari-backup.service.example deploy/gallery-mazhari-backup.timer.example
+          set -euo pipefail
+          unit_dir="$(mktemp -d)"
+          cp deploy/gallery-mazhari-backend.service.example "${unit_dir}/gallery-mazhari-backend.service"
+          cp deploy/gallery-mazhari-backup.service.example "${unit_dir}/gallery-mazhari-backup.service"
+          cp deploy/gallery-mazhari-backup.timer.example "${unit_dir}/gallery-mazhari-backup.timer"
+          systemd-analyze verify "${unit_dir}/gallery-mazhari-backend.service"
+          systemd-analyze verify "${unit_dir}/gallery-mazhari-backup.service" "${unit_dir}/gallery-mazhari-backup.timer"
