@@ -15,37 +15,6 @@ permissions:
   contents: read
 
 jobs:
-  lockfile-repair-evidence:
-    name: Lockfile repair evidence
-    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'chore/rm-02-ci-quality-gates'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.head_ref }}
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - name: Regenerate lockfiles without installing runtime artifacts
-        run: |
-          set -euo pipefail
-          npm install --package-lock-only --ignore-scripts --no-audit --no-fund
-          npm --prefix backend install --package-lock-only --ignore-scripts --no-audit --no-fund
-      - name: Commit generated lockfiles when changed
-        run: |
-          set -euo pipefail
-          if git diff --quiet -- package-lock.json backend/package-lock.json; then
-            echo "Lockfiles already synchronized."
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add package-lock.json backend/package-lock.json
-          git commit -m "fix(rm-02): synchronize npm lockfiles"
-          git push origin "HEAD:${GITHUB_HEAD_REF}"
-
   frontend:
     name: Frontend lint, test, build
     runs-on: ubuntu-latest
