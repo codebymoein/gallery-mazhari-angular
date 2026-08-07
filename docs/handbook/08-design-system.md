@@ -11,11 +11,14 @@
 - Images require stable dimensions/aspect handling and appropriate responsive/lazy-loading behavior.
 - Component/feature CSS must not create a competing design-token authority. New literals require a named use case and should normally become semantic tokens.
 - Font stacks and fallbacks are governed by the canonical token contract. Font binaries may not be added merely because a family appears in a stack; self-hosting requires license/provenance and performance review.
+- `src/styles/global.css` owns reset, document defaults, accessibility foundation and documented utilities only.
+- Cross-storefront presentation shared by multiple public surfaces belongs in `src/styles/storefront-shared.css`; feature-only styles belong with their Angular feature/component owner.
+- Governed shared CSS MUST NOT use class-fragment selectors such as `[class*='...']` as an ownership shortcut.
 
 ## Change gate
 New tokens/patterns require a named use case and update to the design reference. One-off visual overrides that duplicate an existing token/pattern should be rejected. Visual redesigns must not remove workflow actions, status visibility, validation, or audit information.
 
-PR-016 establishes the canonical palette/font/token contract and executable visual evidence. PR-017 owns global CSS decomposition, broad-selector/feature-patch cleanup and consumer migration; those changes must preserve the approved appearance unless separately authorized.
+PR-016 established the canonical palette/font/token contract and executable visual evidence. PR-017 decomposes global CSS ownership, removes broad class-fragment selectors from governed shared layers and makes the Stylelint ownership check blocking in the dedicated Design System Contract workflow. The detailed ownership map is [`../design/STYLE_OWNERSHIP.md`](../design/STYLE_OWNERSHIP.md).
 
 ## Verification
-For material UI changes, PR evidence SHOULD include screenshots at representative mobile/desktop widths plus keyboard/focus verification. The dedicated `Design System Contract` workflow runs `e2e/design-system.spec.ts` to verify canonical runtime palette/font variables and capture Home/Catalog evidence in desktop and mobile projects. Accessibility checks follow [chapter 17](17-seo-performance-accessibility.md); existing RM-14 debt is not silently converted into RM-08 scope.
+For material UI changes, PR evidence SHOULD include screenshots at representative mobile/desktop widths plus keyboard/focus verification. The dedicated `Design System Contract` workflow runs a blocking Stylelint check for governed shared styles and `e2e/design-system.spec.ts` to verify canonical runtime palette/font variables and capture Home/Catalog evidence in desktop and mobile projects. Accessibility checks follow [chapter 17](17-seo-performance-accessibility.md); existing RM-14 debt is not silently converted into RM-08 scope.

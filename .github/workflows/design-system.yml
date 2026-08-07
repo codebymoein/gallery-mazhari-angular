@@ -6,8 +6,10 @@ on:
     paths:
       - 'src/styles/**'
       - 'DESIGN_SYSTEM.md'
+      - 'docs/design/**'
       - 'docs/handbook/08-design-system.md'
       - 'e2e/design-system.spec.ts'
+      - '.stylelintrc.json'
       - '.github/workflows/design-system.yml'
   workflow_dispatch:
 
@@ -16,7 +18,7 @@ permissions:
 
 jobs:
   design-contract:
-    name: Token, font, and visual baseline contract
+    name: Token, font, CSS ownership, and visual baseline contract
     runs-on: ubuntu-latest
     env:
       CI: true
@@ -41,6 +43,8 @@ jobs:
             backend/package-lock.json
       - run: npm ci
       - run: npm --prefix backend ci
+      - name: Enforce governed CSS ownership rules
+        run: npx --yes stylelint@16.23.1 "src/styles/global.css" "src/styles/storefront-shared.css" "src/styles/patterns.css" --config .stylelintrc.json
       - run: npx playwright install --with-deps chromium
       - name: Verify canonical design contract and capture visual evidence
         run: npx playwright test e2e/design-system.spec.ts

@@ -30,6 +30,7 @@
               "src/styles/rtl.css",
               "src/styles/patterns.css",
               "src/styles/global.css",
+              "src/styles/storefront-shared.css",
               "src/styles/admin-theme.css"
             ],
             "scripts": []
