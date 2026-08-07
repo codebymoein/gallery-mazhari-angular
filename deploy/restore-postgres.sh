@@ -9,6 +9,7 @@ fi
 backup="$1"
 checksum_file="$2"
 confirmation="${RESTORE_CONFIRM_NON_PRODUCTION:-}"
+target_environment="${RESTORE_TARGET_ENV:-}"
 target_url="${RESTORE_DATABASE_URL:-}"
 identity_file="${RESTORE_AGE_IDENTITY_FILE:-}"
 
@@ -16,6 +17,13 @@ identity_file="${RESTORE_AGE_IDENTITY_FILE:-}"
   echo "restore is forbidden when NODE_ENV=production" >&2
   exit 77
 }
+case "$target_environment" in
+  staging|recovery|test) ;;
+  *)
+    echo "RESTORE_TARGET_ENV must be one of: staging, recovery, test" >&2
+    exit 77
+    ;;
+esac
 [ "$confirmation" = "I_UNDERSTAND_THIS_IS_NON_PRODUCTION" ] || {
   echo "set RESTORE_CONFIRM_NON_PRODUCTION=I_UNDERSTAND_THIS_IS_NON_PRODUCTION" >&2
   exit 77
@@ -53,4 +61,4 @@ pg_restore \
   --dbname "$target_url" \
   "$plain_dump"
 
-echo "non-production PostgreSQL restore completed"
+echo "non-production PostgreSQL restore completed for ${target_environment}"
