@@ -22,7 +22,7 @@ Relevant local commands include:
 - Backend coverage: `npm --prefix backend run test:cov -- --runInBand`
 - Backend build: `npm --prefix backend run build`
 
-The GitHub check named `Required quality gates` is the merge gate established by RM-02.
+The GitHub check named `Required quality gates` is the merge gate established by RM-02. Deployment tooling also has `.github/workflows/deployment-tooling.yml` for shell/systemd validation when those paths change.
 
 ## Database migrations
 
@@ -39,6 +39,24 @@ Rules:
 2. Never use schema synchronization as an operational migration mechanism.
 3. Existing schema drift is owned by RM-05; this manifest does not authorize changing entities/migrations in RM-16.
 4. Backup/restore readiness and production rollout are governed by the deployment/DR handbook and RM-11.
+
+## Release tooling
+
+- Immutable release artifact workflow: `.github/workflows/release-artifact.yml`.
+- Atomic host activation: `deploy/release.sh <artifact.tar.gz> <artifact.tar.gz.sha256>`.
+- Backend supervision example: `deploy/gallery-mazhari-backend.service.example`.
+- Nginx production-path example: `deploy/nginx.conf.example`.
+
+Host requirements for the baseline: Node.js 22, systemd, util-linux `flock`, Nginx and PostgreSQL client/runtime tooling appropriate to the deployment host.
+
+## Backup tooling
+
+- PostgreSQL encrypted backup: `deploy/backup-postgres.sh`.
+- Object Storage media copy backup: `deploy/backup-media.sh`.
+- Scheduled oneshot service/timer examples: `deploy/gallery-mazhari-backup.service.example` and `deploy/gallery-mazhari-backup.timer.example`.
+- Non-secret configuration shape: `deploy/backup.env.example`.
+
+Backup host requirements include `pg_dump`, `age`, AWS CLI compatible with the configured S3 provider, and credentials supplied outside Git. Restore tooling/evidence is PR-015 scope; backup commands are not restore authorization.
 
 ## Security tools
 

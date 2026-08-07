@@ -1,44 +1,51 @@
-# Deployment, Migration, Rollback
+# Deployment, Migration, Backup Baseline
 
-## Migration (DB)
+This document describes the RM-11 PR-014 baseline. It does not certify restore/monitoring/rollback rehearsal; those are PR-015.
 
-TypeORM `synchronize: true` creates/alters platform tables on boot:
+## Source artifact
 
-- `platform_jobs`, `platform_audit_logs`, `platform_import_runs`, `platform_mapping_templates`
-- `platform_product_variations`, `platform_media_assets`, `platform_inventory_audits`
-- `platform_taxonomy_tags`, `platform_product_tags`, `platform_attribute_values`
-- `platform_merch_rules`, `platform_curated_looks`, `platform_reco_events`
-- Extended columns on `staging_products` (barcode, price, enrichment, workflow fields, …)
+Production releases MUST come from `.github/workflows/release-artifact.yml` for one exact Git SHA. The workflow builds Angular and NestJS, retains backend production runtime dependencies, packages the versioned `deploy/` tooling, writes `REVISION`/`BUILD.json`, and publishes the release tarball with its SHA-256 checksum.
 
-**Staging/Prod recommendation:** take a DB backup before first deploy with the new entities. Plan a future cutover to explicit migrations.
+Do not rebuild or edit a production release on the server.
+
+## Host layout
+
+```text
+/srv/gallery-mazhari/
+  releases/<git-sha>/
+  current -> /srv/gallery-mazhari/releases/<git-sha>
+  LAST_DEPLOYED_REVISION
+/etc/gallery-mazhari/backend.env
+/etc/gallery-mazhari/backup.env
+/var/backups/gallery-mazhari/
+```
+
+Nginx serves `/srv/gallery-mazhari/current/frontend`. The backend systemd unit runs `/srv/gallery-mazhari/current/backend/dist/main.js`.
 
 ## Deploy
 
-```bash
-# Backend
-cd backend
-npm ci
-npm run build
-# set DB_TYPE=postgres (or sqlite for smoke), FRONTEND_ORIGIN, JWT secrets from .env.example
-npm run start:prod
+Install the example systemd/nginx configuration with host-specific domains/users/paths, then use the release artifact and checksum:
 
-# Frontend
-cd ..
-npm ci
-npm run build:prod
-# serve dist/gallery-mazhari-angular behind your web server
+```bash
+APP_ROOT=/srv/gallery-mazhari \
+BACKEND_ENV_FILE=/etc/gallery-mazhari/backend.env \
+./deploy/release.sh gallery-mazhari-<sha>.tar.gz gallery-mazhari-<sha>.tar.gz.sha256
 ```
 
-Env files: `backend/.env` (never commit), root `.env` for WP legacy if needed.
+The script verifies checksum and revision metadata, refuses release-directory reuse, serializes concurrent deployments with `flock`, extracts to a staging directory, runs TypeORM migrations from the exact release, atomically switches `current`, and restarts the supervised backend. If the immediate backend restart fails, the previous release symlink is restored when available.
 
-## Rollback application
+A code rollback does not authorize restoring an old PostgreSQL snapshot over newer valid transactions.
 
-1. Redeploy previous git revision of frontend + backend  
-2. Restore DB backup taken before migrate  
-3. Or use **import rollback** API for a single import ID without full DB restore  
+## Backup jobs
 
-## Backup
+`gallery-mazhari-backup.timer.example` schedules the oneshot backup service. `backend.env` supplies PostgreSQL/Object Storage runtime credentials; `backup.env` supplies backup destinations and the public `age` recipient.
 
-- Postgres: `pg_dump` before import batches and releases  
-- SQLite: copy `backend/data/gallery-mazhari.sqlite`  
-- Uploads: backup `backend/uploads/`
+- PostgreSQL: custom-format `pg_dump` -> `age` encryption -> SHA-256 -> S3-compatible off-server upload. Plaintext backups are never retained by the script.
+- Media: copy-only Object Storage sync to a distinct backup target with server-side encryption. Routine backup intentionally does not delete target objects.
+- Local retention applies to encrypted PostgreSQL backup artifacts. Remote lifecycle/versioning is configured at the backup storage provider.
+
+Required host tools for this baseline include Node.js 22, `systemd`, `flock`, PostgreSQL client tools (`pg_dump`), `age`, AWS CLI compatible with the selected Object Storage provider, Nginx, and the normal TLS/DNS stack. Secrets/private recovery keys are never committed.
+
+## Verification boundary
+
+PR-014 validates script syntax/ShellCheck and systemd unit syntax in CI alongside the repository Quality Gates. PR-015 adds restore drill evidence, health/version reporting, structured logs/metrics/alerts and full rollback/runbooks.

@@ -1,0 +1,37 @@
+name: Deployment Tooling
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'deploy/**'
+      - '.github/workflows/release-artifact.yml'
+      - '.github/workflows/deployment-tooling.yml'
+      - 'docs/PLATFORM_DEPLOYMENT.md'
+      - 'docs/handbook/14-deployment-operations.md'
+      - 'docs/handbook/16-backup-disaster-recovery.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-deployment-baseline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate shell syntax
+        run: bash -n deploy/release.sh deploy/backup-postgres.sh deploy/backup-media.sh
+      - name: ShellCheck deployment scripts
+        run: shellcheck deploy/release.sh deploy/backup-postgres.sh deploy/backup-media.sh
+      - name: Validate systemd unit syntax
+        run: |
+          set -euo pipefail
+          unit_dir="$(mktemp -d)"
+          cp deploy/gallery-mazhari-backend.service.example "${unit_dir}/gallery-mazhari-backend.service"
+          cp deploy/gallery-mazhari-backup.service.example "${unit_dir}/gallery-mazhari-backup.service"
+          cp deploy/gallery-mazhari-backup.timer.example "${unit_dir}/gallery-mazhari-backup.timer"
+          sed -i 's|^ExecStart=.*|ExecStart=/bin/true|' "${unit_dir}/gallery-mazhari-backend.service"
+          sed -i 's|^ExecStart=.*|ExecStart=/bin/true|' "${unit_dir}/gallery-mazhari-backup.service"
+          systemd-analyze verify "${unit_dir}/gallery-mazhari-backend.service"
+          systemd-analyze verify "${unit_dir}/gallery-mazhari-backup.service" "${unit_dir}/gallery-mazhari-backup.timer"

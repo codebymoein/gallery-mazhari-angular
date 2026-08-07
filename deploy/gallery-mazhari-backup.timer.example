@@ -1,0 +1,11 @@
+[Unit]
+Description=Schedule Gallery Mazhari encrypted PostgreSQL backups
+
+[Timer]
+OnCalendar=*-*-* 02:30:00
+Persistent=true
+RandomizedDelaySec=900
+Unit=gallery-mazhari-backup.service
+
+[Install]
+WantedBy=timers.target

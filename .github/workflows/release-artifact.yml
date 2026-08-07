@@ -1,0 +1,64 @@
+name: Release Artifact
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+
+jobs:
+  build-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            backend/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          npm --prefix backend ci
+
+      - name: Build frontend and backend
+        run: |
+          npm run build:prod
+          npm --prefix backend run build
+
+      - name: Retain backend production dependencies only
+        run: npm --prefix backend prune --omit=dev
+
+      - name: Assemble immutable release payload
+        env:
+          RELEASE_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          release_dir="release-${RELEASE_SHA}"
+          mkdir -p "${release_dir}/frontend" "${release_dir}/backend" "${release_dir}/deploy"
+          cp -a dist/gallery-mazhari-angular/browser/. "${release_dir}/frontend/"
+          cp -a backend/dist "${release_dir}/backend/dist"
+          cp -a backend/node_modules "${release_dir}/backend/node_modules"
+          cp backend/package.json backend/package-lock.json "${release_dir}/backend/"
+          cp -a deploy/. "${release_dir}/deploy/"
+          chmod +x "${release_dir}/deploy/release.sh" "${release_dir}/deploy/backup-postgres.sh" "${release_dir}/deploy/backup-media.sh"
+          printf '%s\n' "${RELEASE_SHA}" > "${release_dir}/REVISION"
+          printf '{"revision":"%s","workflow_run":"%s"}\n' "${RELEASE_SHA}" "${GITHUB_RUN_ID}" > "${release_dir}/BUILD.json"
+          tar -czf "gallery-mazhari-${RELEASE_SHA}.tar.gz" "${release_dir}"
+          sha256sum "gallery-mazhari-${RELEASE_SHA}.tar.gz" > "gallery-mazhari-${RELEASE_SHA}.tar.gz.sha256"
+
+      - name: Upload immutable release artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: gallery-mazhari-release-${{ github.sha }}
+          path: |
+            gallery-mazhari-${{ github.sha }}.tar.gz
+            gallery-mazhari-${{ github.sha }}.tar.gz.sha256
+          if-no-files-found: error
+          retention-days: 30
