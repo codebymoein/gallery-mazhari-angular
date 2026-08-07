@@ -15,7 +15,9 @@ import { MediaAssetEntity } from './entities/media-asset.entity';
 import { MediaSecurityService } from './media-security.service';
 import { MediaStorageService } from './media-storage.service';
 import {
+  type GeneratedDerivative,
   generateDerivativeBuffers,
+  type SanitizedImage,
   sanitizeImageBuffer,
 } from './secure-image-processing';
 
@@ -142,7 +144,7 @@ export class MediaService {
         continue;
       }
 
-      let sanitized;
+      let sanitized: SanitizedImage;
       try {
         sanitized = await sanitizeImageBuffer(file.buffer);
       } catch (error) {
@@ -150,7 +152,9 @@ export class MediaService {
           file.buffer,
           safeName,
           rawHash,
-          error instanceof Error ? safeReason(error.message) : 'image_sanitize_failed',
+          error instanceof Error
+            ? safeReason(error.message)
+            : 'image_sanitize_failed',
           input.actor,
         );
         assets.push(q);
@@ -222,7 +226,7 @@ export class MediaService {
         }
       }
 
-      let generatedDerivatives;
+      let generatedDerivatives: GeneratedDerivative[];
       try {
         generatedDerivatives = await generateDerivativeBuffers(
           sanitized.buffer,
@@ -647,7 +651,9 @@ export class MediaService {
         order: { updatedAt: 'DESC' },
       }),
     ]);
-    const productsById = new Map(products.map((product) => [product.id, product]));
+    const productsById = new Map(
+      products.map((product) => [product.id, product]),
+    );
     const assetHashes = new Set(assets.map((asset) => asset.contentHash));
     const missingStorageKeys: string[] = [];
     const missingDerivativeKeys: string[] = [];
