@@ -1,7 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { environment } from '@env/environment';
 import type { StagingProduct } from '@shared/models/staging-product.model';
-import { getPublishedProducts } from './published-products';
+import {
+  getPublishedProductById,
+  getPublishedProducts,
+  getStagedProductById,
+  publishedProductsForSlug,
+  toCatalogProduct
+} from './published-products';
 
 const memory = new Map<string, string>();
 const storage: Storage = {
@@ -24,7 +30,11 @@ Object.defineProperty(globalThis, 'localStorage', {
   value: storage
 });
 
-const product = (id: string, code: string): StagingProduct => ({
+const product = (
+  id: string,
+  code: string,
+  overrides: Partial<StagingProduct> = {}
+): StagingProduct => ({
   id,
   code,
   name: code,
@@ -35,7 +45,8 @@ const product = (id: string, code: string): StagingProduct => ({
   stock: 1,
   status: 'published',
   photos: [],
-  importedAt: '2026-08-07T00:00:00.000Z'
+  importedAt: '2026-08-07T00:00:00.000Z',
+  ...overrides
 });
 
 function writeCache(products: StagingProduct[], expiresAt: string, revision: string): void {
@@ -95,6 +106,91 @@ describe('published storefront catalog authority', () => {
     expect(getPublishedProducts().map(item => item.code)).toEqual(['TTL']);
 
     now.mockReturnValue(Date.parse('2026-08-07T00:00:31.000Z'));
+    expect(getPublishedProducts()).toEqual([]);
+  });
+
+  it('filters unpublished and zero-stock rows and supports public lookup helpers', () => {
+    vi.spyOn(Date, 'now').mockReturnValue(Date.parse('2026-08-07T00:00:10.000Z'));
+    writeCache(
+      [
+        product('shoe-id', 'SHOE-7', {
+          name: 'MODEL-7 کفش',
+          material: 'ساتن',
+          size: '38',
+          photos: [{ url: '/shoe.webp', fileName: 'shoe.webp', addedAt: 'now' }]
+        }),
+        product('veil-id', 'VEIL', {
+          category: 'تور',
+          categorySlug: 'simple-veil',
+          parentCategorySlug: 'bridal-clothing'
+        }),
+        product('draft-id', 'DRAFT', { status: 'waiting_photo' }),
+        product('zero-id', 'ZERO', { stock: 0 })
+      ],
+      '2026-08-07T00:01:00.000Z',
+      'revision-lookups'
+    );
+
+    expect(getPublishedProducts().map(item => item.code)).toEqual(['SHOE-7', 'VEIL']);
+    expect(getPublishedProductById('shoe-id')?.code).toBe('SHOE-7');
+    expect(getPublishedProductById('shoe-7')?.id).toBe('shoe-id');
+    expect(publishedProductsForSlug('bridal-shoes-bags').map(item => item.code)).toEqual(['SHOE-7']);
+    expect(getStagedProductById('veil-id')?.categorySlug).toBe('european-bridal-veils');
+    expect(getStagedProductById('missing')).toBeUndefined();
+  });
+
+  it('maps catalog presentation fields, variations, legacy slugs and inferred footwear height', () => {
+    const mapped = toCatalogProduct(product('mapped-id', 'MAP', {
+      name: 'MODEL-8 کفش عروس',
+      categorySlug: 'bridal-shoes',
+      material: 'چرم',
+      description: 'توضیح',
+      additionalDescription: 'توضیح بیشتر',
+      isNewImport: true,
+      photos: [
+        { url: '/primary.webp', fileName: 'primary.webp', addedAt: 'now' },
+        { url: '/gallery.webp', fileName: 'gallery.webp', addedAt: 'now' }
+      ],
+      variations: [{
+        id: 'variation-id',
+        sku: 'SKU',
+        barcode: 'BAR',
+        size: '39',
+        color: 'سفید',
+        material: 'چرم',
+        price: 100,
+        stock: 2,
+        available: true
+      }]
+    }));
+
+    expect(mapped).toMatchObject({
+      image: '/primary.webp',
+      heelHeight: '8 سانتی‌متر',
+      material: 'چرم',
+      description: 'توضیح',
+      additionalDescription: 'توضیح بیشتر',
+      tag: 'محصول جدید وارد شده'
+    });
+    expect(mapped.gallery).toEqual(['/primary.webp', '/gallery.webp']);
+    expect(mapped.variations?.[0]).toMatchObject({ sku: 'SKU', stock: 2 });
+
+    const legacy = toCatalogProduct(product('legacy-id', 'LEGACY', {
+      categorySlug: 'short-veil',
+      parentCategorySlug: ''
+    }));
+    expect(legacy.categorySlug).toBe('european-bridal-veils');
+  });
+
+  it('rejects legacy raw arrays and malformed cache envelopes as public authority', () => {
+    vi.spyOn(Date, 'now').mockReturnValue(Date.parse('2026-08-07T00:00:10.000Z'));
+    localStorage.setItem(
+      environment.storageKeys.publishedProducts,
+      JSON.stringify([product('legacy-array', 'LEGACY-ARRAY')])
+    );
+    expect(getPublishedProducts()).toEqual([]);
+
+    localStorage.setItem(environment.storageKeys.publishedProducts, '{bad-json');
     expect(getPublishedProducts()).toEqual([]);
   });
 });
