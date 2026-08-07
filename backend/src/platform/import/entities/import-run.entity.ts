@@ -28,7 +28,7 @@ export class ImportRunEntity {
   id: string;
 
   /** Full-file SHA-256. Mapping/options are deliberately not part of this value. */
-  @Index()
+  @Index('IDX_platform_import_runs_file_checksum')
   @Column({ type: 'varchar', length: 64, default: '' })
   fileChecksum: string;
 
