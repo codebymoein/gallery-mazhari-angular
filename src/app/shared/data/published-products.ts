@@ -51,6 +51,7 @@ function currentCategorySlug(slug: string | undefined): string {
 }
 
 let cacheRaw: string | null = null;
+let cacheExpiresAt = 0;
 let cacheProducts: PublishedCatalogProduct[] = [];
 
 /**
@@ -60,11 +61,13 @@ let cacheProducts: PublishedCatalogProduct[] = [];
 export function getPublishedProducts(): PublishedCatalogProduct[] {
   try {
     const raw = localStorage.getItem(environment.storageKeys.publishedProducts);
-    if (raw === cacheRaw) return cacheProducts;
+    if (raw === cacheRaw && Date.now() < cacheExpiresAt) return cacheProducts;
 
     const cache = parseCache(raw);
-    if (!cache || isExpired(cache)) {
+    const expiry = cache ? Date.parse(cache.expiresAt) : Number.NaN;
+    if (!cache || !Number.isFinite(expiry) || expiry <= Date.now()) {
       cacheRaw = raw;
+      cacheExpiresAt = 0;
       cacheProducts = [];
       return cacheProducts;
     }
@@ -74,6 +77,7 @@ export function getPublishedProducts(): PublishedCatalogProduct[] {
       .flatMap(expandStagingVariations)
       .map(toCatalogProduct);
     cacheRaw = raw;
+    cacheExpiresAt = expiry;
     return cacheProducts;
   } catch {
     return [];
