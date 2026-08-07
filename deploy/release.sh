@@ -11,13 +11,17 @@ checksum_file="$2"
 app_root="${APP_ROOT:-/srv/gallery-mazhari}"
 env_file="${BACKEND_ENV_FILE:-/etc/gallery-mazhari/backend.env}"
 service_name="${BACKEND_SERVICE_NAME:-gallery-mazhari-backend.service}"
+lock_file="${DEPLOY_LOCK_FILE:-/var/lock/gallery-mazhari-deploy.lock}"
 
-for command in sha256sum tar node npm systemctl; do
+for command in sha256sum tar node systemctl flock readlink; do
   command -v "$command" >/dev/null 2>&1 || {
     echo "required command missing: $command" >&2
     exit 69
   }
 done
+
+exec 9>"$lock_file"
+flock -n 9 || { echo "another deployment is already running" >&2; exit 75; }
 
 [ -f "$artifact" ] || { echo "release artifact not found" >&2; exit 66; }
 [ -f "$checksum_file" ] || { echo "checksum file not found" >&2; exit 66; }
@@ -71,9 +75,23 @@ set +a
   node ./node_modules/typeorm/cli.js migration:run -d dist/database/data-source.js
 )
 
+previous_target=""
+if [ -L "$current_link" ]; then
+  previous_target="$(readlink -f "$current_link")"
+fi
+
 ln -sfn "$release_dir" "${current_link}.next"
 mv -Tf "${current_link}.next" "$current_link"
-systemctl restart "$service_name"
+
+if ! systemctl restart "$service_name"; then
+  echo "backend restart failed; restoring previous release symlink" >&2
+  if [ -n "$previous_target" ]; then
+    ln -sfn "$previous_target" "${current_link}.rollback"
+    mv -Tf "${current_link}.rollback" "$current_link"
+    systemctl restart "$service_name" || true
+  fi
+  exit 70
+fi
 
 printf '%s\n' "$revision" > "${app_root}/LAST_DEPLOYED_REVISION"
 echo "release activated: $revision"
