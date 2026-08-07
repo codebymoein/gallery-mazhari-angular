@@ -5,7 +5,7 @@ import {
 } from './secure-image-processing';
 
 describe('secure image processing', () => {
-  it('decodes, strips metadata and returns sanitized image metadata', async () => {
+  it('decodes, strips metadata and returns post-orientation dimensions', async () => {
     const input = await sharp({
       create: {
         width: 64,
@@ -23,8 +23,10 @@ describe('secure image processing', () => {
 
     expect(sanitized.extension).toBe('jpg');
     expect(sanitized.contentType).toBe('image/jpeg');
-    expect(sanitized.width).toBe(64);
-    expect(sanitized.height).toBe(48);
+    expect(sanitized.width).toBe(48);
+    expect(sanitized.height).toBe(64);
+    expect(outputMetadata.width).toBe(48);
+    expect(outputMetadata.height).toBe(64);
     expect(sanitized.contentHash).toMatch(/^[a-f0-9]{64}$/);
     expect(outputMetadata.exif).toBeUndefined();
     expect(outputMetadata.xmp).toBeUndefined();
