@@ -14,8 +14,10 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
+import { Permissions } from '../auth/decorators/permissions.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { PermissionsGuard } from '../auth/guards/permissions.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { UserRole } from '../users/entities/user.entity';
 import { AuditService } from './audit/audit.service';
@@ -41,11 +43,14 @@ type MulterFile = {
 interface RequestLike {
   protocol: string;
   get(header: string): string | undefined;
-  user?: { email?: string; sub?: string };
+  user?: { userId: string; email: string };
 }
 
+const actorFrom = (req: RequestLike): string =>
+  req.user?.email || req.user?.userId || 'authenticated-user';
+
 @Controller('platform')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
 @Roles(UserRole.ADMIN, UserRole.STAFF)
 export class PlatformController {
   constructor(
@@ -60,6 +65,7 @@ export class PlatformController {
 
   // —— Import ——
   @Post('import/dry-run')
+  @Permissions('inventory.import.manage')
   @Throttle({ default: { limit: 5, ttl: 60_000 } })
   @UseInterceptors(
     FileInterceptor('file', {
@@ -84,7 +90,7 @@ export class PlatformController {
     let mapping: ColumnMapping | undefined;
     if (body.mappingJson) {
       try {
-        mapping = JSON.parse(body.mappingJson);
+        mapping = JSON.parse(body.mappingJson) as ColumnMapping;
       } catch {
         throw new BadRequestException('invalid_mapping_json');
       }
@@ -96,11 +102,12 @@ export class PlatformController {
       confirmUncertainMapping: body.confirmUncertainMapping === 'true',
       sourceTimestamp: body.sourceTimestamp || null,
       preserveInventory: body.preserveInventory === 'true',
-      actor: req.user?.email || null,
+      actor: actorFrom(req),
     });
   }
 
   @Post('import/:id/confirm')
+  @Permissions('inventory.import.manage')
   confirm(
     @Param('id') id: string,
     @Body()
@@ -114,12 +121,13 @@ export class PlatformController {
   ) {
     return this.imports.confirmImport({
       importId: id,
-      actor: req.user?.email || null,
+      actor: actorFrom(req),
       inventoryStrategy: body.inventoryStrategy,
     });
   }
 
   @Post('import/:id/rollback')
+  @Permissions('inventory.restore.manage')
   rollback(
     @Param('id') id: string,
     @Body() body: { productCodes?: string[] },
@@ -127,7 +135,7 @@ export class PlatformController {
   ) {
     return this.imports.rollback({
       importId: id,
-      actor: req.user?.email || null,
+      actor: actorFrom(req),
       productCodes: body.productCodes,
     });
   }
@@ -148,6 +156,7 @@ export class PlatformController {
   }
 
   @Post('import/templates')
+  @Permissions('inventory.import.manage')
   saveTemplate(
     @Body()
     body: {
@@ -159,12 +168,13 @@ export class PlatformController {
   ) {
     return this.imports.saveMappingTemplate({
       ...body,
-      actor: req.user?.email || null,
+      actor: actorFrom(req),
     });
   }
 
   // —— Media ——
   @Post('media/upload')
+  @Permissions('media.manage')
   @Throttle({ default: { limit: 5, ttl: 60_000 } })
   @UseInterceptors(
     FilesInterceptor('files', 200, {
@@ -180,17 +190,18 @@ export class PlatformController {
     if (!files?.length) throw new BadRequestException('files_required');
     const baseUrl = `${req.protocol}://${req.get('host')}`;
     return this.media.ingestFiles({
-      files: files.map((f) => ({
-        originalName: f.originalname,
-        buffer: f.buffer,
+      files: files.map((file) => ({
+        originalName: file.originalname,
+        buffer: file.buffer,
       })),
       uploadsBaseUrl: baseUrl,
-      actor: req.user?.email || null,
+      actor: actorFrom(req),
       confirmPrimarySuggestions: body.confirmPrimarySuggestions === 'true',
     });
   }
 
   @Post('media/upload-zip')
+  @Permissions('media.manage')
   @Throttle({ default: { limit: 2, ttl: 60_000 } })
   @UseInterceptors(
     FileInterceptor('file', {
@@ -212,11 +223,13 @@ export class PlatformController {
     return this.media.ingestZip({
       buffer: file.buffer,
       uploadsBaseUrl: baseUrl,
-      actor: req.user?.email || null,
+      actor: actorFrom(req),
       confirmPrimarySuggestions: body.confirmPrimarySuggestions === 'true',
       confirmedPublishedCodes: (() => {
         try {
-          const parsed = JSON.parse(body.confirmedPublishedCodes || '[]');
+          const parsed: unknown = JSON.parse(
+            body.confirmedPublishedCodes || '[]',
+          );
           return Array.isArray(parsed) ? parsed.map(String) : [];
         } catch {
           return [];
@@ -226,6 +239,7 @@ export class PlatformController {
   }
 
   @Post('media/inspect-zip')
+  @Permissions('media.manage')
   @Throttle({ default: { limit: 2, ttl: 60_000 } })
   @UseInterceptors(
     FileInterceptor('file', {
@@ -249,8 +263,9 @@ export class PlatformController {
   }
 
   @Post('media/reattach-orphans')
+  @Permissions('media.manage')
   reattach(@Req() req: RequestLike) {
-    return this.media.reattachOrphans(req.user?.email || null);
+    return this.media.reattachOrphans(actorFrom(req));
   }
 
   @Get('media/report')
@@ -269,8 +284,9 @@ export class PlatformController {
   }
 
   @Post('collections/auto-generate')
+  @Permissions('merchandising.manage')
   autoCollections(@Req() req: RequestLike) {
-    return this.merch.autoGenerateCollections(req.user?.email || null);
+    return this.merch.autoGenerateCollections(actorFrom(req));
   }
 
   @Get('widgets')
@@ -290,11 +306,13 @@ export class PlatformController {
   }
 
   @Post('jobs/:id/cancel')
+  @Permissions('operations.jobs.manage')
   jobCancel(@Param('id') id: string) {
     return this.jobs.cancel(id);
   }
 
   @Get('audit')
+  @Permissions('audit.read')
   auditList(@Query('limit') limit?: string) {
     return this.audit.list(limit ? Number(limit) : 100);
   }
@@ -306,6 +324,7 @@ export class PlatformController {
   }
 
   @Post('workflow/approve')
+  @Permissions('publishing.queue.manage')
   approve(
     @Body()
     body: { productIds: string[]; publish?: boolean; scheduleAt?: string },
@@ -315,11 +334,12 @@ export class PlatformController {
       productIds: body.productIds || [],
       publish: !!body.publish,
       scheduleAt: body.scheduleAt,
-      actor: req.user?.email || null,
+      actor: actorFrom(req),
     });
   }
 
   @Post('workflow/reject')
+  @Permissions('publishing.queue.manage')
   reject(
     @Body() body: { productIds: string[]; reason: string },
     @Req() req: RequestLike,
@@ -327,7 +347,7 @@ export class PlatformController {
     return this.workflow.rejectMany({
       productIds: body.productIds || [],
       reason: body.reason || 'rejected',
-      actor: req.user?.email || null,
+      actor: actorFrom(req),
     });
   }
 
@@ -343,8 +363,9 @@ export class PlatformController {
   }
 
   @Post('rules')
+  @Permissions('merchandising.manage')
   saveRule(@Body() body: Record<string, unknown>, @Req() req: RequestLike) {
-    return this.merch.saveRule(body as never, req.user?.email || null);
+    return this.merch.saveRule(body as never, actorFrom(req));
   }
 
   @Get('rules/simulate/:productCode')
@@ -376,6 +397,7 @@ export class PlatformController {
   }
 
   @Post('taxonomy')
+  @Permissions('taxonomy.manage')
   upsertTaxonomy(
     @Body() body: Record<string, unknown>,
     @Req() req: RequestLike,
@@ -388,16 +410,17 @@ export class PlatformController {
       parentTagId: (body['parentTagId'] as string | null | undefined) ?? null,
       enabled: body['enabled'] as boolean | undefined,
       publicDisplay: body['publicDisplay'] as boolean | undefined,
-      actor: req.user?.email || null,
+      actor: actorFrom(req),
     });
   }
 
   @Post('taxonomy/merge')
+  @Permissions('taxonomy.manage')
   mergeTags(
     @Body() body: { from: string; to: string },
     @Req() req: RequestLike,
   ) {
-    return this.merch.mergeTags(body.from, body.to, req.user?.email || null);
+    return this.merch.mergeTags(body.from, body.to, actorFrom(req));
   }
 
   @Get('tags/pending')
@@ -406,8 +429,9 @@ export class PlatformController {
   }
 
   @Post('tags/:id/approve')
+  @Permissions('taxonomy.manage')
   approveTag(@Param('id') id: string, @Req() req: RequestLike) {
-    return this.merch.approveTag(id, req.user?.email || null);
+    return this.merch.approveTag(id, actorFrom(req));
   }
 
   @Get('looks')
@@ -416,9 +440,10 @@ export class PlatformController {
   }
 
   @Post('looks')
+  @Permissions('merchandising.manage')
   saveLook(@Body() body: Record<string, unknown>, @Req() req: RequestLike) {
     const baseUrl = getPublicBackendUrl(this.config);
-    return this.merch.saveLook(body as never, req.user?.email || null, baseUrl);
+    return this.merch.saveLook(body as never, actorFrom(req), baseUrl);
   }
 
   @Get('attributes')
@@ -427,6 +452,7 @@ export class PlatformController {
   }
 
   @Post('attributes')
+  @Permissions('taxonomy.manage')
   upsertAttribute(@Body() body: Record<string, unknown>) {
     return this.merch.upsertAttribute(body as never);
   }
