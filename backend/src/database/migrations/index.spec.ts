@@ -10,6 +10,7 @@ describe('ALL_MIGRATIONS', () => {
       'CreateCustomRequests1785800000000',
       'AddCustomRequestContactDetails1785900000000',
       'CreateAuthSessions1786000000000',
+      'AddImportBatchReplayProtection1786100000000',
     ]);
   });
 

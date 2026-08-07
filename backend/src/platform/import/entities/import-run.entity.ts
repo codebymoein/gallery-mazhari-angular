@@ -17,11 +17,22 @@ export type ImportRunStatus =
   | 'rolled_back'
   | 'partial';
 
+/**
+ * Canonical import batch record. The historical table/class name is retained
+ * for API and migration compatibility, but each row represents one immutable
+ * Excel preview/confirm batch identified by its fingerprint.
+ */
 @Entity({ name: 'platform_import_runs' })
 export class ImportRunEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  /** Full-file SHA-256. Mapping/options are deliberately not part of this value. */
+  @Index('IDX_platform_import_runs_file_checksum')
+  @Column({ type: 'varchar', length: 64, default: '' })
+  fileChecksum: string;
+
+  /** Idempotency key for file + mapping/options preview semantics. */
   @Index({ unique: true })
   @Column({ length: 64 })
   fingerprint: string;
@@ -41,6 +52,7 @@ export class ImportRunEntity {
   @Column({ type: 'float', default: 0 })
   mappingConfidence: number;
 
+  /** Immutable preview evidence used by confirm. */
   @Column({ type: 'simple-json', nullable: true })
   report: Record<string, unknown> | null;
 
@@ -54,6 +66,9 @@ export class ImportRunEntity {
   @Column({ type: 'varchar', length: 120, nullable: true })
   confirmedBy: string | null;
 
+  @Column({ nullable: true })
+  confirmedAt?: Date;
+
   @Column({ type: 'varchar', length: 40, nullable: true })
   sourceTimestamp: string | null;
 
@@ -66,6 +81,9 @@ export class ImportRunEntity {
   @UpdateDateColumn()
   updatedAt: Date;
 }
+
+/** Canonical Wave-1 terminology without rewriting the deployed table name. */
+export { ImportRunEntity as ImportBatchEntity };
 
 @Entity({ name: 'platform_mapping_templates' })
 export class MappingTemplateEntity {
