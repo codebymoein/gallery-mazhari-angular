@@ -3,70 +3,41 @@
 Use this document when handing Gallery Mazhari Angular to a new ChatGPT chat, Codex session, Claude/Cursor agent, IDE agent, or other automation.
 
 ## Principle
+Do not make a new agent trust copied status, remembered SHAs, or a previous agent's claims. Point it to the repository and let the repository governance drive the rest. The root [`../../AGENTS.md`](../../AGENTS.md) is the mandatory entry point and contains the Fast Preflight Protocol.
 
-Do not make the new agent trust copied status, remembered SHAs, or a previous agent's claims. Point it to the repository and require it to independently verify current GitHub state and read the repository governance before any mutation.
-
-The root [`../../AGENTS.md`](../../AGENTS.md) is the mandatory entry point. This bootstrap does not replace it.
-
-## Minimal bootstrap prompt
+## Preferred minimal bootstrap prompt
 
 ```text
-Work only in the authoritative repository:
-codebymoein/gallery-mazhari-angular
-
-Before any edit/write/commit/merge/deploy action, independently inspect GitHub and complete the repository's mandatory governance preflight.
-
-Read in this order:
-1. AGENTS.md — completely
-2. CONSTITUTION.md — completely
-3. docs/PROJECT_MEMORY.md
-4. docs/handbook/README.md
-5. every Handbook chapter required by AGENTS.md for this task
-6. docs/remediation/MASTER_REMEDIATION_ROADMAP.md — completely for remediation/audit work
-7. docs/governance/AGENT_TASK_MANIFEST.md
-8. actual implementation/tests/docs relevant to the current task
-
-Do not trust a copied SHA or project-status statement. Fetch current main SHA and relevant open/merged PR state yourself.
-
-Before the first material write, report:
-- verified repository and current main SHA
-- governance documents actually read
-- current Wave / RM / recommended PR slice and finding IDs
-- dependencies
-- exact in-scope and explicit non-scope
-- expected changed files/write surfaces
-- business workflows/source-of-truth impact
-- risks and migration/data/deployment impact
-- tests and required CI gates
-- rollback/roll-forward plan
-- proposed branch
-
-Until that report is complete, do not modify project state.
-
-Never create another repository. Never write directly to main. Never broaden scope to adjacent findings. Preserve the intentional Gallery Mazhari business workflows and obey Constitution/AGENTS/Roadmap/Handbook even when a simpler implementation would be easier.
-
-After the preflight, perform only the task I give you below:
-<PUT THE CURRENT TASK HERE>
+Repo: codebymoein/gallery-mazhari-angular — execute AGENTS.md Fast Preflight, independently verify current GitHub state, and perform only this task: <TASK>. Give the mandatory compact pre-write report before any write.
 ```
 
-## Recommended handoff style
-
-The human owner normally only needs to replace the final placeholder with a concise task such as:
+For remediation continuation, this is enough:
 
 ```text
-Continue PR-009 according to the Master Remediation Roadmap and stop when that PR's Definition of Done is satisfied.
+Repo: codebymoein/gallery-mazhari-angular — execute AGENTS.md Fast Preflight and continue from the first unfinished action in the real current Master Remediation Roadmap state. Verify GitHub independently and give the compact pre-write report before any write.
 ```
 
-or:
+The prompt intentionally does **not** repeat Constitution, business workflows, architecture rules, Roadmap details, SHA, PR status, or Handbook chapter lists. Those belong in the repository and must be loaded according to `AGENTS.md` rather than copied into every chat.
 
-```text
-Continue Wave 1 from the first unfinished Roadmap PR. Verify current GitHub state first; do not trust the status copied into this prompt.
-```
+## Expected compliant startup
+A compliant agent should:
+1. verify repository identity, current `main` SHA, and relevant PR/branch state;
+2. read `AGENTS.md` and the Tier 1 sources;
+3. select Handbook chapters using the task-risk matrix instead of loading the entire Handbook;
+4. for remediation, read Roadmap hard gates + exact RM/PR slice + Definition of Done rather than unrelated RM sections;
+5. inspect affected code/tests/docs;
+6. return the compact pre-write report;
+7. make no material write until human authorization is established.
 
-## What a compliant agent should do next
+## Compact pre-write shape
+The preferred response is a compact table or equivalent block:
 
-A compliant agent should first read and report, not immediately code. Its first substantive response should identify the real current `main` SHA, current Roadmap scope, relevant findings and dependencies, expected write surfaces, tests and rollback. If it starts editing before doing that, stop the session and redirect it to `AGENTS.md`.
+`repo/main SHA | Wave/RM/PR/findings | scope | non-scope | write surfaces | workflow/source-of-truth impact | data/security/deploy risk | tests/gates | recovery | branch`
+
+It must also name the governance and selected Handbook documents actually read. It should not reproduce those documents.
+
+## When to expand reading
+Fast Preflight is risk-based, not shallow. Expand beyond the minimum when the task touches another architecture, workflow, security, database, media, deployment, design, SEO/performance/accessibility, or operational boundary; when a selected document links another source as mandatory; or when sources conflict or are ambiguous.
 
 ## Enforcement limits
-
-Repository documentation cannot technically force every arbitrary external chat product to read files it cannot access. Enforcement is strongest when the agent has repository access and honors repository instruction files such as `AGENTS.md`. GitHub branch protection, required CI checks, PR contracts and human merge control remain the machine/process enforcement layer when an agent ignores prose instructions.
+Repository documentation cannot technically force an arbitrary external chat product to read files it cannot access. Enforcement is strongest when the agent has repository access and honors `AGENTS.md`. GitHub branch protection, required CI checks, PR contracts and human merge control remain the machine/process enforcement layer when an agent ignores prose instructions.

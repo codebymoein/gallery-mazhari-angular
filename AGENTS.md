@@ -12,40 +12,57 @@ Normative precedence for agent work:
 2. [`CONSTITUTION.md`](CONSTITUTION.md)
 3. This `AGENTS.md` entry contract
 4. [`docs/remediation/MASTER_REMEDIATION_ROADMAP.md`](docs/remediation/MASTER_REMEDIATION_ROADMAP.md) for remediation sequencing/scope
-5. [`docs/handbook/README.md`](docs/handbook/README.md) and mandatory/task-specific Handbook chapters
+5. [`docs/handbook/README.md`](docs/handbook/README.md) and task-relevant Handbook chapters
 6. Task manifest and specialized project documentation
 7. Implementation comments/convenience
 
 A lower-precedence source may add detail but may not silently weaken a higher-precedence rule.
 
-## Mandatory preflight — MUST complete before any write
+## Fast Preflight Protocol — MUST complete before any write
+The purpose of Fast Preflight is to preserve governance while avoiding unnecessary context loading. **Fast does not mean optional.** Read the smallest authoritative set that is sufficient for the actual task, and expand only when the task crosses additional risk boundaries.
+
+### Tier 1 — always required
 1. Confirm the repository is exactly `codebymoein/gallery-mazhari-angular`.
-2. Fetch current `main`, record its exact SHA, inspect open PRs/branches relevant to the task, and confirm the proposed working branch is based on the approved `main` lineage.
+2. Fetch current `main`, record its exact SHA, inspect relevant open/merged PRs and branches, and verify the intended working branch lineage.
 3. Read this `AGENTS.md` completely.
 4. Read [`CONSTITUTION.md`](CONSTITUTION.md) completely.
-5. Read [`docs/PROJECT_MEMORY.md`](docs/PROJECT_MEMORY.md).
-6. Read [`docs/handbook/README.md`](docs/handbook/README.md).
-7. Read at minimum Handbook chapters: engineering principles, system architecture, development rules, business workflows, testing/quality, Git/PR/releases, and AI-agent rules.
-8. Read task-specific chapters: Angular for `src/`; NestJS/database for `backend/`; security for auth/input/files; media for uploads/images; deployment/operations/observability/backup for runtime changes; design system and SEO/performance/accessibility for UI/public experience.
-9. For any remediation/audit task, read [`docs/remediation/MASTER_REMEDIATION_ROADMAP.md`](docs/remediation/MASTER_REMEDIATION_ROADMAP.md) and identify the exact current Wave, RM, recommended PR slice, dependencies, finding IDs, deliverables, exit criteria, and explicit non-goals.
-10. Read [`docs/governance/AGENT_TASK_MANIFEST.md`](docs/governance/AGENT_TASK_MANIFEST.md) and prepare the task manifest with exact base SHA, scope/non-scope, allowed write surfaces, verification plan, and rollback/recovery.
-11. Follow [`docs/governance/BRANCH-COMMIT-CONVENTIONS.md`](docs/governance/BRANCH-COMMIT-CONVENTIONS.md).
-12. Inspect the actual affected implementation and existing tests/docs before proposing edits.
+5. Read the current-state/task-relevant portion of [`docs/PROJECT_MEMORY.md`](docs/PROJECT_MEMORY.md); read more only when needed to resolve history or constraints.
+6. Read [`docs/handbook/README.md`](docs/handbook/README.md) to select only the chapters required by the task-risk matrix below.
+7. Read [`docs/governance/AGENT_TASK_MANIFEST.md`](docs/governance/AGENT_TASK_MANIFEST.md) and prepare exact base SHA, scope/non-scope, write surfaces, verification, and recovery.
+8. Follow [`docs/governance/BRANCH-COMMIT-CONVENTIONS.md`](docs/governance/BRANCH-COMMIT-CONVENTIONS.md).
+9. Inspect the actual affected implementation and existing tests/docs before proposing edits.
 
-## Mandatory pre-write report
-Before the **first material write** of a task, the agent MUST report to the human owner:
-- repository and current `main` SHA;
-- governance documents actually read;
-- current Wave / RM / PR slice and linked finding IDs;
-- exact scope and explicit non-scope;
-- expected changed files/write surfaces;
-- business workflows and sources of truth affected;
-- risks, migrations/data/deployment impact;
-- tests/quality gates to run;
-- rollback/roll-forward approach;
-- proposed branch name.
+### Tier 2 — remediation/audit work
+For remediation/audit tasks, read from [`docs/remediation/MASTER_REMEDIATION_ROADMAP.md`](docs/remediation/MASTER_REMEDIATION_ROADMAP.md):
+- the execution waves / hard gates;
+- the exact current RM section;
+- the exact recommended PR slice and its dependencies;
+- linked finding IDs, deliverables and exit criteria;
+- the Roadmap Definition of Done and risk-disposition rules.
 
-If the human owner explicitly says to continue an already-approved task in the same verified state, the agent may continue without asking a redundant question, but it must still have performed and recorded the preflight. A new chat/session/agent must independently re-verify repository state rather than trusting copied SHAs or status text.
+Do **not** consume the entire Roadmap line-by-line when unrelated RM sections are not needed. Expand to adjacent sections only when a declared dependency or ambiguity requires it. Raw findings do not grant additional scope.
+
+### Tier 3 — Handbook task-risk matrix
+Read only the chapters whose risk boundary applies, plus any chapter explicitly linked by the selected chapter:
+- **All material code changes:** `03-development-rules.md`, `10-testing-quality.md`, `11-git-pr-releases.md`, `12-ai-agent-rules.md`.
+- **Architecture/source-of-truth/workflow semantics:** also `01-engineering-principles.md`, `02-system-architecture.md`, `07-business-workflows.md`.
+- **Angular/UI/client state:** also `04-frontend-angular.md`; add `08-design-system.md` and/or `17-seo-performance-accessibility.md` only when UI/design/public-experience behavior is touched.
+- **NestJS/API/business logic:** also `05-backend-nestjs.md`; add `09-security.md` for auth/permissions/input/security-sensitive changes.
+- **Database/schema/migrations/import persistence:** also `06-database-postgresql.md` and `07-business-workflows.md`.
+- **Uploads/images/media:** also `09-security.md` and `13-media-storage.md`.
+- **Deployment/runtime/operations:** also `14-deployment-operations.md`, `15-observability.md`, and/or `16-backup-disaster-recovery.md` according to impact.
+- **Documentation/governance-only:** `11-git-pr-releases.md`, `12-ai-agent-rules.md`, `18-documentation-governance.md`; architecture/workflow chapters are required only if their rules are being changed.
+
+If uncertain whether a boundary applies, read the chapter. Token efficiency never overrides safety, data integrity, security, or business-workflow preservation.
+
+## Mandatory compact pre-write report
+Before the **first material write** of a task, report one compact table or equivalent block containing:
+
+`repo/main SHA | current Wave/RM/PR/findings | scope | non-scope | write surfaces | workflows/source-of-truth impact | data/security/deploy risk | tests/gates | recovery | branch`
+
+Also name the governance/Handbook documents actually read. Do not restate their full contents. If a required document is unavailable or contradictory, stop and report the blocker.
+
+A new chat/session/agent must independently re-verify repository state rather than trusting copied SHAs or status text. If the human owner explicitly says to continue an already-approved task in the same verified session/state, do not ask a redundant confirmation, but still re-check any state that may have changed before writing.
 
 ## Hard rules
 - Never create a replacement repository. Never push directly to `main`. Never modify historical merged PRs.
