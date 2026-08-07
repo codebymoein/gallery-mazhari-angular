@@ -1,4 +1,6 @@
 import { Injectable } from '@nestjs/common';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { DataSource } from 'typeorm';
 
 @Injectable()
@@ -28,9 +30,15 @@ export class ObservabilityService {
   }
 
   version() {
+    const releaseRoot = join(process.cwd(), '..');
+    const revision = this.readText(join(releaseRoot, 'REVISION'));
+    const build = this.readJson(join(releaseRoot, 'BUILD.json'));
     return {
-      revision: process.env.APP_REVISION ?? 'unknown',
-      buildId: process.env.BUILD_ID ?? 'unknown',
+      revision: revision ?? process.env.APP_REVISION ?? 'unknown',
+      buildId:
+        typeof build?.workflow_run === 'string'
+          ? build.workflow_run
+          : process.env.BUILD_ID ?? 'unknown',
       environment: process.env.NODE_ENV ?? 'development',
     };
   }
@@ -50,5 +58,21 @@ export class ObservabilityService {
       `gallery_process_heap_used_bytes ${memory.heapUsed}`,
       '',
     ].join('\n');
+  }
+
+  private readText(path: string): string | null {
+    try {
+      return readFileSync(path, 'utf8').trim() || null;
+    } catch {
+      return null;
+    }
+  }
+
+  private readJson(path: string): Record<string, unknown> | null {
+    try {
+      return JSON.parse(readFileSync(path, 'utf8')) as Record<string, unknown>;
+    } catch {
+      return null;
+    }
   }
 }
