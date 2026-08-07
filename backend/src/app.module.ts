@@ -16,6 +16,7 @@ import { ALL_ENTITIES } from './database/entities';
 import { DiscountsModule } from './discounts/discounts.module';
 import { GalleryModule } from './gallery/gallery.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { ObservabilityModule } from './observability/observability.module';
 import { OrdersModule } from './orders/orders.module';
 import { PaymentsModule } from './payments/payments.module';
 import { PlatformModule } from './platform/platform.module';
@@ -76,6 +77,7 @@ export { ALL_ENTITIES } from './database/entities';
     ConsultationsModule,
     CustomRequestsModule,
     PlatformModule,
+    ObservabilityModule,
   ],
   controllers: [AppController],
   providers: [
