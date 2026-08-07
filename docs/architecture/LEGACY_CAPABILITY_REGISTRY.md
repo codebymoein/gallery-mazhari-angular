@@ -19,7 +19,22 @@ Status: **RM-09 active registry**. This document records legacy or compatibility
 3. Protected business workflows are never simplified as cleanup.
 4. WordPress/local compatibility must be isolated behind an explicit boundary with an owner and expiry, or removed when proven unused.
 5. Each phased deletion PR must keep regression evidence and a rollback plan.
+6. Static-analysis output is admissible deletion evidence only when the tool completed successfully enough to produce a structurally valid report over a non-zero project graph.
 
 ## PR-018 scope decision
 
 PR-018 / GitHub PR #38 is intentionally the first narrow deletion slice: remove the dormant direct WordPress product API path and its dormant NgRx effect registration. It does **not** remove product store reducers/selectors, static catalog presentation helpers, documentation archives, assets, dependencies, or any protected workflow. Those require independent usage proof in later RM-09 slices.
+
+## PR-019 evidence correction
+
+The PR-018 static-analysis artifact exposed an evidence-quality defect: the pinned Knip command crashed before analysis and dependency-cruiser reported zero analyzed modules. Those outputs are not valid evidence for deletion even though the non-blocking `Static debt reports` job completed successfully.
+
+PR-019 therefore adds a dedicated RM-09 evidence workflow that:
+
+- runs dependency-cruiser with an explicit TypeScript package available in the same execution environment;
+- rejects a dependency graph containing zero modules;
+- runs the current pinned Knip 6.x analyzer with machine-readable JSON output and validates the report structure;
+- records jscpd duplication evidence separately;
+- uploads all reports even when findings remain, so debt is visible without treating tool failure as a clean codebase.
+
+No additional legacy code is deleted in PR-019. The next deletion slice must use successful PR-019 reports plus import/consumer/runtime-history checks before removing anything.
