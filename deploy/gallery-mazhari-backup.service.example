@@ -1,5 +1,5 @@
 [Unit]
-Description=Gallery Mazhari encrypted PostgreSQL backup
+Description=Gallery Mazhari encrypted PostgreSQL and media backup
 After=network-online.target
 Wants=network-online.target
 
@@ -10,6 +10,7 @@ Group=gallerymazhari
 EnvironmentFile=/etc/gallery-mazhari/backend.env
 EnvironmentFile=/etc/gallery-mazhari/backup.env
 ExecStart=/srv/gallery-mazhari/current/deploy/backup-postgres.sh
+ExecStart=/srv/gallery-mazhari/current/deploy/backup-media.sh
 Nice=10
 IOSchedulingClass=best-effort
 IOSchedulingPriority=7
