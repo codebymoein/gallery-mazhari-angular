@@ -49,13 +49,16 @@ describe('DiscountsService bulk inventory command', () => {
     };
     const manager = {
       connection: { options: { type: 'postgres' } },
-      getRepository: jest.fn((entity) =>
+      getRepository: jest.fn((entity: unknown) =>
         entity === ProductEntity ? productRepo : ruleRepo,
       ),
     };
     const rootRules = {
       manager: {
-        transaction: jest.fn(async (callback) => callback(manager)),
+        transaction: jest.fn(
+          async (callback: (value: typeof manager) => Promise<unknown>) =>
+            callback(manager),
+        ),
       },
     };
     const service = new DiscountsService(rootRules as never, {} as never);
@@ -92,13 +95,16 @@ describe('DiscountsService bulk inventory command', () => {
     };
     const manager = {
       connection: { options: { type: 'postgres' } },
-      getRepository: jest.fn((entity) =>
+      getRepository: jest.fn((entity: unknown) =>
         entity === ProductEntity ? productRepo : ruleRepo,
       ),
     };
     const rootRules = {
       manager: {
-        transaction: jest.fn(async (callback) => callback(manager)),
+        transaction: jest.fn(
+          async (callback: (value: typeof manager) => Promise<unknown>) =>
+            callback(manager),
+        ),
       },
     };
     const service = new DiscountsService(rootRules as never, {} as never);
