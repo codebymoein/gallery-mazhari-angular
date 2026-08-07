@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ProductEntity } from '../products/entities/product.entity';
 import { AuditService } from './audit/audit.service';
 import { ImportService } from './import/import.service';
+import { ImportTransactionBoundaryService } from './import/import-transaction-boundary.service';
 import { JobsService } from './jobs/jobs.service';
 import { MediaService } from './media/media.service';
 import { MerchandisingService } from './merchandising/merchandising.service';
@@ -22,6 +23,7 @@ export { PLATFORM_ENTITIES } from './platform.entities';
     AuditService,
     JobsService,
     ImportService,
+    ImportTransactionBoundaryService,
     MediaService,
     MerchandisingService,
     WorkflowService,
