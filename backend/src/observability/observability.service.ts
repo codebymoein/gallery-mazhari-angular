@@ -38,7 +38,7 @@ export class ObservabilityService {
       buildId:
         typeof build?.workflow_run === 'string'
           ? build.workflow_run
-          : process.env.BUILD_ID ?? 'unknown',
+          : (process.env.BUILD_ID ?? 'unknown'),
       environment: process.env.NODE_ENV ?? 'development',
     };
   }
