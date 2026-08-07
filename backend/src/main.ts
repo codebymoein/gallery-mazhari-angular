@@ -26,11 +26,13 @@ async function bootstrap() {
 
   app.setGlobalPrefix('api');
   app.use((request: Request, response: Response, next: NextFunction) => {
-    const requestId = request.header('x-request-id')?.slice(0, 128) || randomUUID();
+    const requestId =
+      request.header('x-request-id')?.slice(0, 128) || randomUUID();
     response.setHeader('x-request-id', requestId);
     const startedAt = process.hrtime.bigint();
     response.on('finish', () => {
-      const durationMs = Number(process.hrtime.bigint() - startedAt) / 1_000_000;
+      const durationMs =
+        Number(process.hrtime.bigint() - startedAt) / 1_000_000;
       logger.log({
         event: 'http_request',
         requestId,
@@ -66,4 +68,4 @@ async function bootstrap() {
 
   await app.listen(process.env.PORT ?? 3000);
 }
-bootstrap();
+void bootstrap();
