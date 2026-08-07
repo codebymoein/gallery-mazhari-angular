@@ -38,7 +38,7 @@ describe('MediaService.reconciliationReport', () => {
       ]),
     };
     const storage = {
-      exists: jest.fn(async (key: string) => key !== derivativeKey),
+      exists: jest.fn((key: string) => Promise.resolve(key !== derivativeKey)),
     };
 
     const service = new MediaService(
