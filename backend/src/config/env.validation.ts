@@ -134,6 +134,14 @@ export class EnvironmentVariables {
   MEDIA_PUBLIC_BASE_URL: string;
 
   @IsOptional()
+  @IsEnum(['disabled', 'http'])
+  MEDIA_MALWARE_SCAN_MODE: 'disabled' | 'http';
+
+  @IsOptional()
+  @IsUrl({ require_tld: false })
+  MEDIA_MALWARE_SCAN_URL: string;
+
+  @IsOptional()
   @IsEnum(['development', 'production', 'test'])
   NODE_ENV: 'development' | 'production' | 'test';
 }
@@ -175,6 +183,17 @@ function assertProductionMediaStorage(config: EnvironmentVariables): void {
     if (!config[field] || String(config[field]).trim().length === 0) {
       throw new Error(`Production configuration requires ${field}.`);
     }
+  }
+
+  if (config.MEDIA_MALWARE_SCAN_MODE !== 'http') {
+    throw new Error(
+      'Production configuration requires MEDIA_MALWARE_SCAN_MODE=http.',
+    );
+  }
+  if (!config.MEDIA_MALWARE_SCAN_URL?.trim()) {
+    throw new Error(
+      'Production configuration requires MEDIA_MALWARE_SCAN_URL.',
+    );
   }
 }
 
