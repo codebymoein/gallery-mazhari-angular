@@ -12,7 +12,6 @@ jobs:
   rm09-static-analysis:
     name: RM-09 dependency and dead-code evidence
     runs-on: ubuntu-latest
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -30,15 +29,19 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          npx --yes dependency-cruiser@17.3.1 --info > reports/rm09/dependency-cruiser-info.txt 2>&1
           set +e
-          npx --yes -p typescript@5.9.3 -p dependency-cruiser@17.3.1 depcruise \
+          npx --yes dependency-cruiser@17.3.1 \
             --validate .dependency-cruiser.cjs \
             --output-type json \
-            -- src backend/src > reports/rm09/dependency-cruiser.json 2> reports/rm09/dependency-cruiser.stderr.txt
+            "src/**/*.ts" "backend/src/**/*.ts" \
+            > reports/rm09/dependency-cruiser.json \
+            2> reports/rm09/dependency-cruiser.stderr.txt
           cruise_exit=$?
           set -e
-          python - <<'PY'
+          CRUISE_EXIT="$cruise_exit" python - <<'PY'
           import json
+          import os
           from pathlib import Path
 
           path = Path('reports/rm09/dependency-cruiser.json')
@@ -48,18 +51,26 @@ jobs:
           modules = report.get('modules', [])
           if not modules:
               raise SystemExit('dependency-cruiser evidence is invalid: zero modules analyzed')
-          print(f'dependency-cruiser analyzed {len(modules)} modules')
+          summary = report.get('summary', {})
+          print(
+              'dependency-cruiser evidence: '
+              f'modules={len(modules)}, '
+              f'dependencies={summary.get("totalDependenciesCruised", "unknown")}, '
+              f'ruleErrors={summary.get("error", "unknown")}, '
+              f'cliExit={os.environ.get("CRUISE_EXIT", "unknown")}'
+          )
           PY
-          exit "$cruise_exit"
 
       - name: Knip dead-code evidence
         shell: bash
         run: |
           set -euo pipefail
-          set +e
-          npx --yes knip@6.29.0 --reporter json --no-progress > reports/rm09/knip.json 2> reports/rm09/knip.stderr.txt
-          knip_exit=$?
-          set -e
+          npx --yes knip@6.29.0 \
+            --reporter json \
+            --no-progress \
+            --no-exit-code \
+            > reports/rm09/knip.json \
+            2> reports/rm09/knip.stderr.txt
           python - <<'PY'
           import json
           from pathlib import Path
@@ -73,17 +84,36 @@ jobs:
               raise SystemExit('knip evidence is invalid: missing issues array')
           print(f'knip produced structured evidence for {len(issues)} files with findings')
           PY
-          exit "$knip_exit"
 
       - name: Duplication evidence
         shell: bash
-        continue-on-error: true
         run: |
+          set -euo pipefail
+          set +e
           npx --yes jscpd@4.0.5 src backend/src \
             --reporters json \
             --output reports/rm09/jscpd \
             --ignore "**/node_modules/**,**/dist/**,**/coverage/**" \
             > reports/rm09/jscpd.txt 2>&1
+          jscpd_exit=$?
+          set -e
+          test -s reports/rm09/jscpd/jscpd-report.json
+          JSCPD_EXIT="$jscpd_exit" python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          path = Path('reports/rm09/jscpd/jscpd-report.json')
+          report = json.loads(path.read_text())
+          statistics = report.get('statistics', {})
+          total = statistics.get('total', {}) if isinstance(statistics, dict) else {}
+          print(
+              'jscpd evidence: '
+              f'clones={total.get("clones", "unknown")}, '
+              f'duplicatedLines={total.get("duplicatedLines", "unknown")}, '
+              f'cliExit={os.environ.get("JSCPD_EXIT", "unknown")}'
+          )
+          PY
 
       - uses: actions/upload-artifact@v4
         if: always()
