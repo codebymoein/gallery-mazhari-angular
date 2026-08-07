@@ -22,6 +22,8 @@ Product transition authority lives in `backend/src/products/product-workflow.pol
 ## Stock lifecycle
 Stock is business-critical. Imports and operational changes must preserve latest-known inventory semantics, record deltas/audit evidence, prevent negative/invalid values unless a documented domain rule allows them, and avoid stale-file overwrite. A known product reaching zero stock moves to `awaiting_stock` with its resumable prior state recorded; a later positive inventory import restores that state. Rejected products remain outside routine Excel mutation.
 
+The admin inventory view MUST NOT persist business state to browser storage or report a local mutation as durable. Base stock and inventory pricing remain controlled by the Excel inventory workflow. Supported inventory bulk promotion uses the authenticated server-side discount command and durable `DiscountRule` records; unsupported local-only `onSale` flags and manual stock-zero overrides are not business commands. API failure must leave the authoritative state unchanged and be surfaced to the operator.
+
 ## Other protected workflows
 Orders/payment transitions, consultations, custom requests, notification delivery, taxonomy/tag approval, merchandising/collections, SEO enrichment, and admin permissions must retain their state/audit semantics.
 
