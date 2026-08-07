@@ -1,0 +1,36 @@
+name: PR-020 lock refresh
+
+on:
+  push:
+    branches:
+      - feat/pr-020-ssr-prerender-foundation
+    paths:
+      - package.json
+
+permissions:
+  contents: write
+
+jobs:
+  refresh-lock:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/pr-020-ssr-prerender-foundation
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Refresh package lock from declared dependencies
+        run: npm install --package-lock-only --ignore-scripts
+      - name: Commit lockfile when changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package-lock.json
+          if git diff --cached --quiet; then
+            echo "Lockfile already synchronized"
+            exit 0
+          fi
+          git commit -m "chore(pr-020): refresh npm lockfile"
+          git push origin HEAD:feat/pr-020-ssr-prerender-foundation
