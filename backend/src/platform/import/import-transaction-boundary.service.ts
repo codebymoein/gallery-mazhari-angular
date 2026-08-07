@@ -75,7 +75,11 @@ export class ImportTransactionBoundaryService implements OnModuleInit {
           audit: scopedAudit,
         });
 
-        return original.call(scoped, job);
+        const result = (await original.call(
+          scoped,
+          job,
+        )) as Record<string, unknown>;
+        return result;
       },
     );
   }
