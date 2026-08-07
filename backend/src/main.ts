@@ -1,11 +1,15 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import type { NextFunction, Request, Response } from 'express';
 import { json, urlencoded } from 'express';
-import { AppModule } from './app.module';
 import helmet from 'helmet';
+import { randomUUID } from 'node:crypto';
+import { AppModule } from './app.module';
+import { JsonLogger } from './observability/json-logger';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const logger = new JsonLogger();
+  const app = await NestFactory.create(AppModule, { logger });
   const isProduction = process.env.NODE_ENV === 'production';
   if (process.env.TRUST_PROXY === 'true') {
     app.getHttpAdapter().getInstance().set('trust proxy', 1);
@@ -21,6 +25,25 @@ async function bootstrap() {
   );
 
   app.setGlobalPrefix('api');
+  app.use((request: Request, response: Response, next: NextFunction) => {
+    const requestId =
+      request.header('x-request-id')?.slice(0, 128) || randomUUID();
+    response.setHeader('x-request-id', requestId);
+    const startedAt = process.hrtime.bigint();
+    response.on('finish', () => {
+      const durationMs =
+        Number(process.hrtime.bigint() - startedAt) / 1_000_000;
+      logger.log({
+        event: 'http_request',
+        requestId,
+        method: request.method,
+        path: request.originalUrl.split('?')[0],
+        statusCode: response.statusCode,
+        durationMs: Number(durationMs.toFixed(2)),
+      });
+    });
+    next();
+  });
   // عکس‌های صف انتشار به‌صورت data:URL فشرده ارسال می‌شوند؛ سقف پیش‌فرض 100KB کافی نیست.
   app.use(json({ limit: '25mb' }));
   app.use(urlencoded({ extended: true, limit: '25mb' }));
@@ -45,4 +68,4 @@ async function bootstrap() {
 
   await app.listen(process.env.PORT ?? 3000);
 }
-bootstrap();
+void bootstrap();

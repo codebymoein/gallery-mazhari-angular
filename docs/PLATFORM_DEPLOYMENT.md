@@ -1,15 +1,11 @@
-# Deployment, Migration, Backup Baseline
+# Deployment, Restore, Monitoring, and Rollback
 
-This document describes the RM-11 PR-014 baseline. It does not certify restore/monitoring/rollback rehearsal; those are PR-015.
+This document describes the RM-11 operational baseline established by PR-014 and extended by PR-015.
 
 ## Source artifact
-
-Production releases MUST come from `.github/workflows/release-artifact.yml` for one exact Git SHA. The workflow builds Angular and NestJS, retains backend production runtime dependencies, packages the versioned `deploy/` tooling, writes `REVISION`/`BUILD.json`, and publishes the release tarball with its SHA-256 checksum.
-
-Do not rebuild or edit a production release on the server.
+Production releases MUST come from `.github/workflows/release-artifact.yml` for one exact Git SHA. The workflow builds Angular and NestJS, retains backend production runtime dependencies, packages the versioned `deploy/` tooling, writes `REVISION`/`BUILD.json`, and publishes the release tarball with its SHA-256 checksum. Do not rebuild or edit a production release on the server.
 
 ## Host layout
-
 ```text
 /srv/gallery-mazhari/
   releases/<git-sha>/
@@ -23,29 +19,31 @@ Do not rebuild or edit a production release on the server.
 Nginx serves `/srv/gallery-mazhari/current/frontend`. The backend systemd unit runs `/srv/gallery-mazhari/current/backend/dist/main.js`.
 
 ## Deploy
+Use the immutable artifact/checksum with `deploy/release.sh`. The script verifies checksum/revision metadata, refuses release-directory reuse, serializes concurrent deployments with `flock`, extracts to staging, runs TypeORM migrations from the exact release, atomically switches `current`, and restarts the supervised backend.
 
-Install the example systemd/nginx configuration with host-specific domains/users/paths, then use the release artifact and checksum:
+After activation verify:
+- `GET /api/ops/health/live`
+- `GET /api/ops/health/ready`
+- `GET /api/ops/version`
+- structured application/request logs
+- monitoring/alert path
 
-```bash
-APP_ROOT=/srv/gallery-mazhari \
-BACKEND_ENV_FILE=/etc/gallery-mazhari/backend.env \
-./deploy/release.sh gallery-mazhari-<sha>.tar.gz gallery-mazhari-<sha>.tar.gz.sha256
-```
+## Backup and restore drill
+PR-014 backup jobs create encrypted PostgreSQL and off-server media backups. PR-015 adds `deploy/restore-postgres.sh` for an explicit non-production drill. The restore helper refuses `NODE_ENV=production`, requires `RESTORE_TARGET_ENV` to be exactly `staging`, `recovery`, or `test`, requires the exact non-production acknowledgement, verifies the encrypted backup checksum, decrypts only to a temporary file, and executes `pg_restore --exit-on-error` against `RESTORE_DATABASE_URL`.
 
-The script verifies checksum and revision metadata, refuses release-directory reuse, serializes concurrent deployments with `flock`, extracts to a staging directory, runs TypeORM migrations from the exact release, atomically switches `current`, and restarts the supervised backend. If the immediate backend restart fails, the previous release symlink is restored when available.
+The Deployment Tooling workflow includes an isolated PostgreSQL 16 restore drill, matching the repository's supported PostgreSQL CI baseline. It creates a clean source and recovery database, writes an integrity marker, creates an encrypted custom-format backup through the production backup helper, restores it through the production restore helper, and verifies the marker in the clean recovery database. This is automated restorability evidence; it does not authorize a production restore.
 
-A code rollback does not authorize restoring an old PostgreSQL snapshot over newer valid transactions.
+Restore success MUST also be followed in staging/incident recovery by schema/migration checks, representative row-count and critical-workflow validation, media-reference checks where applicable, and health/version evidence. Production restore remains an incident-authority action and is not authorized by the drill helper.
 
-## Backup jobs
+## Rollback
+`deploy/rollback-release.sh <target-release-sha>` switches only to an existing immutable release, restarts the backend and requires readiness to pass. If the rollback target fails restart/readiness, the previous symlink is restored when available.
 
-`gallery-mazhari-backup.timer.example` schedules the oneshot backup service. `backend.env` supplies PostgreSQL/Object Storage runtime credentials; `backup.env` supplies backup destinations and the public `age` recipient.
+Application rollback never means database rollback. Do not restore an old PostgreSQL snapshot over newer valid business transactions. A target release must be compatible with already-applied migrations or the operator must use an approved roll-forward/recovery plan.
 
-- PostgreSQL: custom-format `pg_dump` -> `age` encryption -> SHA-256 -> S3-compatible off-server upload. Plaintext backups are never retained by the script.
-- Media: copy-only Object Storage sync to a distinct backup target with server-side encryption. Routine backup intentionally does not delete target objects.
-- Local retention applies to encrypted PostgreSQL backup artifacts. Remote lifecycle/versioning is configured at the backup storage provider.
+## Monitoring and alerts
+NestJS emits JSON logs and request IDs. Operational endpoints expose safe liveness, PostgreSQL readiness, release provenance and Prometheus-text process metrics. `deploy/health-check.sh` verifies systemd process state plus readiness and can deliver a generic alert through a protected host-configured `ALERT_WEBHOOK_URL`.
 
-Required host tools for this baseline include Node.js 22, `systemd`, `flock`, PostgreSQL client tools (`pg_dump`), `age`, AWS CLI compatible with the selected Object Storage provider, Nginx, and the normal TLS/DNS stack. Secrets/private recovery keys are never committed.
+Backup failure, storage/disk exhaustion and external provider signals must also be monitored by infrastructure. Application health must not be used as proof that backups succeeded.
 
-## Verification boundary
-
-PR-014 validates script syntax/ShellCheck and systemd unit syntax in CI alongside the repository Quality Gates. PR-015 adds restore drill evidence, health/version reporting, structured logs/metrics/alerts and full rollback/runbooks.
+## Verification
+`.github/workflows/deployment-tooling.yml` validates deployment/backup/restore/rollback/health scripts with `bash -n` and ShellCheck, proves the restore helper refuses execution when `NODE_ENV=production`, and performs an encrypted backup-to-clean-database restore drill with data-integrity verification. Backend regression tests cover readiness success/failure, safe version output and metrics shape. Staging rollback rehearsal and environment-specific alert delivery evidence remain required before production certification.

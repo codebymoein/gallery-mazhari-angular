@@ -9,6 +9,7 @@ on:
       - '.github/workflows/deployment-tooling.yml'
       - 'docs/PLATFORM_DEPLOYMENT.md'
       - 'docs/handbook/14-deployment-operations.md'
+      - 'docs/handbook/15-observability.md'
       - 'docs/handbook/16-backup-disaster-recovery.md'
   workflow_dispatch:
 
@@ -21,9 +22,33 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Validate shell syntax
-        run: bash -n deploy/release.sh deploy/backup-postgres.sh deploy/backup-media.sh
+        run: |
+          bash -n \
+            deploy/release.sh \
+            deploy/backup-postgres.sh \
+            deploy/backup-media.sh \
+            deploy/restore-postgres.sh \
+            deploy/rollback-release.sh \
+            deploy/health-check.sh
       - name: ShellCheck deployment scripts
-        run: shellcheck deploy/release.sh deploy/backup-postgres.sh deploy/backup-media.sh
+        run: |
+          shellcheck \
+            deploy/release.sh \
+            deploy/backup-postgres.sh \
+            deploy/backup-media.sh \
+            deploy/restore-postgres.sh \
+            deploy/rollback-release.sh \
+            deploy/health-check.sh
+      - name: Prove production restore is fail-closed
+        run: |
+          set +e
+          NODE_ENV=production \
+            RESTORE_TARGET_ENV=recovery \
+            RESTORE_CONFIRM_NON_PRODUCTION=I_UNDERSTAND_THIS_IS_NON_PRODUCTION \
+            bash deploy/restore-postgres.sh missing.dump.age missing.dump.age.sha256
+          status=$?
+          set -e
+          test "$status" -eq 77
       - name: Validate systemd unit syntax
         run: |
           set -euo pipefail
@@ -35,3 +60,73 @@ jobs:
           sed -i 's|^ExecStart=.*|ExecStart=/bin/true|' "${unit_dir}/gallery-mazhari-backup.service"
           systemd-analyze verify "${unit_dir}/gallery-mazhari-backend.service"
           systemd-analyze verify "${unit_dir}/gallery-mazhari-backup.service" "${unit_dir}/gallery-mazhari-backup.timer"
+
+  postgres-restore-drill:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install restore drill tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y age postgresql-client
+      - name: Create clean source and recovery databases
+        env:
+          PGPASSWORD: postgres
+        run: |
+          set -euo pipefail
+          psql -h 127.0.0.1 -U postgres -d postgres -c 'CREATE DATABASE gallery_source;'
+          psql -h 127.0.0.1 -U postgres -d postgres -c 'CREATE DATABASE gallery_recovery;'
+          psql -h 127.0.0.1 -U postgres -d gallery_source <<'SQL'
+          CREATE TABLE restore_probe (
+            id integer PRIMARY KEY,
+            marker text NOT NULL
+          );
+          INSERT INTO restore_probe (id, marker) VALUES (1, 'rm-11-restore-drill');
+          SQL
+      - name: Create encrypted backup with production backup helper
+        env:
+          DB_HOST: 127.0.0.1
+          DB_PORT: '5432'
+          DB_USERNAME: postgres
+          DB_PASSWORD: postgres
+          DB_NAME: gallery_source
+          BACKUP_ROOT: ${{ runner.temp }}/gallery-backup
+          BACKUP_REQUIRE_REMOTE: 'false'
+        run: |
+          set -euo pipefail
+          age-keygen -o "${RUNNER_TEMP}/restore-identity.txt" 2>"${RUNNER_TEMP}/age-keygen.log"
+          recipient="$(age-keygen -y "${RUNNER_TEMP}/restore-identity.txt")"
+          BACKUP_AGE_RECIPIENT="$recipient" bash deploy/backup-postgres.sh
+      - name: Restore encrypted backup into clean recovery database
+        env:
+          NODE_ENV: test
+          RESTORE_TARGET_ENV: recovery
+          RESTORE_CONFIRM_NON_PRODUCTION: I_UNDERSTAND_THIS_IS_NON_PRODUCTION
+          RESTORE_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/gallery_recovery
+          RESTORE_AGE_IDENTITY_FILE: ${{ runner.temp }}/restore-identity.txt
+        run: |
+          set -euo pipefail
+          backup="$(find "${RUNNER_TEMP}/gallery-backup" -maxdepth 1 -name '*.dump.age' -type f -print -quit)"
+          test -n "$backup"
+          bash deploy/restore-postgres.sh "$backup" "${backup}.sha256"
+      - name: Verify restored data integrity marker
+        env:
+          PGPASSWORD: postgres
+        run: |
+          set -euo pipefail
+          marker="$(psql -h 127.0.0.1 -U postgres -d gallery_recovery -Atc 'SELECT marker FROM restore_probe WHERE id = 1;')"
+          test "$marker" = 'rm-11-restore-drill'
