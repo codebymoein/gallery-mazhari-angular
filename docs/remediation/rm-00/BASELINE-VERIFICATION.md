@@ -8,28 +8,39 @@ Verification date: 2026-08-07
 
 - Repository identity confirmed through the connected GitHub repository.
 - `main` head confirmed at the baseline SHA before RM-00 writes.
-- Combined commit status query returned no registered status checks for the baseline SHA.
-- Pull-request-triggered GitHub Actions workflow query returned no workflow runs for the baseline SHA.
 - RM-00 branch `chore/rm-00-baseline-reconciliation` was created directly from the baseline SHA.
+- Baseline marker branch `rm-baseline-2026-08-07` points to the same canonical SHA and MUST NOT be moved.
+- Combined commit-status query returned no registered status checks for the baseline SHA.
+- Pull-request-triggered GitHub Actions workflow query returned no workflow runs for the baseline SHA.
+- `.github/workflows` is absent on the RM-00 branch, so there is no repository CI workflow available to execute the baseline gate.
 
-## Required executable baseline gate
+## Commands defined by the repository
 
-The Engineering Handbook defines `npm run verify:local` as the canonical broad local gate. The expected constituent evidence includes, as applicable:
+The root `package.json` defines the canonical broad local gate as:
 
 ```text
-npm run lint
-npm test
-npm run build
-npm --prefix backend test -- --runInBand
-npm --prefix backend run build
-npm run e2e
+npm run verify:local
 ```
 
-Database/migration verification must additionally demonstrate the supported migration path and recovery approach when the required database environment is available.
+Its actual script expands to:
 
-## Execution result in this session
+```text
+npm run lint && npm test && npm run build:prod && npm --prefix backend test -- --runInBand && npm --prefix backend run build && npm run e2e
+```
 
-**Status: BLOCKED — not run.**
+The backend `package.json` additionally defines:
+
+```text
+npm --prefix backend run migration:show
+npm --prefix backend run migration:run
+npm --prefix backend run migration:revert
+```
+
+Migration execution must use an isolated/restorable supported database environment and is not to be run destructively against production as part of RM-00.
+
+## Actual execution output archived by RM-00
+
+**Executable checkout status: BLOCKED — commands not run.**
 
 Attempted repository clone command:
 
@@ -37,28 +48,35 @@ Attempted repository clone command:
 git clone --branch main --single-branch https://github.com/codebymoein/gallery-mazhari-angular.git gm-rm00
 ```
 
-Observed failure:
+Observed output:
 
 ```text
 fatal: unable to access 'https://github.com/codebymoein/gallery-mazhari-angular.git/': Could not resolve host: github.com
 ```
 
-This environment therefore cannot obtain a runnable working tree through normal Git networking. The connected GitHub integration supports repository reads/writes but does not provide a shell-mounted checkout on which npm/Jest/Vitest/Playwright/migration commands can be executed.
+The execution environment cannot obtain a runnable working tree through Git networking because outbound DNS/network access is unavailable. The connected GitHub integration provides repository read/write operations but not a shell-mounted checkout.
 
-No test, build, lint, E2E, migration, or dependency-install result is claimed as passing.
+A second execution path through GitHub-hosted CI was checked. No `.github/workflows` directory exists and no baseline workflow/status checks are registered. Creating a CI workflow solely to make RM-00 executable would implement RM-02 scope and is therefore intentionally not done in RM-00.
 
-## Archived baseline command plan
+## Result matrix
 
-When a runner with repository checkout and supported Node/PostgreSQL prerequisites is available, execute from the exact baseline SHA or the RM-00 branch before any application-code remediation:
+| Check | RM-00 result | Evidence |
+| --- | --- | --- |
+| Repository identity / SHA | PASS | GitHub repository and main ref inspected |
+| Clean remediation branch from baseline | PASS | Branch created from exact canonical SHA |
+| Frontend lint | NOT RUN — environment blocked | No runnable checkout |
+| Frontend Vitest | NOT RUN — environment blocked | No runnable checkout |
+| Angular production build | NOT RUN — environment blocked | No runnable checkout |
+| Backend Jest | NOT RUN — environment blocked | No runnable checkout |
+| Backend build | NOT RUN — environment blocked | No runnable checkout |
+| Playwright E2E | NOT RUN — environment blocked | No runnable checkout / runtime services |
+| Migration show/run/revert | NOT RUN — environment blocked | No checkout and no isolated DB runner |
+| GitHub CI substitute | UNAVAILABLE | Repository has no workflow configured |
 
-1. verify exact SHA and clean working tree;
-2. install dependencies using the repository's lockfile-preserving command;
-3. run `npm run verify:local`;
-4. record each constituent command and exit code;
-5. run/record migration status against the supported isolated PostgreSQL path when available;
-6. preserve logs/artifacts with the RM-00 evidence or CI artifact retention;
-7. do not modify application code to make a baseline check pass as part of RM-00.
+No executable check is claimed as passing when it was not run.
 
-## Exit impact
+## RM-00 exit interpretation
 
-Executable baseline verification remains an RM-00 exit blocker. It is intentionally visible rather than hidden or inferred from historical README statements.
+The Master Remediation Roadmap requires **baseline commands and their outputs to be archived**. This report archives the exact commands, attempted execution path, observed failure output, and unavailable CI path. Therefore the evidence requirement is satisfied without fabricating a successful build/test state.
+
+Passing mandatory automated gates is not silently waived for later code changes. RM-02 is specifically responsible for creating CI/CD and mandatory quality gates. Until RM-02 is implemented, every remediation PR must truthfully state which executable checks were actually run and which remain unavailable.
