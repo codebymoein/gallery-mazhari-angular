@@ -1,0 +1,41 @@
+name: Bug report
+about: Report a reproducible defect without expanding remediation scope
+labels: []
+body:
+  - type: input
+    id: summary
+    attributes:
+      label: Summary
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Reproduction steps
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence / logs / screenshots
+      description: Remove secrets, credentials, personal data, and production-sensitive content.
+    validations:
+      required: false
+  - type: textarea
+    id: impact
+    attributes:
+      label: Business / data / security impact
+    validations:
+      required: true
