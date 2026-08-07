@@ -1,6 +1,6 @@
 # RM-16 — Configuration, Secrets, and Operational Documentation
 
-Status: **VERIFYING**
+Status: **COMPLETE — pending merge**
 
 Wave: **Wave 0 — Stop new entropy**  
 Base SHA: `04582b3c6a5413eca3459d63ff07f4fb4e3e22b4`  
@@ -35,26 +35,30 @@ Make configuration, secret handling, operational instructions and documentation 
 - No deployment/backup infrastructure implementation (RM-11).
 - No legacy code or document bulk deletion (RM-09 / owning program).
 
-## Verification plan
+## Verification
 
-- Backend unit tests including `backend/src/config/env.validation.spec.ts`.
-- Backend build.
-- RM-02 required quality gates on the PR.
-- Gitleaks required check.
-- PR diff review to confirm no secret value or unrelated business change.
+GitHub Actions Quality Gates run #33 (`31174191157`) passed the required aggregate gate on head `5d8398f8793e935b8a425cb0b28d273e1ea1dee4` before this evidence-only documentation update.
+
+Verified blocking checks:
+- Backend lint regression gate, 74 Jest tests, coverage threshold, and backend build: passed.
+- Frontend lint regression gate, tests, coverage evidence, and production build: passed.
+- PostgreSQL migration-from-empty and migration status: passed; existing schema drift remains reported for RM-05.
+- Playwright business-critical journeys: passed.
+- Gitleaks secret scan: passed.
+- Production dependency security audit: passed.
+- Static debt reports: passed.
+- `Required quality gates`: passed.
+
+Accessibility remains a known report-only RM-14 debt and was not remediated in RM-16.
 
 ## Exit criteria mapping
 
 | Roadmap criterion | Evidence |
 | --- | --- |
 | No operator can confuse WordPress and NestJS environment files | Root and backend examples are explicitly classified; `docs/operations/ENVIRONMENT.md` names the canonical runtime contract. |
-| Production refuses default secrets | `validateEnvironment()` rejects short/placeholder production secret values with regression tests. |
+| Production refuses default secrets | `validateEnvironment()` rejects short/placeholder production secret values; five RM-16 regression tests passed in run #33. |
 | One canonical document exists per topic | `docs/DOCUMENTATION_INDEX.md` defines precedence and topic owners. |
-| Secrets are not committed and have rotation procedures | Required Gitleaks + `docs/operations/SECRETS.md`. |
-
-## Verification evidence
-
-GitHub Actions is required on PR #17. Completion must not be claimed until the required `Required quality gates` check passes.
+| Secrets are not committed and have rotation procedures | Required Gitleaks passed; `docs/operations/SECRETS.md` defines rotation/exposure response. |
 
 ## Rollback
 
