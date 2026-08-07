@@ -15,6 +15,76 @@ permissions:
   contents: read
 
 jobs:
+  governance-contract:
+    name: Governance contract
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate remediation/agent PR contract
+        if: github.event_name == 'pull_request'
+        env:
+          PR_BODY: ${{ github.event.pull_request.body || '' }}
+        run: |
+          python - <<'PY'
+          import os
+          import re
+          import sys
+
+          body = os.environ.get('PR_BODY', '')
+          failures = []
+
+          required_fields = [
+              'Remediation / task ID',
+              'Base SHA',
+              'In scope',
+              'Explicitly out of scope',
+              'Governance documents actually read',
+              'Rollback / roll-forward plan',
+          ]
+
+          for label in required_fields:
+              match = re.search(rf'^- {re.escape(label)}:\s*(.+)$', body, re.MULTILINE)
+              if not match or not match.group(1).strip():
+                  failures.append(f'missing/non-empty field: {label}')
+
+          required_acknowledgements = [
+              'Repository identity was verified as `codebymoein/gallery-mazhari-angular` from GitHub.',
+              'Current `main` SHA was independently fetched before work began.',
+              '`AGENTS.md`, `CONSTITUTION.md`, `docs/PROJECT_MEMORY.md`, handbook index, mandatory chapters, and task-relevant chapters were read.',
+              'No unrelated findings, adjacent RM work, opportunistic cleanup, or refactors are included.',
+              'Quality gates were not weakened/bypassed merely to obtain a passing run.',
+              'Merge authorization comes from the human owner; the agent is not self-authorizing approval.',
+          ]
+
+          for text in required_acknowledgements:
+              checked = f'- [x] {text}' in body or f'- [X] {text}' in body
+              if not checked:
+                  failures.append(f'unchecked governance acknowledgement: {text}')
+
+          remediation = re.search(r'^- Remediation / task ID:\s*(.+)$', body, re.MULTILINE)
+          task_id = remediation.group(1).strip() if remediation else ''
+          is_remediation = bool(re.search(r'\bRM-\d+\b|\bPR-\d+\b|finding', task_id, re.IGNORECASE))
+          if is_remediation:
+              roadmap_ack = '- [x] For remediation work, `docs/remediation/MASTER_REMEDIATION_ROADMAP.md` was read and the exact Wave/RM/PR/finding scope was identified.' in body or '- [X] For remediation work, `docs/remediation/MASTER_REMEDIATION_ROADMAP.md` was read and the exact Wave/RM/PR/finding scope was identified.' in body
+              if not roadmap_ack:
+                  failures.append('remediation PR must explicitly acknowledge the Master Remediation Roadmap')
+
+              for label in ('Roadmap Wave / PR slice (or `N/A` for non-remediation)', 'Linked finding IDs (or `N/A`)'):
+                  match = re.search(rf'^- {re.escape(label)}:\s*(.+)$', body, re.MULTILINE)
+                  if not match or not match.group(1).strip() or match.group(1).strip().upper() == 'N/A':
+                      failures.append(f'remediation PR requires field: {label}')
+
+          if failures:
+              print('Governance contract failed:')
+              for failure in failures:
+                  print(f' - {failure}')
+              sys.exit(1)
+
+          print('Governance contract passed.')
+          PY
+      - name: Non-PR governance check
+        if: github.event_name != 'pull_request'
+        run: echo "Governance PR-body validation is not applicable to this event."
+
   frontend:
     name: Frontend lint, test, build
     runs-on: ubuntu-latest
@@ -301,6 +371,7 @@ jobs:
     name: Required quality gates
     if: always()
     needs:
+      - governance-contract
       - frontend
       - backend
       - postgres-migrations
@@ -311,6 +382,7 @@ jobs:
     steps:
       - name: Enforce blocking gate results
         env:
+          GOVERNANCE: ${{ needs.governance-contract.result }}
           FRONTEND: ${{ needs.frontend.result }}
           BACKEND: ${{ needs.backend.result }}
           POSTGRES: ${{ needs.postgres-migrations.result }}
@@ -319,8 +391,9 @@ jobs:
           SECRET_SCAN: ${{ needs.secret-scan.result }}
         run: |
           set -euo pipefail
-          printf 'frontend=%s\nbackend=%s\npostgres=%s\ne2e=%s\ndependency-security=%s\nsecret-scan=%s\n' \
-            "$FRONTEND" "$BACKEND" "$POSTGRES" "$E2E" "$DEPENDENCY_SECURITY" "$SECRET_SCAN"
+          printf 'governance=%s\nfrontend=%s\nbackend=%s\npostgres=%s\ne2e=%s\ndependency-security=%s\nsecret-scan=%s\n' \
+            "$GOVERNANCE" "$FRONTEND" "$BACKEND" "$POSTGRES" "$E2E" "$DEPENDENCY_SECURITY" "$SECRET_SCAN"
+          test "$GOVERNANCE" = success
           test "$FRONTEND" = success
           test "$BACKEND" = success
           test "$POSTGRES" = success

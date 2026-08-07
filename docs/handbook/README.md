@@ -1,6 +1,13 @@
 # Gallery Mazhari Engineering Handbook
 
-This is version-controlled Living Documentation for the real Angular + NestJS + TypeORM/PostgreSQL system in this repository. Normative precedence: `CONSTITUTION.md` → this handbook → task-specific docs → implementation comments. Existing specialized docs remain valuable evidence and must be reconciled rather than silently contradicted.
+This is version-controlled Living Documentation for the real Angular + NestJS + TypeORM/PostgreSQL system in this repository. Normative precedence: `CONSTITUTION.md` → `AGENTS.md` agent-entry contract → the Master Remediation Roadmap for remediation scope/sequencing → this handbook → task-specific docs → implementation comments. Existing specialized docs remain valuable evidence and must be reconciled rather than silently contradicted.
+
+> **Agent entry rule:** New AI/automation sessions MUST start at [`../../AGENTS.md`](../../AGENTS.md), complete its mandatory preflight, read the Constitution, Roadmap, this index and required chapters, then provide the pre-write report before material edits. Opening this Handbook directly does not waive the `AGENTS.md` preflight.
+
+## Canonical remediation authority
+- [`../remediation/MASTER_REMEDIATION_ROADMAP.md`](../remediation/MASTER_REMEDIATION_ROADMAP.md) — authoritative 381-finding remediation program, Wave/RM/PR sequence, dependencies, exit criteria, Definition of Done and coverage manifest.
+- [`../governance/AGENT_TASK_MANIFEST.md`](../governance/AGENT_TASK_MANIFEST.md) — mandatory task-scoping and acknowledgement contract for material agent work.
+- [`../governance/NEW_AGENT_BOOTSTRAP.md`](../governance/NEW_AGENT_BOOTSTRAP.md) — reusable instructions for starting a new chat/agent without trusting stale copied state.
 
 ## Chapters
 1. [Engineering Principles](01-engineering-principles.md)
@@ -22,6 +29,9 @@ This is version-controlled Living Documentation for the real Angular + NestJS + 
 17. [SEO, Performance & Accessibility](17-seo-performance-accessibility.md)
 18. [Documentation Governance](18-documentation-governance.md)
 
+## Minimum mandatory reading for every material task
+Every agent MUST read chapters **01, 02, 03, 07, 10, 11 and 12**, plus task-specific chapters identified by `AGENTS.md`. Reading only a summary is insufficient when full repository file access is available.
+
 ## Canonical operational indexes
 - [`../DOCUMENTATION_INDEX.md`](../DOCUMENTATION_INDEX.md) — topic ownership and documentation precedence.
 - [`../operations/ENVIRONMENT.md`](../operations/ENVIRONMENT.md) — canonical environment contract.
@@ -40,4 +50,6 @@ This is version-controlled Living Documentation for the real Angular + NestJS + 
 - [`../../PRODUCTION_AUDIT.md`](../../PRODUCTION_AUDIT.md)
 
 ## Maintenance contract
-Every PR that changes architecture, workflow semantics, security boundaries, deployment procedure, persistent schema, public API contracts, design-system rules, environment configuration, secret policy, or required operational tooling MUST update the relevant chapter/index. Broken links are defects. Documentation-only changes must still be reviewed for correctness against current code.
+Every PR that changes architecture, workflow semantics, security boundaries, deployment procedure, persistent schema, public API contracts, design-system rules, environment configuration, secret policy, required operational tooling, remediation sequencing, or governance MUST update the relevant chapter/index when necessary. Broken links are defects. Documentation-only changes must still be reviewed for correctness against current code.
+
+No agent may weaken Constitution/AGENTS/Roadmap/Handbook controls as part of an unrelated task. Governance weakening requires an explicit governance-scoped PR and human-owner rationale.
