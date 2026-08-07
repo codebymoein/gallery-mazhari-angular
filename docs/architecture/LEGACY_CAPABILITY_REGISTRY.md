@@ -7,7 +7,7 @@ Status: **RM-09 active registry**. This document records legacy or compatibility
 | Capability | Canonical implementation | Legacy / duplicate path | Evidence and disposition |
 | --- | --- | --- | --- |
 | Public product catalog | `ProductsApiService` -> NestJS `GET /products/published` -> PostgreSQL; bounded projection via `PublishedCatalogSyncService` | `src/app/core/api/wordpress.service.ts` WooCommerce `/wc/v3` product/category client | Removed in PR-018 (#38). Git history shows the client was unchanged since the initial baseline and the only runtime consumer was the equally baseline-only NgRx `ProductEffects`. Current storefront catalog/search reads the server-backed published projection. |
-| Product NgRx side effects | Server-backed storefront projection and current feature services | `src/app/core/store/product/product.effects.ts` | Removed in PR-018 (#38) after detaching it from root `EffectsModule`. It called only the removed WordPress client. Product reducer/selectors are retained in this slice because their remaining usage/deletion proof is a separate cleanup decision. |
+| Product NgRx side effects | Server-backed storefront projection and current feature services | `src/app/core/store/product/product.effects.ts` | Removed in PR-018 (#38) after detaching it from root `EffectsModule`. It called only the removed WordPress client. Product reducer/selectors are retained because their remaining usage/deletion proof is a separate cleanup decision. |
 | WordPress/WooCommerce integration authority | NestJS/PostgreSQL are authoritative; any future external integration must be an explicit backend adapter | Direct Angular WooCommerce business API calls | Forbidden for new code. Reintroduction requires an explicit adapter contract, owner, expiry/migration plan, and tests; Angular must not regain authoritative business writes. |
 | Storefront published cache | `PublishedCatalogSyncService` with server revision + TTL | Browser `publishedProducts` cache | Retained as a bounded non-authoritative projection, not legacy authority. Expired cache is rejected and local staging data is never merged. |
 | Static/mock catalog generator | Runtime uses server-backed published products | `BRIDAL_SAMPLE_PRODUCTS` / fixture generator in `bridal-collection-categories.ts` | Runtime fixtures are disabled. Retained temporarily because the file also owns presentation types/category helpers; later deletion requires consumer migration and tests. |
@@ -20,21 +20,30 @@ Status: **RM-09 active registry**. This document records legacy or compatibility
 4. WordPress/local compatibility must be isolated behind an explicit boundary with an owner and expiry, or removed when proven unused.
 5. Each phased deletion PR must keep regression evidence and a rollback plan.
 6. Static-analysis output is admissible deletion evidence only when the tool completed successfully enough to produce a structurally valid report over a non-zero project graph.
+7. A GitHub Actions workflow-level `success` is not sufficient evidence when an analyzer job or step is configured with `continue-on-error`; the analyzer step/job result and uploaded artifact must be inspected.
 
 ## PR-018 scope decision
 
 PR-018 / GitHub PR #38 is intentionally the first narrow deletion slice: remove the dormant direct WordPress product API path and its dormant NgRx effect registration. It does **not** remove product store reducers/selectors, static catalog presentation helpers, documentation archives, assets, dependencies, or any protected workflow. Those require independent usage proof in later RM-09 slices.
 
-## PR-019 evidence correction
+## PR-019 evidence outcome
 
-The PR-018 static-analysis artifact exposed an evidence-quality defect: the pinned Knip command crashed before analysis and dependency-cruiser reported zero analyzed modules. Those outputs are not valid evidence for deletion even though the non-blocking `Static debt reports` job completed successfully.
+PR-019 / GitHub PR #39 introduced a dedicated RM-09 static-analysis workflow after the older generic static report was shown to be invalid. Post-merge inspection of the actual PR-019 job and artifact found that the correction was still incomplete:
 
-PR-019 therefore adds a dedicated RM-09 evidence workflow that:
+- `Dependency graph evidence` failed because dependency-cruiser still analyzed zero modules.
+- The job carried `continue-on-error`, so the workflow could be surfaced as successful even though the analyzer job conclusion was failure.
+- Knip and jscpd steps were skipped after the dependency step failed, so PR-019 produced no valid dead-code or duplication evidence.
 
-- runs dependency-cruiser with an explicit TypeScript package available in the same execution environment;
-- rejects a dependency graph containing zero modules;
-- runs the current pinned Knip 6.x analyzer with machine-readable JSON output and validates the report structure;
-- records jscpd duplication evidence separately;
-- uploads all reports even when findings remain, so debt is visible without treating tool failure as a clean codebase.
+Therefore **PR-019 is not deletion evidence**. No additional legacy path may be removed based on that run.
 
-No additional legacy code is deleted in PR-019. The next deletion slice must use successful PR-019 reports plus import/consumer/runtime-history checks before removing anything.
+## Corrective evidence slice
+
+The immediate RM-09 corrective slice makes analyzer health explicit rather than interpreting findings as tool failure:
+
+- dependency-cruiser receives quoted TypeScript globs and must produce a non-zero module graph;
+- dependency-cruiser JSON findings are recorded without treating ordinary rule findings as analyzer-health failure;
+- Knip uses its documented `--no-exit-code` mode so lint findings still produce valid machine-readable evidence while malformed/crashed output fails validation;
+- jscpd must produce its JSON report even when duplicate findings exist;
+- the job itself is no longer `continue-on-error`, so analyzer-health failure cannot be represented as a successful evidence workflow.
+
+Only after this corrective workflow produces complete artifacts may the next small legacy-removal PR select a candidate, and that candidate still requires import/consumer/runtime-history proof in addition to static analysis.
