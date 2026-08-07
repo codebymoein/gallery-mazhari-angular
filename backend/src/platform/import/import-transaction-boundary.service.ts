@@ -12,8 +12,10 @@ import { ImportService } from './import.service';
 const IMPORT_LOCK_NAMESPACE = 42016;
 const IMPORT_LOCK_KEY = 1;
 
+type CommitHandler = (job: unknown) => Promise<Record<string, unknown>>;
+
 type ImportServiceInternals = {
-  handleCommitJob: (job: unknown) => Promise<Record<string, unknown>>;
+  handleCommitJob: CommitHandler;
   runs: unknown;
   products: unknown;
   variations: unknown;
@@ -44,8 +46,17 @@ export class ImportTransactionBoundaryService implements OnModuleInit {
     const service = this.imports as unknown as ImportServiceInternals;
     const original = service.handleCommitJob;
 
-    service.handleCommitJob = async (job: unknown) =>
-      this.dataSource.transaction(async (manager) => {
+    service.handleCommitJob = (job: unknown) =>
+      this.runInTransaction(service, original, job);
+  }
+
+  private runInTransaction(
+    service: ImportServiceInternals,
+    original: CommitHandler,
+    job: unknown,
+  ): Promise<Record<string, unknown>> {
+    return this.dataSource.transaction<Record<string, unknown>>(
+      async (manager): Promise<Record<string, unknown>> => {
         await this.acquireCommitLock(manager);
 
         const scoped = Object.create(service) as ImportServiceInternals;
@@ -64,11 +75,9 @@ export class ImportTransactionBoundaryService implements OnModuleInit {
           audit: scopedAudit,
         });
 
-        // The structural adapter intentionally preserves the original private
-        // handler contract while rebinding repositories to this transaction.
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return original.call(scoped, job);
-      });
+      },
+    );
   }
 
   private async acquireCommitLock(manager: EntityManager): Promise<void> {
