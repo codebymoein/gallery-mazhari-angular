@@ -20,6 +20,13 @@
               "entry": "src/server.ts"
             },
             "outputMode": "server",
+            "security": {
+              "allowedHosts": [
+                "gallery-mazhari.ir",
+                "www.gallery-mazhari.ir",
+                "localhost"
+              ]
+            },
             "polyfills": [
               "zone.js"
             ],
