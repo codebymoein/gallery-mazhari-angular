@@ -31,7 +31,9 @@ After activation verify:
 ## Backup and restore drill
 PR-014 backup jobs create encrypted PostgreSQL and off-server media backups. PR-015 adds `deploy/restore-postgres.sh` for an explicit non-production drill. The restore helper refuses `NODE_ENV=production`, requires `RESTORE_TARGET_ENV` to be exactly `staging`, `recovery`, or `test`, requires the exact non-production acknowledgement, verifies the encrypted backup checksum, decrypts only to a temporary file, and executes `pg_restore --exit-on-error` against `RESTORE_DATABASE_URL`.
 
-Restore success MUST be followed by schema/migration checks, representative row-count and critical-workflow validation, media-reference checks where applicable, and health/version evidence. Production restore remains an incident-authority action and is not authorized by the drill helper.
+The Deployment Tooling workflow includes an isolated PostgreSQL 17 restore drill. It creates a clean source and recovery database, writes an integrity marker, creates an encrypted custom-format backup through the production backup helper, restores it through the production restore helper, and verifies the marker in the clean recovery database. This is automated restorability evidence; it does not authorize a production restore.
+
+Restore success MUST also be followed in staging/incident recovery by schema/migration checks, representative row-count and critical-workflow validation, media-reference checks where applicable, and health/version evidence. Production restore remains an incident-authority action and is not authorized by the drill helper.
 
 ## Rollback
 `deploy/rollback-release.sh <target-release-sha>` switches only to an existing immutable release, restarts the backend and requires readiness to pass. If the rollback target fails restart/readiness, the previous symlink is restored when available.
@@ -44,4 +46,4 @@ NestJS emits JSON logs and request IDs. Operational endpoints expose safe livene
 Backup failure, storage/disk exhaustion and external provider signals must also be monitored by infrastructure. Application health must not be used as proof that backups succeeded.
 
 ## Verification
-`.github/workflows/deployment-tooling.yml` validates deployment/backup/restore/rollback/health scripts with `bash -n` and ShellCheck and proves the restore helper refuses execution when `NODE_ENV=production`. Backend regression tests cover readiness success/failure, safe version output and metrics shape. Staging restore and rollback rehearsal evidence remains required before production certification.
+`.github/workflows/deployment-tooling.yml` validates deployment/backup/restore/rollback/health scripts with `bash -n` and ShellCheck, proves the restore helper refuses execution when `NODE_ENV=production`, and performs an encrypted backup-to-clean-database restore drill with data-integrity verification. Backend regression tests cover readiness success/failure, safe version output and metrics shape. Staging rollback rehearsal and environment-specific alert delivery evidence remain required before production certification.
