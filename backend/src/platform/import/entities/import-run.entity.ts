@@ -67,7 +67,7 @@ export class ImportRunEntity {
   confirmedBy: string | null;
 
   @Column({ nullable: true })
-  confirmedAt: Date | null;
+  confirmedAt?: Date;
 
   @Column({ type: 'varchar', length: 40, nullable: true })
   sourceTimestamp: string | null;
