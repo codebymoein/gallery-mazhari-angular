@@ -5,6 +5,7 @@ import { AuditService } from './audit/audit.service';
 import { ImportService } from './import/import.service';
 import { ImportTransactionBoundaryService } from './import/import-transaction-boundary.service';
 import { JobsService } from './jobs/jobs.service';
+import { MediaStorageService } from './media/media-storage.service';
 import { MediaService } from './media/media.service';
 import { MerchandisingService } from './merchandising/merchandising.service';
 import {
@@ -24,6 +25,7 @@ export { PLATFORM_ENTITIES } from './platform.entities';
     JobsService,
     ImportService,
     ImportTransactionBoundaryService,
+    MediaStorageService,
     MediaService,
     MerchandisingService,
     WorkflowService,
@@ -32,6 +34,7 @@ export { PLATFORM_ENTITIES } from './platform.entities';
     AuditService,
     JobsService,
     ImportService,
+    MediaStorageService,
     MediaService,
     MerchandisingService,
     WorkflowService,
