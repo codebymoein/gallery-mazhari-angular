@@ -14,9 +14,8 @@ describe('ImportTransactionBoundaryService', () => {
       .mockResolvedValue([{ locked: options?.locked ?? true }]);
     const manager = { getRepository, query } as unknown as EntityManager;
 
-    const transaction = jest.fn(
-      (work: (manager: EntityManager) => unknown) =>
-        Promise.resolve(work(manager)),
+    const transaction = jest.fn((work: (manager: EntityManager) => unknown) =>
+      Promise.resolve(work(manager)),
     );
     const dataSource = {
       options: {
