@@ -12,7 +12,7 @@ import { ImportService } from './import.service';
 const IMPORT_LOCK_NAMESPACE = 42016;
 const IMPORT_LOCK_KEY = 1;
 
-type ImportServiceInternals = ImportService & {
+type ImportServiceInternals = {
   handleCommitJob: (job: unknown) => Promise<Record<string, unknown>>;
   runs: unknown;
   products: unknown;
@@ -22,7 +22,7 @@ type ImportServiceInternals = ImportService & {
   audit: AuditService;
 };
 
-type AuditServiceInternals = AuditService & {
+type AuditServiceInternals = {
   repo: unknown;
 };
 
