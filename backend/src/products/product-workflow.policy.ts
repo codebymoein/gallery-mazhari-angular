@@ -97,19 +97,19 @@ export function assertManualProductTransition(
   const from = product.status;
   if (from === to) return;
 
-  if (to === 'published') {
-    throw new BadRequestException('product_publish_requires_publish_command');
-  }
-  if (to === 'awaiting_stock') {
-    throw new BadRequestException('awaiting_stock_is_inventory_managed');
-  }
-
   if (from === 'rejected') {
     const restoreTarget = product.trashedFromStatus;
     if (!restoreTarget || restoreTarget === 'rejected' || to !== restoreTarget) {
       throw new BadRequestException('rejected_product_must_restore_previous_status');
     }
     return;
+  }
+
+  if (to === 'published') {
+    throw new BadRequestException('product_publish_requires_publish_command');
+  }
+  if (to === 'awaiting_stock') {
+    throw new BadRequestException('awaiting_stock_is_inventory_managed');
   }
 
   const allowed = MANUAL_LEGACY_TRANSITIONS[from] ?? PLATFORM_TRANSITIONS[from];
