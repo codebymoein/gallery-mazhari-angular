@@ -33,8 +33,8 @@ describe('AuthService', () => {
     sessions = {
       findOne: jest.fn(),
       update: jest.fn(),
-      create: jest.fn((value) => value),
-      save: jest.fn(async (value) => value),
+      create: jest.fn(),
+      save: jest.fn(),
     };
     const module: TestingModule = await Test.createTestingModule({
       providers: [
