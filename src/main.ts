@@ -13,7 +13,6 @@ import { AppComponent } from './app/app.component';
 import { routes } from './app/app.routes';
 import { environment } from '@env/environment';
 import { appStore } from '@core/store';
-import { ProductEffects } from '@core/store/product/product.effects';
 import { CartEffects } from '@core/store/cart/cart.effects';
 import { HTTP_INTERCEPTOR_PROVIDERS } from '@core/interceptors';
 
@@ -34,7 +33,7 @@ bootstrapApplication(AppComponent, {
     HTTP_INTERCEPTOR_PROVIDERS,
     importProvidersFrom(
       StoreModule.forRoot(appStore),
-      EffectsModule.forRoot([ProductEffects, CartEffects]),
+      EffectsModule.forRoot([CartEffects]),
       environment.production 
         ? [] 
         : StoreDevtoolsModule.instrument({
