@@ -25,9 +25,9 @@ describe('MediaStorageService', () => {
     expect(() => buildContentAddressedMediaKey('abc', 'jpg', 'public')).toThrow(
       /invalid_media_content_hash/,
     );
-    expect(() => buildContentAddressedMediaKey(hash, '../jpg', 'public')).toThrow(
-      /invalid_media_extension/,
-    );
+    expect(() =>
+      buildContentAddressedMediaKey(hash, '../jpg', 'public'),
+    ).toThrow(/invalid_media_extension/);
   });
 
   it('uses the public media base URL for public S3 objects', async () => {
