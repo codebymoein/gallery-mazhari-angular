@@ -1,0 +1,30 @@
+name: Deployment Tooling
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'deploy/**'
+      - '.github/workflows/release-artifact.yml'
+      - '.github/workflows/deployment-tooling.yml'
+      - 'docs/PLATFORM_DEPLOYMENT.md'
+      - 'docs/handbook/14-deployment-operations.md'
+      - 'docs/handbook/16-backup-disaster-recovery.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-deployment-baseline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate shell syntax
+        run: bash -n deploy/release.sh deploy/backup-postgres.sh
+      - name: ShellCheck deployment scripts
+        run: shellcheck deploy/release.sh deploy/backup-postgres.sh
+      - name: Validate systemd unit syntax
+        run: |
+          systemd-analyze verify deploy/gallery-mazhari-backend.service.example
+          systemd-analyze verify deploy/gallery-mazhari-backup.service.example deploy/gallery-mazhari-backup.timer.example
