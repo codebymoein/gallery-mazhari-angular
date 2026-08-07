@@ -34,6 +34,7 @@ export class InventoryHubComponent {
   readonly query = signal('');
   readonly selected = signal<Set<string>>(new Set());
   readonly toast = signal('');
+  readonly bulkPending = signal(false);
   readonly categoryCards = this.inventory.categoryCards;
 
   readonly formatToman = formatToman;
@@ -74,24 +75,19 @@ export class InventoryHubComponent {
 
   bulkDiscount(): void {
     const ids = [...this.selected()];
-    if (!ids.length) return;
-    this.inventory.bulkDiscount(ids, 10);
-    this.afterBulk(`تخفیف ۱۰٪ روی ${ids.length} محصول اعمال شد.`);
-  }
+    if (!ids.length || this.bulkPending()) return;
 
-  bulkOutOfStock(): void {
-    const ids = [...this.selected()];
-    if (!ids.length) return;
-    if (!window.confirm(`آیا ${ids.length} محصول به «ناموجود» تغییر کند؟`)) return;
-    this.inventory.bulkOutOfStock(ids);
-    this.afterBulk(`${ids.length} محصول ناموجود شد.`);
-  }
-
-  bulkSale(): void {
-    const ids = [...this.selected()];
-    if (!ids.length) return;
-    this.inventory.bulkAddToSale(ids);
-    this.afterBulk(`${ids.length} محصول به دسته حراج اضافه شد.`);
+    this.bulkPending.set(true);
+    this.inventory.bulkDiscount(ids, 10).subscribe({
+      next: (result) => {
+        this.bulkPending.set(false);
+        this.afterBulk(`تخفیف ۱۰٪ روی ${result.updated} محصول ثبت شد.`);
+      },
+      error: () => {
+        this.bulkPending.set(false);
+        this.showToast('ثبت تخفیف انجام نشد؛ تغییری به‌صورت محلی ذخیره نشد.');
+      }
+    });
   }
 
   statusLabel(status: string): string {
@@ -106,6 +102,10 @@ export class InventoryHubComponent {
 
   private afterBulk(message: string): void {
     this.selected.set(new Set());
+    this.showToast(message);
+  }
+
+  private showToast(message: string): void {
     this.toast.set(message);
     this.cdr.markForCheck();
     window.setTimeout(() => {

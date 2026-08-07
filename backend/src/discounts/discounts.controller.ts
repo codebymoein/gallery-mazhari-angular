@@ -15,6 +15,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../auth/guards/permissions.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { UserRole } from '../users/entities/user.entity';
+import { BulkProductDiscountDto } from './dto/bulk-product-discount.dto';
 import {
   CreateDiscountRuleDto,
   UpdateDiscountRuleDto,
@@ -44,6 +45,14 @@ export class DiscountsController {
   @Permissions('marketing.manage')
   create(@Body() dto: CreateDiscountRuleDto) {
     return this.discounts.create(dto);
+  }
+
+  @Post('rules/bulk-products')
+  @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
+  @Roles(UserRole.ADMIN, UserRole.STAFF)
+  @Permissions('marketing.manage')
+  bulkProducts(@Body() dto: BulkProductDiscountDto) {
+    return this.discounts.bulkProductDiscount(dto);
   }
 
   @Put('rules/:id')

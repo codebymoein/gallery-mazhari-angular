@@ -6,12 +6,15 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ProductEntity } from '../products/entities/product.entity';
+import { BulkProductDiscountDto } from './dto/bulk-product-discount.dto';
 import {
   CreateDiscountRuleDto,
   UpdateDiscountRuleDto,
 } from './dto/discount-rule.dto';
 import { DiscountRuleEntity } from './entities/discount-rule.entity';
 import { resolveDiscount } from './discount-resolver';
+
+const INVENTORY_BULK_DISCOUNT_TITLE = 'تخفیف گروهی انبار';
 
 @Injectable()
 export class DiscountsService {
@@ -48,6 +51,73 @@ export class DiscountsService {
     const result = await this.rules.delete(id);
     if (!result.affected) throw new NotFoundException('قانون تخفیف پیدا نشد.');
     return { deleted: true };
+  }
+
+  async bulkProductDiscount(dto: BulkProductDiscountDto): Promise<{
+    updated: number;
+    percent: number;
+    productIds: string[];
+  }> {
+    const productIds = [...new Set(dto.productIds)];
+    if (!productIds.length) {
+      throw new BadRequestException('حداقل یک محصول باید انتخاب شود.');
+    }
+
+    return this.rules.manager.transaction(async (manager) => {
+      const productRepo = manager.getRepository(ProductEntity);
+      const ruleRepo = manager.getRepository(DiscountRuleEntity);
+      const query = productRepo
+        .createQueryBuilder('product')
+        .where('product.id IN (:...productIds)', { productIds });
+
+      if (manager.connection.options.type === 'postgres') {
+        query.setLock('pessimistic_write');
+      }
+
+      const products = await query.getMany();
+      if (products.length !== productIds.length) {
+        throw new NotFoundException('یک یا چند محصول انتخاب‌شده پیدا نشد.');
+      }
+
+      const rules: DiscountRuleEntity[] = [];
+      for (const product of products) {
+        const existing = await ruleRepo.findOne({
+          where: {
+            scopeType: 'product',
+            targetKey: product.id,
+            title: INVENTORY_BULK_DISCOUNT_TITLE,
+          },
+        });
+        const rule =
+          existing ||
+          ruleRepo.create({
+            title: INVENTORY_BULK_DISCOUNT_TITLE,
+            scopeType: 'product',
+            targetKey: product.id,
+            targetLabel: `${product.code} — ${product.name}`,
+            percent: dto.percent,
+          });
+
+        Object.assign(rule, {
+          targetLabel: `${product.code} — ${product.name}`,
+          percent: dto.percent,
+          badgeText: `${dto.percent}٪ تخفیف`,
+          priority: 100,
+          active: true,
+          showOnHome: true,
+          startsAt: null,
+          endsAt: null,
+        });
+        rules.push(rule);
+      }
+
+      await ruleRepo.save(rules);
+      return {
+        updated: products.length,
+        percent: dto.percent,
+        productIds: products.map((product) => product.id),
+      };
+    });
   }
 
   async activeRules(homeOnly = false): Promise<DiscountRuleEntity[]> {
