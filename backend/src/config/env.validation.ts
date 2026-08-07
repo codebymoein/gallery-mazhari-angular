@@ -29,12 +29,18 @@ const PRODUCTION_SECRET_FIELDS = [
   'SMTP_PASSWORD',
 ] as const;
 
+const REQUIRED_PRODUCTION_DB_FIELDS = [
+  'DB_HOST',
+  'DB_USERNAME',
+  'DB_PASSWORD',
+  'DB_NAME',
+] as const;
+
 export class EnvironmentVariables {
   @IsOptional()
   @IsNumberString()
   PORT: string;
 
-  /** postgres (default) or sqlite for local development only */
   @IsOptional()
   @IsEnum(['postgres', 'sqlite'])
   DB_TYPE: 'postgres' | 'sqlite';
@@ -46,6 +52,10 @@ export class EnvironmentVariables {
   @IsOptional()
   @IsNumberString()
   DB_PORT: string;
+
+  @IsOptional()
+  @IsNumberString()
+  DB_CONNECT_TIMEOUT_MS: string;
 
   @IsOptional()
   @IsString()
@@ -94,6 +104,22 @@ function normalizeSecret(value: unknown): string {
   return typeof value === 'string' ? value.trim().toLowerCase() : '';
 }
 
+function assertProductionDatabase(config: EnvironmentVariables): void {
+  if (config.NODE_ENV !== 'production') {
+    return;
+  }
+
+  if (config.DB_TYPE === 'sqlite') {
+    throw new Error('Production configuration requires PostgreSQL; sqlite is not allowed.');
+  }
+
+  for (const field of REQUIRED_PRODUCTION_DB_FIELDS) {
+    if (!config[field] || String(config[field]).trim().length === 0) {
+      throw new Error(`Production configuration requires ${field}.`);
+    }
+  }
+}
+
 function assertProductionSecrets(config: EnvironmentVariables): void {
   if (config.NODE_ENV !== 'production') {
     return;
@@ -139,6 +165,7 @@ export function validateEnvironment(
     throw new Error(errors.toString());
   }
 
+  assertProductionDatabase(validatedConfig);
   assertProductionSecrets(validatedConfig);
   return validatedConfig;
 }
