@@ -59,7 +59,9 @@ export { ALL_ENTITIES } from './database/entities';
             database: process.env.DB_NAME,
             entities: ALL_ENTITIES,
             synchronize: false,
-            connectTimeoutMS: Number(process.env.DB_CONNECT_TIMEOUT_MS ?? 10_000),
+            connectTimeoutMS: Number(
+              process.env.DB_CONNECT_TIMEOUT_MS ?? 10_000,
+            ),
           },
     ),
     AuthModule,
