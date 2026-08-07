@@ -3,6 +3,27 @@ import { environment } from '@env/environment';
 import type { StagingProduct } from '@shared/models/staging-product.model';
 import { getPublishedProducts } from './published-products';
 
+const memory = new Map<string, string>();
+const storage: Storage = {
+  get length() {
+    return memory.size;
+  },
+  clear: () => memory.clear(),
+  getItem: (key: string) => memory.get(key) ?? null,
+  key: (index: number) => [...memory.keys()][index] ?? null,
+  removeItem: (key: string) => {
+    memory.delete(key);
+  },
+  setItem: (key: string, value: string) => {
+    memory.set(key, value);
+  }
+};
+
+Object.defineProperty(globalThis, 'localStorage', {
+  configurable: true,
+  value: storage
+});
+
 const product = (id: string, code: string): StagingProduct => ({
   id,
   code,
