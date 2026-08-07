@@ -1,5 +1,15 @@
-import { AfterViewInit, ChangeDetectorRef, Component, OnInit, ViewChild, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import {
+  AfterViewInit,
+  ChangeDetectorRef,
+  Component,
+  DOCUMENT,
+  OnInit,
+  PLATFORM_ID,
+  ViewChild,
+  inject,
+  signal
+} from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { HeaderComponent } from './layout/header/header.component';
@@ -36,6 +46,9 @@ export class AppComponent implements OnInit, AfterViewInit {
   private readonly router = inject(Router);
   private readonly publishedSync = inject(PublishedCatalogSyncService);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly platformId = inject(PLATFORM_ID);
+  private readonly document = inject(DOCUMENT);
+  private readonly isBrowser = isPlatformBrowser(this.platformId);
 
   /** Hide storefront chrome on /admin routes for a focused ops UI. */
   readonly isAdminShell = signal(false);
@@ -43,19 +56,21 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   ngOnInit(): void {
     this.seoService.init();
-    this.publishedSync.refresh();
     this.syncAdminShell(this.router.url);
 
     this.router.events
       .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
       .subscribe((e) => this.syncAdminShell(e.urlAfterRedirects));
 
-    // Force light theme — dark mode toggle removed from the site.
-    document.documentElement.setAttribute('data-theme', 'light');
-    document.body.setAttribute('data-theme', 'light');
-    document.documentElement.classList.remove('dark-mode');
-    document.body.classList.remove('dark-mode');
-    document.documentElement.style.colorScheme = 'light';
+    if (!this.isBrowser) return;
+
+    this.publishedSync.refresh();
+    this.document.documentElement.setAttribute('data-theme', 'light');
+    this.document.body.setAttribute('data-theme', 'light');
+    this.document.documentElement.classList.remove('dark-mode');
+    this.document.body.classList.remove('dark-mode');
+    this.document.documentElement.style.colorScheme = 'light';
+
     try {
       localStorage.removeItem('gm-theme');
       localStorage.removeItem('mazhari_theme');
@@ -65,6 +80,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
+    if (!this.isBrowser) return;
     // The drawer template comes from the conditionally rendered header.
     // Run one stable pass after the ViewChild query has resolved.
     this.cdr.detectChanges();
