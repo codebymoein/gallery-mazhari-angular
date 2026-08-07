@@ -21,7 +21,8 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "migration:run": "node -r ts-node/register ./node_modules/typeorm/cli.js migration:run -d src/database/data-source.ts",
     "migration:revert": "node -r ts-node/register ./node_modules/typeorm/cli.js migration:revert -d src/database/data-source.ts",
-    "migration:show": "node -r ts-node/register ./node_modules/typeorm/cli.js migration:show -d src/database/data-source.ts"
+    "migration:show": "node -r ts-node/register ./node_modules/typeorm/cli.js migration:show -d src/database/data-source.ts",
+    "schema:log": "node -r ts-node/register ./node_modules/typeorm/cli.js schema:log -d src/database/data-source.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
@@ -94,6 +95,14 @@
       "**/*.(t|j)s"
     ],
     "coverageDirectory": "../coverage",
+    "coverageThreshold": {
+      "global": {
+        "statements": 28,
+        "branches": 24,
+        "functions": 31,
+        "lines": 28
+      }
+    },
     "testEnvironment": "node"
   }
 }
