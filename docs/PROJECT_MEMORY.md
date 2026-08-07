@@ -40,7 +40,7 @@ The following are intentional product systems and must not be deleted, flattened
 - Legacy/stale document classification: `docs/operations/STALE_DOCUMENT_REGISTER.md`
 
 ## Current remediation sequence
-Wave 0 is complete. Wave 1 is active. PR-003 through PR-009 have been merged on the approved `main` lineage. The next permitted remediation slice is PR-010 — Server-only inventory commands under RM-07. PR-010 must begin from the approved `main` that contains both the PR-009 merge and this synchronization; no stale PR-010 work branch is authorized as a base. This file records sequence/context only; each RM document and the Master Remediation Roadmap remain authoritative for scope.
+Wave 0 is complete. Wave 1 is active. PR-003 through PR-010 have been completed on the approved `main` lineage, with PR-010 completing the server-only inventory command slice of RM-07. The next permitted remediation slice is PR-011 — Catalog query/cache contract under RM-07, covering direct server query, bounded cache revision/TTL, removal of local-only merge behavior, and stale/conflict UX. PR-011 must begin from the approved `main` after the PR-010 merge; no stale or reused PR-011 work branch is authorized as a base. This file records sequence/context only; each RM document and the Master Remediation Roadmap remain authoritative for scope.
 
 ## Updating this file
 Update Project Memory when repository-wide operating facts change: architecture authority, canonical workflows, governance process, active remediation sequence, canonical operations documentation, or durable handoff information. Do not use it as a scratchpad, secret store, duplicate audit ledger or substitute for task-specific documentation.
