@@ -18,8 +18,22 @@ PostgreSQL منبع اصلی metadata، وضعیت workflow، اتصال عکس 
 - `MEDIA_S3_ACCESS_KEY_ID`
 - `MEDIA_S3_SECRET_ACCESS_KEY`
 - `MEDIA_PUBLIC_BASE_URL`، معمولاً `https://media.gallery-mazhari.ir`
+- `MEDIA_MALWARE_SCAN_MODE=http`
+- `MEDIA_MALWARE_SCAN_URL`
 
 credentialها فقط در backend هستند و نباید داخل Angular، Git یا URL عمومی قرار بگیرند.
+
+### Secure ingest pipeline
+
+Runtime media قبل از attachment این ترتیب را طی می‌کند:
+
+`signature/size validation → malware scan → decode/dimension validation → metadata stripping/re-encode → dedupe → original storage → derivative generation/storage → product attach + media record`
+
+- production بدون scanner معتبر start نمی‌شود.
+- scanner timeout/error/invalid response به‌صورت fail-closed باعث quarantine می‌شود، نه public attachment.
+- decode با Sharp انجام می‌شود و ابعاد بیش از `12000×12000` یا بیش از 80 میلیون pixel رد می‌شوند.
+- EXIF/IPTC/XMP/ICC با re-encode سمت سرور حذف می‌شود.
+- derivativeهای responsive به‌صورت WebP/AVIF در Object Storage ذخیره می‌شوند؛ failure در derivative generation/storage workflow را موفق علامت نمی‌زند.
 
 ### Namespace و cache
 
@@ -28,7 +42,18 @@ credentialها فقط در backend هستند و نباید داخل Angular، G
 - public objectها به‌دلیل content-addressed بودن می‌توانند `Cache-Control: public, max-age=31536000, immutable` داشته باشند.
 - private/quarantine objectها نباید public URL یا مسیر public static داشته باشند.
 
-PR-012 foundation مربوط به original storage و visibility است. انتقال derivativeها، scanning، metadata stripping و reconciliation کامل در PR-013 انجام می‌شود؛ تا آن زمان هیچ فایل local قدیمی صرفاً به‌خاطر وجود adapter جدید حذف نمی‌شود.
+### Reconciliation
+
+Endpoint محافظت‌شده `GET /platform/media/reconciliation` با permission `media.manage` گزارش read-only از این موارد می‌دهد:
+
+- original objectهای مفقود؛
+- derivative objectهای مفقود؛
+- attached assetهایی که دیگر در product photos reference ندارند؛
+- product photoهایی که media asset متناظر ندارند؛
+- legacy/non-content-addressed references؛
+- خطاهای provider هنگام existence check.
+
+این endpoint هیچ repair یا delete انجام نمی‌دهد. حذف/backfill خودکار legacy originals خارج از PR-013 است و فقط بعد از recovery evidence مجاز خواهد بود.
 
 ## Static frontend assets
 
