@@ -15,6 +15,28 @@ permissions:
   contents: read
 
 jobs:
+  lockfile-repair-evidence:
+    name: Lockfile repair evidence
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Regenerate root lockfile without installing runtime artifacts
+        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+      - name: Regenerate backend lockfile without installing runtime artifacts
+        run: npm --prefix backend install --package-lock-only --ignore-scripts --no-audit --no-fund
+      - uses: actions/upload-artifact@v4
+        with:
+          name: regenerated-lockfiles
+          path: |
+            package-lock.json
+            backend/package-lock.json
+          if-no-files-found: error
+          retention-days: 3
+
   frontend:
     name: Frontend lint, test, build
     runs-on: ubuntu-latest
