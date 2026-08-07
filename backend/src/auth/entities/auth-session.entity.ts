@@ -15,11 +15,11 @@ export class AuthSessionEntity {
   @Column({ type: 'uuid' })
   userId: string;
 
-  @Column({ type: 'timestamp' })
+  @Column()
   expiresAt: Date;
 
-  @Column({ type: 'timestamp', nullable: true })
-  revokedAt: Date | null;
+  @Column({ nullable: true })
+  revokedAt?: Date;
 
   @CreateDateColumn()
   createdAt: Date;
