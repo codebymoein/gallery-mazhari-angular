@@ -1,3 +1,4 @@
+import '@angular/compiler';
 import { RenderMode } from '@angular/ssr';
 import { describe, expect, it } from 'vitest';
 
