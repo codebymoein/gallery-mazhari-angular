@@ -41,9 +41,11 @@ The following are intentional product systems and must not be deleted, flattened
 - Legacy/stale document classification: `docs/operations/STALE_DOCUMENT_REGISTER.md`
 
 ## Current remediation sequence
-Wave 0 is complete. Wave 1 implementation slices through PR-015 are complete on the approved `main` lineage. Wave 2 design-system work PR-016/PR-017 is complete. PR-018 removed the proven dormant direct Angular WordPress/WooCommerce product path. PR-019 added a dedicated RM-09 static-analysis evidence workflow, but post-merge artifact inspection showed its dependency analyzer still processed zero modules and the remaining analyzer steps were skipped while job-level `continue-on-error` obscured the failure.
+Wave 0 is complete. Wave 1 implementation slices through PR-015 are complete on the approved `main` lineage. Wave 2 design-system work PR-016/PR-017 is complete. PR-018 removed the proven dormant direct Angular WordPress/WooCommerce product path. PR-019 attempted to establish RM-09 evidence but its analyzer job was invalid; the corrective PR #40 then produced the first trustworthy RM-09 dependency/dead-code/duplication evidence and was merged at `main@d87a0f191d561445f42fb454c6bb94ddf8abca3c`.
 
-The current permitted work is therefore the focused **RM-09 PR-019+ corrective evidence slice**: make dependency-cruiser, Knip and jscpd produce complete trustworthy evidence and make analyzer-health failures visible. No additional legacy deletion is authorized until that evidence is complete. After trustworthy evidence exists, RM-09 continues through small one-capability/path deletion PRs with consumer/runtime-history proof. PR-020 / RM-12 SSR/prerender begins only after the current RM-09 cleanup gate is deliberately closed or the owner explicitly advances the Roadmap.
+The current permitted work is the first small **RM-09 evidence-backed legacy-removal slice**. It retires only the historical one-off WordPress migration preparation/reconciliation scripts after valid static evidence, consumer/package/tool-manifest inspection and Git-history review. The protected Excel dry-run/confirm import, product/variation, inventory, taxonomy, media and publication workflows remain canonical and unchanged. Further RM-09 removals must each repeat candidate-specific usage proof; bulk deletion remains forbidden.
+
+PR-020 / RM-12 SSR/prerender begins only after the RM-09 cleanup gate is deliberately closed or the owner explicitly advances the Roadmap.
 
 This file records sequence/context only; the Master Remediation Roadmap remains authoritative for scope and ordering.
 
