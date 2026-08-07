@@ -104,7 +104,9 @@ export function buildContentAddressedMediaKey(
 }
 
 function assertStorageKey(key: string): void {
-  if (!/^(public|private)\/[a-f0-9]{2}\/[a-f0-9]{64}\.[a-z0-9]{1,10}$/.test(key)) {
+  if (
+    !/^(public|private)\/[a-f0-9]{2}\/[a-f0-9]{64}\.[a-z0-9]{1,10}$/.test(key)
+  ) {
     throw new Error('invalid_media_storage_key');
   }
 }
