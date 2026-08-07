@@ -110,7 +110,9 @@ function assertProductionDatabase(config: EnvironmentVariables): void {
   }
 
   if (config.DB_TYPE === 'sqlite') {
-    throw new Error('Production configuration requires PostgreSQL; sqlite is not allowed.');
+    throw new Error(
+      'Production configuration requires PostgreSQL; sqlite is not allowed.',
+    );
   }
 
   for (const field of REQUIRED_PRODUCTION_DB_FIELDS) {
