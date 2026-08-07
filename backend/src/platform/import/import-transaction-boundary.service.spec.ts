@@ -8,13 +8,15 @@ describe('ImportTransactionBoundaryService', () => {
   const repository = { marker: 'transaction-repository' };
 
   function createHarness(options?: { postgres?: boolean; locked?: boolean }) {
-    const manager = {
-      getRepository: jest.fn(() => repository),
-      query: jest.fn().mockResolvedValue([{ locked: options?.locked ?? true }]),
-    } as unknown as EntityManager;
+    const getRepository = jest.fn(() => repository);
+    const query = jest
+      .fn()
+      .mockResolvedValue([{ locked: options?.locked ?? true }]);
+    const manager = { getRepository, query } as unknown as EntityManager;
 
     const transaction = jest.fn(
-      (work: (manager: EntityManager) => unknown) => Promise.resolve(work(manager)),
+      (work: (manager: EntityManager) => unknown) =>
+        Promise.resolve(work(manager)),
     );
     const dataSource = {
       options: {
@@ -49,9 +51,9 @@ describe('ImportTransactionBoundaryService', () => {
     boundary.onModuleInit();
 
     return {
-      boundary,
       transaction,
-      manager,
+      getRepository,
+      query,
       imports: imports as unknown as {
         handleCommitJob: (job: unknown) => Promise<Record<string, unknown>>;
       },
@@ -65,7 +67,7 @@ describe('ImportTransactionBoundaryService', () => {
     const result = await harness.imports.handleCommitJob({ id: 'job-1' });
 
     expect(harness.transaction).toHaveBeenCalledTimes(1);
-    expect(harness.manager.getRepository).toHaveBeenCalledTimes(6);
+    expect(harness.getRepository).toHaveBeenCalledTimes(6);
     expect(result['runs']).toBe(repository);
     expect(result['products']).toBe(repository);
     expect(result['variations']).toBe(repository);
@@ -80,7 +82,7 @@ describe('ImportTransactionBoundaryService', () => {
 
     await harness.imports.handleCommitJob({ id: 'job-1' });
 
-    expect(harness.manager.query).toHaveBeenCalledWith(
+    expect(harness.query).toHaveBeenCalledWith(
       'SELECT pg_try_advisory_xact_lock($1, $2) AS locked',
       [42016, 1],
     );
@@ -101,7 +103,7 @@ describe('ImportTransactionBoundaryService', () => {
 
     await harness.imports.handleCommitJob({ id: 'job-1' });
 
-    expect(harness.manager.query).not.toHaveBeenCalled();
+    expect(harness.query).not.toHaveBeenCalled();
     expect(harness.originalHandler).toHaveBeenCalledTimes(1);
   });
 });
