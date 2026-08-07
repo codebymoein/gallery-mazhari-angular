@@ -21,9 +21,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Validate shell syntax
-        run: bash -n deploy/release.sh deploy/backup-postgres.sh
+        run: bash -n deploy/release.sh deploy/backup-postgres.sh deploy/backup-media.sh
       - name: ShellCheck deployment scripts
-        run: shellcheck deploy/release.sh deploy/backup-postgres.sh
+        run: shellcheck deploy/release.sh deploy/backup-postgres.sh deploy/backup-media.sh
       - name: Validate systemd unit syntax
         run: |
           systemd-analyze verify deploy/gallery-mazhari-backend.service.example
