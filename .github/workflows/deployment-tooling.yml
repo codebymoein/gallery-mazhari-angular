@@ -39,6 +39,16 @@ jobs:
             deploy/restore-postgres.sh \
             deploy/rollback-release.sh \
             deploy/health-check.sh
+      - name: Prove production restore is fail-closed
+        run: |
+          set +e
+          NODE_ENV=production \
+            RESTORE_TARGET_ENV=recovery \
+            RESTORE_CONFIRM_NON_PRODUCTION=I_UNDERSTAND_THIS_IS_NON_PRODUCTION \
+            bash deploy/restore-postgres.sh missing.dump.age missing.dump.age.sha256
+          status=$?
+          set -e
+          test "$status" -eq 77
       - name: Validate systemd unit syntax
         run: |
           set -euo pipefail
