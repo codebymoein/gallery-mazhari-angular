@@ -189,9 +189,6 @@ export class StagingQueueComponent {
     const drafted = this.catalogDrafts[item.id];
     if (drafted) return drafted;
 
-    // The inventory database contains a few legacy parent slugs (for example
-    // "bridal-jewelry") while the current storefront parent is "jewelry".
-    // The product's canonical subcategory is stable, so resolve by that first.
     const exactSubcategory = this.catalogOptions.find(
       option => option.sub.slug === item.categorySlug
     );
@@ -276,7 +273,9 @@ export class StagingQueueComponent {
       parentCategorySlug: selected.parent.slug,
       hiddenTags: [...this.selectedTags(item)]
     });
-    this.showToast(ok ? 'دسته‌بندی کالا ذخیره شد.' : 'ذخیره دسته‌بندی انجام نشد.');
+    this.showToast(ok
+      ? 'دسته‌بندی کالا ذخیره شد.'
+      : this.catalogFailureMessage());
     this.cdr.markForCheck();
   }
 
@@ -347,8 +346,6 @@ export class StagingQueueComponent {
       highlights: [item.size ? `سایز ${item.size}` : '', `موجودی: ${item.stock}`].filter(Boolean),
       gallery: (item.photos || []).map(photo => photo.url),
       ...stored,
-      // Server descriptions are authoritative and must not be hidden by an
-      // empty/generated edit left in this browser before the migration.
       description: item.description || stored.description || item.notes || `${item.name}، کد کالا ${item.code}`,
       additionalDescription: item.additionalDescription || stored.additionalDescription || ''
     };
@@ -385,18 +382,25 @@ export class StagingQueueComponent {
     const item = this.previewItem();
     if (!item) return;
     const gallery = (this.previewDraft.gallery || []).filter(Boolean);
-    saveCatalogProductEdit(item.id, { ...this.previewDraft, gallery, image: gallery[0] });
     const selected = this.catalogOptions.find(option => option.value === this.catalogValue(item));
+
     if (selected) {
-      await this.queue.updateCatalog(item.id, {
+      const ok = await this.queue.updateCatalog(item.id, {
         category: selected.sub.label,
         categorySlug: selected.sub.slug,
         parentCategory: selected.parent.title,
         parentCategorySlug: selected.parent.slug,
-        hiddenTags: [...this.selectedTags(item)]
-        ,modelSelectionEnabled: !!this.previewDraft.modelSelectionEnabled
+        hiddenTags: [...this.selectedTags(item)],
+        modelSelectionEnabled: !!this.previewDraft.modelSelectionEnabled
       });
+      if (!ok) {
+        this.showToast(this.catalogFailureMessage());
+        this.cdr.markForCheck();
+        return;
+      }
     }
+
+    saveCatalogProductEdit(item.id, { ...this.previewDraft, gallery, image: gallery[0] });
     this.showToast('تمام تنظیمات محصول ذخیره شد.');
     this.closePreview();
     if (this.returnTo.startsWith('/admin/')) {
@@ -535,6 +539,12 @@ export class StagingQueueComponent {
       this.showToast('عکس حذف شد.');
       this.cdr.markForCheck();
     }
+  }
+
+  private catalogFailureMessage(): string {
+    return this.queue.catalogConflict()
+      ? 'این محصول روی سرور تغییر کرده است. صفحه را تازه‌سازی کنید و تغییرات را دوباره اعمال کنید.'
+      : 'ذخیره دسته‌بندی انجام نشد.';
   }
 
   private showToast(message: string): void {
