@@ -4,6 +4,7 @@ import { ProductEntity } from './entities/product.entity';
 import { ProductVariationEntity } from '../platform/import/entities/product-variation.entity';
 import { ProductsController } from './products.controller';
 import { ProductsService } from './products.service';
+import { CatalogContractService } from './catalog-contract.service';
 import { DiscountsModule } from '../discounts/discounts.module';
 
 @Module({
@@ -11,7 +12,7 @@ import { DiscountsModule } from '../discounts/discounts.module';
     TypeOrmModule.forFeature([ProductEntity, ProductVariationEntity]),
     DiscountsModule,
   ],
-  providers: [ProductsService],
+  providers: [ProductsService, CatalogContractService],
   controllers: [ProductsController],
 })
 export class ProductsModule {}
