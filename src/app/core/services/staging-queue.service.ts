@@ -19,7 +19,6 @@ import {
   StagingProduct,
   StagingStatus
 } from '@shared/models/staging-product.model';
-import { tagExcelCategory } from '@shared/utils/excel-category-tagger';
 
 function withPrimaryPhoto(item: StagingProduct): StagingProduct {
   const photos = item.photos || [];
@@ -431,6 +430,12 @@ export class StagingQueueService {
 
   getById(id: string): StagingProduct | undefined {
     return this.itemsSignal().find((item) => item.id === id);
+  }
+
+  getByIdentity(identity: string): StagingProduct | undefined {
+    return this.itemsSignal().find(
+      (item) => item.id === identity || item.code === identity
+    );
   }
 
   private replaceItem(updated: StagingProduct): void {
