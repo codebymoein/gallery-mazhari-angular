@@ -12,7 +12,14 @@ export default defineConfig({
     include: ['src/**/*.spec.ts'],
     environment: 'node',
     coverage: {
-      reporter: ['text', 'html'],
+      provider: 'v8',
+      reporter: ['text', 'html', 'json-summary'],
+      thresholds: {
+        statements: 74,
+        branches: 69,
+        functions: 57,
+        lines: 75,
+      },
     },
   },
 });
