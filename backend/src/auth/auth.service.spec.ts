@@ -10,11 +10,26 @@ import { RecoveryMailService } from './recovery-mail.service';
 
 describe('AuthService', () => {
   let service: AuthService;
-  let users: { findByEmail: jest.Mock; findById: jest.Mock; createUser: jest.Mock; hasAdminUser: jest.Mock };
-  let sessions: { findOne: jest.Mock; update: jest.Mock; save: jest.Mock; create: jest.Mock };
+  let users: {
+    findByEmail: jest.Mock;
+    findById: jest.Mock;
+    createUser: jest.Mock;
+    hasAdminUser: jest.Mock;
+  };
+  let sessions: {
+    findOne: jest.Mock;
+    update: jest.Mock;
+    save: jest.Mock;
+    create: jest.Mock;
+  };
 
   beforeEach(async () => {
-    users = { findByEmail: jest.fn(), findById: jest.fn(), createUser: jest.fn(), hasAdminUser: jest.fn() };
+    users = {
+      findByEmail: jest.fn(),
+      findById: jest.fn(),
+      createUser: jest.fn(),
+      hasAdminUser: jest.fn(),
+    };
     sessions = {
       findOne: jest.fn(),
       update: jest.fn(),
@@ -25,14 +40,28 @@ describe('AuthService', () => {
       providers: [
         AuthService,
         { provide: UsersService, useValue: users },
-        { provide: JwtService, useValue: { sign: jest.fn().mockReturnValue('token') } },
-        { provide: ConfigService, useValue: { get: jest.fn().mockReturnValue('test-secret') } },
+        {
+          provide: JwtService,
+          useValue: { sign: jest.fn().mockReturnValue('token') },
+        },
+        {
+          provide: ConfigService,
+          useValue: { get: jest.fn().mockReturnValue('test-secret') },
+        },
         {
           provide: getRepositoryToken(PasswordResetTokenEntity),
-          useValue: { update: jest.fn(), save: jest.fn(), create: jest.fn(), findOne: jest.fn() },
+          useValue: {
+            update: jest.fn(),
+            save: jest.fn(),
+            create: jest.fn(),
+            findOne: jest.fn(),
+          },
         },
         { provide: getRepositoryToken(AuthSessionEntity), useValue: sessions },
-        { provide: RecoveryMailService, useValue: { sendResetLink: jest.fn() } },
+        {
+          provide: RecoveryMailService,
+          useValue: { sendResetLink: jest.fn() },
+        },
       ],
     }).compile();
     service = module.get<AuthService>(AuthService);
@@ -42,19 +71,43 @@ describe('AuthService', () => {
 
   it('rejects a session immediately when the user is disabled', async () => {
     users.findById.mockResolvedValue({ id: 'u1', isActive: false });
-    sessions.findOne.mockResolvedValue({ id: 's1', userId: 'u1', revokedAt: null, expiresAt: new Date(Date.now() + 60_000) });
+    sessions.findOne.mockResolvedValue({
+      id: 's1',
+      userId: 'u1',
+      revokedAt: null,
+      expiresAt: new Date(Date.now() + 60_000),
+    });
     await expect(service.validateSession('u1', 's1')).resolves.toBeNull();
   });
 
   it('uses live role and permissions rather than JWT claims', async () => {
-    users.findById.mockResolvedValue({ id: 'u1', email: 'a@example.com', isActive: true, role: 'staff', permissions: ['catalog.read'] });
-    sessions.findOne.mockResolvedValue({ id: 's1', userId: 'u1', revokedAt: null, expiresAt: new Date(Date.now() + 60_000) });
-    await expect(service.validateSession('u1', 's1')).resolves.toMatchObject({ role: 'staff', permissions: ['catalog.read'] });
+    users.findById.mockResolvedValue({
+      id: 'u1',
+      email: 'a@example.com',
+      isActive: true,
+      role: 'staff',
+      permissions: ['catalog.read'],
+    });
+    sessions.findOne.mockResolvedValue({
+      id: 's1',
+      userId: 'u1',
+      revokedAt: null,
+      expiresAt: new Date(Date.now() + 60_000),
+    });
+    await expect(service.validateSession('u1', 's1')).resolves.toMatchObject({
+      role: 'staff',
+      permissions: ['catalog.read'],
+    });
   });
 
   it('rejects revoked sessions', async () => {
     users.findById.mockResolvedValue({ id: 'u1', isActive: true });
-    sessions.findOne.mockResolvedValue({ id: 's1', userId: 'u1', revokedAt: new Date(), expiresAt: new Date(Date.now() + 60_000) });
+    sessions.findOne.mockResolvedValue({
+      id: 's1',
+      userId: 'u1',
+      revokedAt: new Date(),
+      expiresAt: new Date(Date.now() + 60_000),
+    });
     await expect(service.validateSession('u1', 's1')).resolves.toBeNull();
   });
 });

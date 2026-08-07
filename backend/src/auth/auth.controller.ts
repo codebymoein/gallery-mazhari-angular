@@ -20,11 +20,17 @@ import { ForgotPasswordDto, ResetPasswordDto } from './dto/password-reset.dto';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService, private readonly config: ConfigService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly config: ConfigService,
+  ) {}
 
   @Post('register')
   @Throttle({ default: { limit: 5, ttl: 60_000 } })
-  async register(@Body() dto: RegisterDto, @Res({ passthrough: true }) response: Response) {
+  async register(
+    @Body() dto: RegisterDto,
+    @Res({ passthrough: true }) response: Response,
+  ) {
     const result = await this.authService.register(dto);
     this.setSessionCookie(response, result.accessToken);
     return { user: result.user };
@@ -32,7 +38,10 @@ export class AuthController {
 
   @Post('login')
   @Throttle({ default: { limit: 8, ttl: 60_000 } })
-  async login(@Body() dto: LoginDto, @Res({ passthrough: true }) response: Response) {
+  async login(
+    @Body() dto: LoginDto,
+    @Res({ passthrough: true }) response: Response,
+  ) {
     const result = await this.authService.login(dto);
     if (!result) throw new UnauthorizedException('Invalid credentials');
     this.setSessionCookie(response, result.accessToken);
@@ -41,7 +50,10 @@ export class AuthController {
 
   @Post('bootstrap-admin')
   @Throttle({ default: { limit: 3, ttl: 3_600_000 } })
-  async bootstrapAdmin(@Body() dto: BootstrapAdminDto, @Res({ passthrough: true }) response: Response) {
+  async bootstrapAdmin(
+    @Body() dto: BootstrapAdminDto,
+    @Res({ passthrough: true }) response: Response,
+  ) {
     const result = await this.authService.bootstrapAdmin(dto);
     this.setSessionCookie(response, result.accessToken);
     return { user: result.user };
@@ -72,12 +84,25 @@ export class AuthController {
 
   @UseGuards(AuthGuard('jwt'))
   @Get('profile')
-  profile(@Request() req: { user: { userId: string; email: string; role: string; permissions: string[] } }) {
+  profile(
+    @Request()
+    req: {
+      user: {
+        userId: string;
+        email: string;
+        role: string;
+        permissions: string[];
+      };
+    },
+  ) {
     return req.user;
   }
 
   private setSessionCookie(response: Response, token: string): void {
-    response.cookie('mazhari_admin_session', token, { ...this.cookieOptions(), maxAge: 7 * 24 * 60 * 60 * 1000 });
+    response.cookie('mazhari_admin_session', token, {
+      ...this.cookieOptions(),
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
   }
 
   private cookieOptions() {

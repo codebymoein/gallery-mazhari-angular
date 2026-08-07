@@ -10,13 +10,20 @@ export class CreateAuthSessions1786000000000 implements MigrationInterface {
           { name: 'userId', type: 'uuid' },
           { name: 'expiresAt', type: 'timestamp' },
           { name: 'revokedAt', type: 'timestamp', isNullable: true },
-          { name: 'createdAt', type: 'timestamp', default: 'CURRENT_TIMESTAMP' },
+          {
+            name: 'createdAt',
+            type: 'timestamp',
+            default: 'CURRENT_TIMESTAMP',
+          },
         ],
       }),
     );
     await queryRunner.createIndex(
       'auth_sessions',
-      new TableIndex({ name: 'IDX_auth_sessions_userId', columnNames: ['userId'] }),
+      new TableIndex({
+        name: 'IDX_auth_sessions_userId',
+        columnNames: ['userId'],
+      }),
     );
   }
 

@@ -6,7 +6,10 @@ import { AuthService } from '../auth.service';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor(configService: ConfigService, private readonly authService: AuthService) {
+  constructor(
+    configService: ConfigService,
+    private readonly authService: AuthService,
+  ) {
     super({
       jwtFromRequest: (request: { headers?: { cookie?: string } }) => {
         const cookie = request?.headers?.cookie || '';
@@ -20,8 +23,12 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
   async validate(payload: { sub: string; sid?: string }) {
     if (!payload.sid) throw new UnauthorizedException('session_required');
-    const principal = await this.authService.validateSession(payload.sub, payload.sid);
-    if (!principal) throw new UnauthorizedException('session_revoked_or_invalid');
+    const principal = await this.authService.validateSession(
+      payload.sub,
+      payload.sid,
+    );
+    if (!principal)
+      throw new UnauthorizedException('session_revoked_or_invalid');
     return principal;
   }
 }
