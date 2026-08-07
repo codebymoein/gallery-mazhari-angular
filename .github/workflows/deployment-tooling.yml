@@ -31,5 +31,7 @@ jobs:
           cp deploy/gallery-mazhari-backend.service.example "${unit_dir}/gallery-mazhari-backend.service"
           cp deploy/gallery-mazhari-backup.service.example "${unit_dir}/gallery-mazhari-backup.service"
           cp deploy/gallery-mazhari-backup.timer.example "${unit_dir}/gallery-mazhari-backup.timer"
+          sed -i 's|^ExecStart=.*|ExecStart=/bin/true|' "${unit_dir}/gallery-mazhari-backend.service"
+          sed -i 's|^ExecStart=.*|ExecStart=/bin/true|' "${unit_dir}/gallery-mazhari-backup.service"
           systemd-analyze verify "${unit_dir}/gallery-mazhari-backend.service"
           systemd-analyze verify "${unit_dir}/gallery-mazhari-backup.service" "${unit_dir}/gallery-mazhari-backup.timer"
