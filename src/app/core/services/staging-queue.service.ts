@@ -52,6 +52,8 @@ export class StagingQueueService {
 
   /** آخرین وضعیت اتصال به سرور — برای نمایش/عیب‌یابی */
   readonly serverSynced = signal(false);
+  /** Conflict آخرین ویرایش catalog؛ برای جلوگیری از پیام موفقیت کاذب در UI. */
+  readonly catalogConflict = signal(false);
 
   readonly items = this.itemsSignal.asReadonly();
   readonly maxPhotos = MAX_STAGING_PHOTOS;
@@ -153,6 +155,7 @@ export class StagingQueueService {
       modelSelectionEnabled?: boolean;
     }
   ): Promise<boolean> {
+    this.catalogConflict.set(false);
     try {
       if (this.hasServerSession() && UUID_PATTERN.test(id)) {
         const saved = await firstValueFrom(this.api.updateCatalog(id, catalog));
@@ -171,7 +174,8 @@ export class StagingQueueService {
       }
       this.persist();
       return true;
-    } catch {
+    } catch (err) {
+      this.catalogConflict.set(err instanceof HttpErrorResponse && err.status === 409);
       return false;
     }
   }
@@ -399,37 +403,26 @@ export class StagingQueueService {
     if (this.canUseServerFor(id)) {
       try {
         const res = await firstValueFrom(this.api.unpublish(id, actor));
-        const updated = withPrimaryPhoto(backendProductToStaging(res));
-        this.replaceItem(updated);
+        this.replaceItem(withPrimaryPhoto(backendProductToStaging(res)));
         this.publishedSync.refresh();
-        this.logOverride(updated, actor);
         return true;
       } catch (err) {
         if (this.asServerRejection(err)) return false;
-        console.warn('StagingQueue: server unpublish failed', err);
-        return false;
+        console.warn('StagingQueue: server unpublish failed — local fallback', err);
       }
     }
-    return this.overrideStatusLocal(id, 'ready_for_approval', actor);
+    return this.unpublishLocal(id, actor);
   }
 
-  async overrideStatus(
-    id: string,
-    status: StagingStatus,
-    actor: string
-  ): Promise<boolean> {
+  async overrideStatus(id: string, status: StagingStatus, actor: string): Promise<boolean> {
     if (this.canUseServerFor(id)) {
       try {
         const res = await firstValueFrom(this.api.overrideStatus(id, status, actor));
-        const updated = withPrimaryPhoto(backendProductToStaging(res));
-        this.replaceItem(updated);
+        this.replaceItem(withPrimaryPhoto(backendProductToStaging(res)));
         this.publishedSync.refresh();
-        this.logOverride(updated, actor);
         return true;
       } catch (err) {
-        if (this.asServerRejection(err)) {
-          return false;
-        }
+        if (this.asServerRejection(err)) return false;
         console.warn('StagingQueue: server status override failed — local fallback', err);
       }
     }
@@ -437,85 +430,126 @@ export class StagingQueueService {
   }
 
   getById(id: string): StagingProduct | undefined {
-    return this.itemsSignal().find((i) => i.id === id);
+    return this.itemsSignal().find((item) => item.id === id);
   }
 
-  getByIdentity(idOrCode: string): StagingProduct | undefined {
-    const key = idOrCode.trim().toUpperCase();
-    return this.itemsSignal().find(
-      (item) => item.id === idOrCode || item.code.trim().toUpperCase() === key
-    );
+  private replaceItem(updated: StagingProduct): void {
+    this.itemsSignal.update(items => items.map(item => item.id === updated.id ? updated : item));
+    this.persist();
   }
 
-  // ------------------------------------------------------------------
-  // منطق محلی (fallback بدون سرور) — همان رفتار قبلی localStorage
-  // ------------------------------------------------------------------
+  private canUseServerFor(id: string): boolean {
+    return this.hasServerSession() && UUID_PATTERN.test(id);
+  }
+
+  private hasServerSession(): boolean {
+    return Boolean(this.auth.user()?.accessToken);
+  }
+
+  private asServerRejection(err: unknown): string | null {
+    if (!(err instanceof HttpErrorResponse)) return null;
+    const response = err.error as { message?: unknown } | null;
+    const message = response?.message;
+    if (Array.isArray(message)) {
+      return message.map(String).join('، ');
+    }
+    return typeof message === 'string' ? message : null;
+  }
+
+  private persist(): void {
+    try {
+      localStorage.setItem(this.storageKey, JSON.stringify(this.itemsSignal()));
+    } catch (err) {
+      console.warn('StagingQueue: persist failed', err);
+    }
+  }
+
+  private load(): StagingProduct[] {
+    try {
+      const raw = localStorage.getItem(this.storageKey);
+      if (!raw) return [];
+      const parsed = JSON.parse(raw) as StagingProduct[];
+      return Array.isArray(parsed) ? collapseDuplicateProducts(parsed) : [];
+    } catch {
+      return [];
+    }
+  }
 
   private applyExcelImportLocal(
     products: StagingProduct[],
     removedOutOfStock: string[],
     meta?: { fileName?: string }
   ): { added: number; removed: number } {
-    const positiveProducts = products.filter((p) => p.stock > 0);
-    const zeroCodes = products.filter((p) => p.stock <= 0).map((p) => p.code.toUpperCase());
-    const positiveCodes = new Set(positiveProducts.map((p) => p.code.toUpperCase()));
-    const removeSet = new Set(
-      [...removedOutOfStock, ...zeroCodes]
-        .map((c) => c.toUpperCase())
-        .filter((code) => !positiveCodes.has(code))
-    );
-    let removed = 0;
+    const existing = this.itemsSignal();
+    const existingByCode = new Map(existing.map((item) => [item.code.toUpperCase(), item]));
+    const incomingCodes = new Set(products.map((item) => item.code.toUpperCase()));
+    const removed = new Set(removedOutOfStock.map(code => code.toUpperCase()));
+    const now = new Date().toISOString();
     let added = 0;
+    let removedCount = 0;
+    const next: StagingProduct[] = [];
 
-    this.itemsSignal.update((list) => {
-      const uniqueList = collapseDuplicateProducts(list);
-      const kept = uniqueList.filter((item) => {
-        if (removeSet.has(item.code.toUpperCase())) {
-          return true;
-        }
-        return true;
-      });
-
-      const existingCodes = new Set(kept.map((i) => i.code.toUpperCase()));
-      const fresh = positiveProducts
-        .filter((p) => !existingCodes.has(p.code.toUpperCase()))
-        .map((p) => withPrimaryPhoto({ ...p, status: 'waiting_photo', isNewImport: true, photos: p.photos || [] }));
-      added = fresh.length;
-
-      const incoming = new Map(positiveProducts.map((p) => [p.code.toUpperCase(), p]));
-      const merged = kept.map((item) => {
-        if (item.status === 'rejected') return item;
-        const next = incoming.get(item.code.toUpperCase());
-        if (!next) {
-          return removeSet.has(item.code.toUpperCase())
-            ? withPrimaryPhoto({
-                ...item,
-                stock: 0,
-                status: 'awaiting_stock',
-                inventoryResumeStatus: item.status === 'awaiting_stock'
-                  ? item.inventoryResumeStatus
-                  : item.status
-              })
-            : item;
-        }
-        return withPrimaryPhoto(migrateOperationalCategory({
+    for (const item of existing) {
+      const code = item.code.toUpperCase();
+      if (item.status === 'rejected') {
+        next.push(item);
+        continue;
+      }
+      if (removed.has(code) || (!incomingCodes.has(code) && item.status === 'published')) {
+        removedCount += 1;
+        next.push({
           ...item,
-          name: next.name,
-          stock: next.stock,
-          variations: next.variations,
-          status:
-            item.status === 'awaiting_stock' && next.stock > 0
-                ? item.inventoryResumeStatus || ((item.photos || []).length ? 'ready_for_approval' : 'waiting_photo')
-                : item.status
+          stock: 0,
+          status: 'awaiting_stock',
+          inventoryResumeStatus: item.status === 'awaiting_stock'
+            ? item.inventoryResumeStatus
+            : item.status
+        });
+        continue;
+      }
+      next.push(item);
+    }
+
+    for (const incoming of products) {
+      if (incoming.stock <= 0) continue;
+      const code = incoming.code.toUpperCase();
+      const current = existingByCode.get(code);
+      if (current?.status === 'rejected') continue;
+      const idx = next.findIndex(item => item.code.toUpperCase() === code);
+      if (idx >= 0) {
+        const previous = next[idx];
+        next[idx] = withPrimaryPhoto({
+          ...previous,
+          name: incoming.name,
+          stock: incoming.stock,
+          price: incoming.price ?? previous.price,
+          size: incoming.size ?? previous.size,
+          material: incoming.material ?? previous.material,
+          isNewImport: previous.isNewImport,
+          status: previous.status === 'awaiting_stock'
+            ? previous.inventoryResumeStatus || 'waiting_photo'
+            : previous.status,
+          inventoryResumeStatus: undefined,
+          importedAt: now
+        });
+      } else {
+        next.push(withPrimaryPhoto({
+          ...incoming,
+          id: incoming.id || `local-${Date.now()}-${Math.random()}`,
+          isNewImport: true,
+          status: 'waiting_photo',
+          importedAt: now,
+          photos: incoming.photos || []
         }));
-      });
+        added += 1;
+      }
+    }
 
-      return [...fresh, ...merged];
-    });
-
+    this.itemsSignal.set(collapseDuplicateProducts(next));
     this.persist();
-    this.logImport(added, removed, meta?.fileName);
-    return { added, removed };
+    this.publishedSync.refresh();
+    this.logImport(added, removedCount, meta?.fileName);
+    return { added, removed: removedCount };
   }
 
   private attachPhotosLocal(
@@ -523,354 +557,143 @@ export class StagingQueueService {
     newPhotos: Array<{ url: string; fileName: string }>,
     processedBy: string
   ): { ok: boolean; total: number; message: string } {
-    let result = { ok: false, total: 0, message: 'محصول یافت نشد.' };
-
-    this.itemsSignal.update((list) =>
-      list.map((item) => {
-        if (item.id !== id) return item;
-        const existing = [...(item.photos || [])];
-        const room = MAX_STAGING_PHOTOS - existing.length;
-        if (room <= 0) {
-          result = {
-            ok: false,
-            total: existing.length,
-            message: `حداکثر ${MAX_STAGING_PHOTOS} عکس مجاز است.`
-          };
-          return item;
-        }
-
-        const slice = newPhotos.slice(0, room).map(
-          (p): StagingPhoto => ({
-            url: p.url,
-            fileName: p.fileName,
-            addedAt: new Date().toISOString()
-          })
-        );
-        const photos = [...existing, ...slice];
-        const updated = withPrimaryPhoto({
-          ...item,
-          photos,
-          status: 'waiting_photo' as StagingStatus,
-          processedAt: new Date().toISOString(),
-          processedBy
-        });
-        result = {
-          ok: true,
-          total: photos.length,
-          message: `${slice.length} عکس افزوده شد (${photos.length}/${MAX_STAGING_PHOTOS}).`
-        };
-        return updated;
-      })
-    );
-
-    if (result.ok) {
-      this.persist();
-      const product = this.getById(id);
-      if (product) {
-        this.logPhotoAttach(product, processedBy);
-      }
+    const item = this.getById(id);
+    if (!item) return { ok: false, total: 0, message: 'محصول پیدا نشد.' };
+    const existing = item.photos || [];
+    if (existing.length + newPhotos.length > MAX_STAGING_PHOTOS) {
+      return {
+        ok: false,
+        total: existing.length,
+        message: `حداکثر ${MAX_STAGING_PHOTOS} عکس برای هر محصول مجاز است.`
+      };
     }
-
-    return result;
+    const now = new Date().toISOString();
+    const photos: StagingPhoto[] = [
+      ...existing,
+      ...newPhotos.map(photo => ({ ...photo, addedAt: now }))
+    ];
+    const updated = withPrimaryPhoto({
+      ...item,
+      photos,
+      processedAt: now,
+      processedBy,
+      status: photos.length ? 'ready_for_approval' : item.status
+    });
+    this.replaceItem(updated);
+    return { ok: true, total: photos.length, message: 'عکس‌ها ذخیره شدند.' };
   }
 
   private removePhotoLocal(id: string, index: number): boolean {
-    let ok = false;
-    this.itemsSignal.update((list) =>
-      list.map((item) => {
-        if (item.id !== id) return item;
-        const photos = [...(item.photos || [])];
-        if (index < 0 || index >= photos.length) return item;
-        photos.splice(index, 1);
-        ok = true;
-        return withPrimaryPhoto(migrateOperationalCategory({
-          ...item,
-          photos,
-          status:
-            photos.length === 0
-              ? ('waiting_photo' as StagingStatus)
-              : item.status
-        }));
-      })
-    );
-    if (ok) this.persist();
-    return ok;
+    const item = this.getById(id);
+    if (!item || index < 0 || index >= (item.photos || []).length) return false;
+    const photos = item.photos.filter((_, i) => i !== index);
+    this.replaceItem(withPrimaryPhoto({ ...item, photos }));
+    return true;
   }
 
   private publishLocal(id: string, publishedBy: string): boolean {
-    let updated: StagingProduct | null = null;
-    this.itemsSignal.update((list) =>
-      list.map((item) => {
-        if (item.id !== id || item.status !== 'ready_for_approval') return item;
-        updated = {
-          ...item,
-          status: 'published' as StagingStatus,
-          publishedAt: new Date().toISOString(),
-          publishedBy
-        };
-        return updated;
-      })
-    );
-    if (updated) {
-      this.persist();
-      this.logPublish(updated as StagingProduct, publishedBy);
-    }
-    return !!updated;
+    const item = this.getById(id);
+    if (!item || item.status !== 'ready_for_approval' || !(item.photos || []).length) return false;
+    this.replaceItem({
+      ...item,
+      status: 'published',
+      publishedAt: new Date().toISOString(),
+      publishedBy
+    });
+    this.publishedSync.refresh();
+    return true;
   }
 
-  private overrideStatusLocal(
-    id: string,
-    status: StagingStatus,
-    actor: string
-  ): boolean {
-    let updated: StagingProduct | null = null;
-    this.itemsSignal.update((list) =>
-      list.map((item) => {
-        if (item.id !== id) return item;
-        const next: StagingProduct = {
-          ...item,
-          status,
-          trashedFromStatus:
-            status === 'rejected' && item.status !== 'rejected'
-              ? item.status
-              : item.status === 'rejected' && status !== 'rejected'
-                ? undefined
-                : item.trashedFromStatus,
-          notes: `وضعیت توسط ${actor} تغییر کرد`
-        };
-        if (status === 'published') {
-          next.publishedAt = new Date().toISOString();
-          next.publishedBy = actor;
-        }
-        if (status === 'ready_for_approval') {
-          next.processedAt = new Date().toISOString();
-          next.processedBy = actor;
-        }
-        updated = withPrimaryPhoto(next);
-        return updated;
-      })
-    );
-    if (updated) {
-      this.persist();
-      this.logOverride(updated as StagingProduct, actor);
-    }
-    return !!updated;
+  private unpublishLocal(id: string, actor: string): boolean {
+    const item = this.getById(id);
+    if (!item || item.status !== 'published') return false;
+    this.replaceItem({
+      ...item,
+      status: 'ready_for_approval',
+      processedBy: actor,
+      publishedAt: undefined,
+      publishedBy: undefined
+    });
+    this.publishedSync.refresh();
+    return true;
   }
 
-  // ------------------------------------------------------------------
-  // کمکی‌ها
-  // ------------------------------------------------------------------
-
-  private hasServerSession(): boolean {
-    return this.auth.isAuthenticated() && !!this.auth.user()?.accessToken;
+  private overrideStatusLocal(id: string, status: StagingStatus, actor: string): boolean {
+    const item = this.getById(id);
+    if (!item) return false;
+    if (item.status === 'published' || status === 'published' || status === 'awaiting_stock') return false;
+    const trashedFromStatus = status === 'rejected'
+      ? item.status
+      : item.status === 'rejected'
+        ? undefined
+        : item.trashedFromStatus;
+    this.replaceItem({
+      ...item,
+      status,
+      trashedFromStatus,
+      processedAt: new Date().toISOString(),
+      processedBy: actor
+    });
+    return true;
   }
 
-  /** فقط رکوردهایی که واقعاً از سرور آمده‌اند (id از نوع UUID) */
-  private canUseServerFor(id: string): boolean {
-    return this.hasServerSession() && UUID_PATTERN.test(id);
+  private logPhotoAttach(item: StagingProduct, actor: string): void {
+    this.activity.log({
+      type: 'photo_attached',
+      title: 'عکس محصول ثبت شد',
+      description: `${item.name} (${item.code}) توسط ${actor}`,
+      productId: item.id,
+      productCode: item.code,
+      actor
+    });
   }
 
-  /** خطاهای اعتبارسنجی سرور (400/404) نباید باعث fallback محلی شوند */
-  private asServerRejection(err: unknown): string | null {
-    const shaped = err as {
-      status?: number;
-      message?: string | string[];
-      error?: { message?: string | string[] };
-      details?: { message?: string | string[] };
-    };
-    const status = err instanceof HttpErrorResponse ? err.status : shaped?.status;
-    if (status === 400 || status === 401 || status === 403 || status === 404) {
-      const message = err instanceof HttpErrorResponse
-        ? (err.error as { message?: string | string[] })?.message
-        : shaped.details?.message ?? shaped.error?.message ?? shaped.message;
-      if (Array.isArray(message)) return message.join('، ');
-      if (typeof message === 'string' && message.trim()) return message;
-      if (status === 401) return 'نشست مدیریت منقضی شده است؛ دوباره وارد پنل شوید.';
-      if (status === 403) return 'این کاربر مجوز ثبت فایل موجودی را ندارد.';
-      return 'درخواست توسط سرور رد شد.';
-    }
-    return null;
-  }
-
-  private replaceItem(updated: StagingProduct): void {
-    this.itemsSignal.update((list) =>
-      list.map((item) => (item.id === updated.id ? updated : item))
-    );
-    this.persist();
+  private logPublish(item: StagingProduct, actor: string): void {
+    this.activity.log({
+      type: 'product_published',
+      title: 'محصول روی سایت منتشر شد',
+      description: `${item.name} (${item.code}) توسط ${actor}`,
+      productId: item.id,
+      productCode: item.code,
+      actor
+    });
   }
 
   private logImport(added: number, removed: number, fileName?: string): void {
-    const user = this.auth.user();
     this.activity.log({
-      action: 'import',
-      actor: user?.username || 'system',
-      actorRole: user?.role || 'staff',
-      summary: `اکسل ${fileName || ''}: ${added} کالای جدید، ${removed} ناموجود حذف شد`
+      type: 'inventory_import',
+      title: 'فایل انبار اعمال شد',
+      description: `${fileName || 'فایل اکسل'} — ${added} محصول جدید، ${removed} محصول ناموجود`,
+      actor: this.auth.user()?.username
     });
   }
-
-  private logPhotoAttach(product: StagingProduct, processedBy: string): void {
-    const user = this.auth.user();
-    this.activity.log({
-      action: 'photo_attach',
-      actor: processedBy,
-      actorRole: user?.role || 'staff',
-      summary: `عکس‌های محصول ${product.code} به‌روزرسانی شد`,
-      entityCode: product.code
-    });
-  }
-
-  private logPublish(product: StagingProduct, publishedBy: string): void {
-    const user = this.auth.user();
-    this.activity.log({
-      action: 'publish',
-      actor: publishedBy,
-      actorRole: user?.role || 'manager',
-      summary: `محصول «${product.name}» منتشر شد`,
-      entityCode: product.code
-    });
-  }
-
-  private logOverride(product: StagingProduct, actor: string): void {
-    const user = this.auth.user();
-    this.activity.log({
-      action: 'status_override',
-      actor,
-      actorRole: user?.role || 'manager',
-      summary: `وضعیت ${product.code} تغییر کرد`,
-      entityCode: product.code
-    });
-  }
-
-  private load(): StagingProduct[] {
-    try {
-      const raw = localStorage.getItem(this.storageKey);
-      if (!raw) {
-        return [];
-      }
-      const parsed = JSON.parse(raw) as StagingProduct[];
-      if (!Array.isArray(parsed)) {
-        return [];
-      }
-      // مهاجرت داده‌های قدیمی بدون photos / parentCategory
-      return collapseDuplicateProducts(parsed.map((item) => {
-        const photos =
-          item.photos?.length
-            ? item.photos
-            : item.photoUrl
-              ? [
-                  {
-                    url: item.photoUrl,
-                    fileName: item.photoFileName || `${item.code}.jpg`,
-                    addedAt: item.processedAt || item.importedAt
-                  }
-                ]
-              : [];
-        const tag = tagExcelCategory(item.category, !!item.isNewImport);
-        return withPrimaryPhoto(migrateOperationalCategory({
-          ...item,
-          photos,
-          stock: item.stock ?? 1,
-          parentCategory:
-            item.parentCategory ||
-            (tag.matched ? tag.parentCategory : 'سایر'),
-          parentCategorySlug:
-            item.parentCategorySlug ||
-            (tag.matched ? tag.parentCategorySlug : 'uncategorized'),
-          categorySlug:
-            item.categorySlug ||
-            (tag.matched ? tag.categorySlug : 'uncategorized'),
-          isNewImport: item.isNewImport
-        }));
-      }));
-    } catch {
-      return [];
-    }
-  }
-
-  private persist(): void {
-    this.write(this.itemsSignal());
-  }
-
-  private write(items: StagingProduct[]): void {
-    try {
-      localStorage.setItem(this.storageKey, JSON.stringify(items));
-    } catch (err) {
-      // سهمیه localStorage پر شده — بدون این هشدار، عکس‌ها بی‌صدا از دست می‌روند.
-      console.warn('StagingQueue: persist failed (localStorage quota?)', err);
-    }
-  }
-}
-
-function migrateOperationalCategory(item: StagingProduct): StagingProduct {
-  const rawCategory = (item.category || '')
-    .trim()
-    .replace(/ي/g, 'ی')
-    .replace(/ك/g, 'ک')
-    .replace(/\s*\/\s*/g, '/');
-
-  if (
-    rawCategory === 'تولیدی' ||
-    rawCategory.startsWith('تولیدی/') ||
-    rawCategory === 'خدمات' ||
-    rawCategory.startsWith('خدمات/')
-  ) {
-    return {
-      ...item,
-      status: 'rejected',
-      trashedFromStatus:
-        item.status !== 'rejected' ? item.status : item.trashedFromStatus
-    };
-  }
-
-  const shouldReclassify =
-    rawCategory.startsWith('حاج بهروز') ||
-    rawCategory.includes('لباس زیر') ||
-    item.parentCategorySlug === NEW_PRODUCT_CATEGORY_SLUG ||
-    item.parentCategorySlug === 'unconventional';
-  if (!shouldReclassify) return item;
-
-  const tag = tagExcelCategory(rawCategory, !!item.isNewImport);
-  if (!tag.matched || tag.parentCategorySlug === 'unconventional') return item;
-  return {
-    ...item,
-    category: tag.category,
-    categorySlug: tag.categorySlug,
-    parentCategory: tag.parentCategory,
-    parentCategorySlug: tag.parentCategorySlug
-  };
 }
 
 function collapseDuplicateProducts(items: StagingProduct[]): StagingProduct[] {
   const byCode = new Map<string, StagingProduct>();
-  const statusRank: Record<StagingStatus, number> = {
-    published: 5,
-    awaiting_stock: 4,
-    ready_for_approval: 3,
-    waiting_photo: 2,
-    rejected: 1
-  };
   for (const item of items) {
-    const key = item.code.trim().toUpperCase();
-    const current = byCode.get(key);
+    const code = item.code?.trim().toUpperCase();
+    if (!code) continue;
+    const current = byCode.get(code);
     if (!current) {
-      byCode.set(key, item);
+      byCode.set(code, item);
       continue;
     }
-    const preferred =
-      statusRank[item.status] > statusRank[current.status] ||
-      (item.photos?.length || 0) > (current.photos?.length || 0)
-        ? item
-        : current;
-    const uniquePhotos = [...(current.photos || []), ...(item.photos || [])].filter(
-      (photo, index, photos) =>
-        photos.findIndex(candidate => candidate.url === photo.url) === index
-    );
-    byCode.set(key, withPrimaryPhoto({
-      ...preferred,
-      stock: Math.max(current.stock, item.stock),
-      photos: uniquePhotos
-    }));
+    const currentPhotos = current.photos?.length || 0;
+    const nextPhotos = item.photos?.length || 0;
+    const currentRank = statusRank(current.status);
+    const nextRank = statusRank(item.status);
+    if (nextPhotos > currentPhotos || (nextPhotos === currentPhotos && nextRank > currentRank)) {
+      byCode.set(code, item);
+    }
   }
   return [...byCode.values()];
+}
+
+function statusRank(status: StagingStatus): number {
+  if (status === 'published') return 5;
+  if (status === 'ready_for_approval') return 4;
+  if (status === 'waiting_photo') return 3;
+  if (status === 'awaiting_stock') return 2;
+  return 1;
 }
