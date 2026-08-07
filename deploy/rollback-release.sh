@@ -8,8 +8,10 @@ fi
 
 target_revision="$1"
 app_root="${APP_ROOT:-/srv/gallery-mazhari}"
-service_name="${BACKEND_SERVICE_NAME:-gallery-mazhari-backend.service}"
+backend_service_name="${BACKEND_SERVICE_NAME:-gallery-mazhari-backend.service}"
+ssr_service_name="${SSR_SERVICE_NAME:-gallery-mazhari-ssr.service}"
 health_url="${BACKEND_READY_URL:-http://127.0.0.1:3000/api/ops/health/ready}"
+ssr_health_url="${SSR_READY_URL:-http://127.0.0.1:4000/}"
 lock_file="${DEPLOY_LOCK_FILE:-/var/lock/gallery-mazhari-deploy.lock}"
 
 case "$target_revision" in
@@ -22,6 +24,10 @@ for command in curl flock readlink systemctl; do
     exit 69
   }
 done
+
+restart_runtime() {
+  systemctl restart "$backend_service_name" && systemctl restart "$ssr_service_name"
+}
 
 exec 9>"$lock_file"
 flock -n 9 || { echo "deployment/rollback operation already running" >&2; exit 75; }
@@ -43,19 +49,20 @@ fi
 ln -sfn "$target_dir" "${current_link}.rollback"
 mv -Tf "${current_link}.rollback" "$current_link"
 
-if ! systemctl restart "$service_name"; then
+if ! restart_runtime; then
   echo "rollback target restart failed" >&2
   if [ -n "$previous_target" ]; then
     ln -sfn "$previous_target" "${current_link}.failed-rollback"
     mv -Tf "${current_link}.failed-rollback" "$current_link"
-    systemctl restart "$service_name" || true
+    restart_runtime || true
   fi
   exit 70
 fi
 
 healthy=false
 for _ in 1 2 3 4 5 6; do
-  if curl --fail --silent --show-error --max-time 5 "$health_url" >/dev/null; then
+  if curl --fail --silent --show-error --max-time 5 "$health_url" >/dev/null \
+    && curl --fail --silent --show-error --max-time 5 "$ssr_health_url" >/dev/null; then
     healthy=true
     break
   fi
@@ -63,11 +70,11 @@ for _ in 1 2 3 4 5 6; do
 done
 
 if [ "$healthy" != true ]; then
-  echo "rollback target failed readiness probe" >&2
+  echo "rollback target failed backend/SSR readiness probe" >&2
   if [ -n "$previous_target" ]; then
     ln -sfn "$previous_target" "${current_link}.failed-rollback"
     mv -Tf "${current_link}.failed-rollback" "$current_link"
-    systemctl restart "$service_name" || true
+    restart_runtime || true
   fi
   exit 70
 fi
