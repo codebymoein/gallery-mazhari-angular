@@ -1,0 +1,57 @@
+name: Remediation program
+about: Track one approved remediation program or finding-scoped task
+labels: []
+body:
+  - type: markdown
+    attributes:
+      value: "Use this template only for work authorized by the Master Remediation Roadmap or an explicitly approved finding scope."
+  - type: input
+    id: program
+    attributes:
+      label: Remediation / task ID
+      placeholder: RM-01 or P10-F01
+    validations:
+      required: true
+  - type: input
+    id: base
+    attributes:
+      label: Approved base SHA
+      description: Exact immutable SHA from which work must begin.
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: In scope
+    validations:
+      required: true
+  - type: textarea
+    id: nonscope
+    attributes:
+      label: Explicit non-scope
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+    validations:
+      required: true
+  - type: textarea
+    id: risks
+    attributes:
+      label: Data / security / workflow risks
+    validations:
+      required: true
+  - type: textarea
+    id: verification
+    attributes:
+      label: Verification plan
+    validations:
+      required: true
+  - type: textarea
+    id: rollback
+    attributes:
+      label: Rollback / recovery plan
+    validations:
+      required: true
