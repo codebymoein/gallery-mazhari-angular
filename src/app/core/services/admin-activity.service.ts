@@ -5,6 +5,23 @@ import {
   AdminActivityEntry
 } from '@shared/models/admin-activity.model';
 
+type CurrentActivityInput = {
+  action: AdminActivityAction;
+  actor: string;
+  actorRole: string;
+  summary: string;
+  entityCode?: string;
+};
+
+type LegacyActivityInput = {
+  type: 'photo_attached' | 'product_published' | 'inventory_import';
+  title: string;
+  description: string;
+  actor?: string;
+  productId?: string;
+  productCode?: string;
+};
+
 @Injectable({ providedIn: 'root' })
 export class AdminActivityService {
   private readonly storageKey = environment.storageKeys.adminActivity;
@@ -12,20 +29,11 @@ export class AdminActivityService {
 
   readonly entries = this.entriesSignal.asReadonly();
 
-  log(input: {
-    action: AdminActivityAction;
-    actor: string;
-    actorRole: string;
-    summary: string;
-    entityCode?: string;
-  }): void {
+  log(input: CurrentActivityInput | LegacyActivityInput): void {
+    const normalized = this.normalize(input);
     const entry: AdminActivityEntry = {
       id: `act-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-      action: input.action,
-      actor: input.actor,
-      actorRole: input.actorRole,
-      summary: input.summary,
-      entityCode: input.entityCode,
+      ...normalized,
       createdAt: new Date().toISOString()
     };
 
@@ -40,6 +48,24 @@ export class AdminActivityService {
   clear(): void {
     this.entriesSignal.set([]);
     this.persist();
+  }
+
+  private normalize(input: CurrentActivityInput | LegacyActivityInput): Omit<AdminActivityEntry, 'id' | 'createdAt'> {
+    if ('action' in input) return input;
+
+    const action: AdminActivityAction = input.type === 'photo_attached'
+      ? 'photo_attach'
+      : input.type === 'product_published'
+        ? 'publish'
+        : 'import';
+
+    return {
+      action,
+      actor: input.actor || 'system',
+      actorRole: 'system',
+      summary: `${input.title} — ${input.description}`,
+      entityCode: input.productCode || input.productId
+    };
   }
 
   private load(): AdminActivityEntry[] {
