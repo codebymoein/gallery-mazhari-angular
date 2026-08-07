@@ -64,6 +64,8 @@ The supported product/inventory ingestion path is the reviewed application workf
 
 The historical one-off scripts `scripts/prepare-wordpress-migration.mjs` and `scripts/reconcile-wordpress-with-inventory.mjs` were retired under RM-09 after valid static-analysis evidence plus consumer/package/history inspection showed no supported caller. They are **not** operational commands and must not be recreated as a parallel product/inventory authority. Any future external migration utility requires an explicit scoped contract, owner, input/output validation, reconciliation/rollback plan and documentation here.
 
+`backend/scripts/tag-products-from-descriptions.ts` is also retired under RM-09. It was a one-off direct SQLite tag backfill and is not a supported operational taxonomy command. Taxonomy/tagging business state must flow through the current NestJS/PostgreSQL platform and its approval/audit semantics; the reusable tagging engine remains part of the supported codebase.
+
 ## Security tools
 
 - Gitleaks: required CI secret scan.
