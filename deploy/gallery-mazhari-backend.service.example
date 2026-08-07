@@ -9,7 +9,7 @@ User=gallerymazhari
 Group=gallerymazhari
 WorkingDirectory=/srv/gallery-mazhari/current/backend
 EnvironmentFile=/etc/gallery-mazhari/backend.env
-ExecStart=/usr/bin/node /srv/gallery-mazhari/current/backend/dist/main.js
+ExecStart=/usr/bin/env node /srv/gallery-mazhari/current/backend/dist/main.js
 Restart=on-failure
 RestartSec=5
 TimeoutStopSec=30
@@ -18,7 +18,7 @@ NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=strict
 ProtectHome=true
-ReadWritePaths=/srv/gallery-mazhari /var/log/gallery-mazhari
+ReadWritePaths=/srv/gallery-mazhari
 
 [Install]
 WantedBy=multi-user.target
