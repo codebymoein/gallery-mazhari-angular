@@ -4,6 +4,7 @@
     "declaration-block-no-duplicate-properties": true,
     "no-duplicate-selectors": true,
     "selector-pseudo-element-no-unknown": true,
-    "property-no-unknown": true
+    "property-no-unknown": true,
+    "selector-attribute-operator-disallowed-list": ["*="]
   }
 }
