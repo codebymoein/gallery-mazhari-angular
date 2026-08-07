@@ -5,7 +5,7 @@ import { ProductEntity } from './entities/product.entity';
 const VERSION = '2026-08-07T12:00:00.000Z';
 
 const product = (value: Partial<ProductEntity> = {}): ProductEntity =>
-  ({
+  Object.assign(new ProductEntity(), {
     id: 'id',
     code: 'CODE',
     name: 'name',
@@ -23,7 +23,7 @@ const product = (value: Partial<ProductEntity> = {}): ProductEntity =>
     createdAt: new Date('2026-08-07T00:00:00.000Z'),
     updatedAt: new Date(VERSION),
     ...value,
-  }) as ProductEntity;
+  });
 
 const catalogDto = (expectedUpdatedAt = VERSION) => ({
   category: 'کفش عروس',
@@ -36,12 +36,12 @@ const catalogDto = (expectedUpdatedAt = VERSION) => ({
 describe('CatalogContractService', () => {
   const manager = {
     findOne: jest.fn(),
-    save: jest.fn(async (_entity: unknown, row: ProductEntity) => row),
+    save: jest.fn((_entity: unknown, row: ProductEntity) => Promise.resolve(row)),
   };
   const repo = {
     manager: {
-      transaction: jest.fn(async (callback: (tx: typeof manager) => unknown) =>
-        callback(manager),
+      transaction: jest.fn((callback: (tx: typeof manager) => unknown) =>
+        Promise.resolve(callback(manager)),
       ),
     },
   };
@@ -53,7 +53,10 @@ describe('CatalogContractService', () => {
 
   it('returns a stable revision and bounded TTL for an unchanged published snapshot', async () => {
     products.getPublished.mockResolvedValue([product({ status: 'published' })]);
-    const service = new CatalogContractService(repo as never, products as never);
+    const service = new CatalogContractService(
+      repo as never,
+      products as never,
+    );
 
     const first = await service.getPublishedSnapshot();
     const second = await service.getPublishedSnapshot();
@@ -66,7 +69,10 @@ describe('CatalogContractService', () => {
 
   it('rejects a stale catalog write before any save occurs', async () => {
     manager.findOne.mockResolvedValue(product());
-    const service = new CatalogContractService(repo as never, products as never);
+    const service = new CatalogContractService(
+      repo as never,
+      products as never,
+    );
 
     await expect(
       service.updateCatalog('id', catalogDto('2026-08-07T11:59:59.000Z')),
@@ -78,7 +84,10 @@ describe('CatalogContractService', () => {
   it('persists a canonical catalog update when the expected version matches', async () => {
     const row = product();
     manager.findOne.mockResolvedValue(row);
-    const service = new CatalogContractService(repo as never, products as never);
+    const service = new CatalogContractService(
+      repo as never,
+      products as never,
+    );
 
     const saved = await service.updateCatalog('id', catalogDto());
 
