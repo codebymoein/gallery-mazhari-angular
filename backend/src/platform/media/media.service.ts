@@ -155,7 +155,8 @@ export class MediaService {
             p.fileName === safeName ||
             (role === 'primary' && p.role === 'primary') ||
             (parsed.sequence != null &&
-              parseProductImageFilename(p.fileName).sequence === parsed.sequence),
+              parseProductImageFilename(p.fileName).sequence ===
+                parsed.sequence),
         );
         if (conflict) {
           const q = await this.quarantine(
