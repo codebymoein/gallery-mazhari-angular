@@ -10,27 +10,30 @@ describe('ImportTransactionBoundaryService', () => {
   function createHarness(options?: { postgres?: boolean; locked?: boolean }) {
     const manager = {
       getRepository: jest.fn(() => repository),
-      query: jest.fn().mockResolvedValue([
-        { locked: options?.locked ?? true },
-      ]),
+      query: jest.fn().mockResolvedValue([{ locked: options?.locked ?? true }]),
     } as unknown as EntityManager;
 
+    const transaction = jest.fn(
+      (work: (manager: EntityManager) => unknown) => Promise.resolve(work(manager)),
+    );
     const dataSource = {
-      options: { type: options?.postgres === false ? 'better-sqlite3' : 'postgres' },
-      transaction: jest.fn(async (work: (manager: EntityManager) => unknown) =>
-        work(manager),
-      ),
+      options: {
+        type: options?.postgres === false ? 'better-sqlite3' : 'postgres',
+      },
+      transaction,
     } as unknown as DataSource;
 
-    const originalHandler = jest.fn(async function (this: Record<string, unknown>) {
-      return {
+    const originalHandler = jest.fn(function (
+      this: Record<string, unknown>,
+    ): Promise<Record<string, unknown>> {
+      return Promise.resolve({
         runs: this['runs'],
         products: this['products'],
         variations: this['variations'],
         inventoryAudits: this['inventoryAudits'],
         productTags: this['productTags'],
         audit: this['audit'],
-      };
+      });
     });
 
     const imports = {
@@ -47,7 +50,7 @@ describe('ImportTransactionBoundaryService', () => {
 
     return {
       boundary,
-      dataSource,
+      transaction,
       manager,
       imports: imports as unknown as {
         handleCommitJob: (job: unknown) => Promise<Record<string, unknown>>;
@@ -61,7 +64,7 @@ describe('ImportTransactionBoundaryService', () => {
 
     const result = await harness.imports.handleCommitJob({ id: 'job-1' });
 
-    expect(harness.dataSource.transaction).toHaveBeenCalledTimes(1);
+    expect(harness.transaction).toHaveBeenCalledTimes(1);
     expect(harness.manager.getRepository).toHaveBeenCalledTimes(6);
     expect(result['runs']).toBe(repository);
     expect(result['products']).toBe(repository);
