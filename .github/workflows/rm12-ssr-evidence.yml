@@ -36,7 +36,7 @@ jobs:
 
           ready=false
           for _ in 1 2 3 4 5 6 7 8 9 10; do
-            if curl --fail --silent --show-error http://127.0.0.1:4000/ > home.html; then
+            if curl --fail --silent --show-error -H 'Host: gallery-mazhari.ir' http://127.0.0.1:4000/ > home.html; then
               ready=true
               break
             fi
@@ -51,9 +51,11 @@ jobs:
           grep -F 'name="description"' home.html
           grep -F 'rel="canonical"' home.html
 
-          status=$(curl --silent --show-error --output missing.html --write-out '%{http_code}' http://127.0.0.1:4000/this-route-must-not-exist)
+          status=$(curl --silent --show-error -H 'Host: gallery-mazhari.ir' --output missing.html --write-out '%{http_code}' http://127.0.0.1:4000/this-route-must-not-exist)
+          echo "unknown route status=${status}"
           test "$status" = '404'
           grep -F 'صفحه پیدا نشد | گالری مظهری' missing.html
+          grep -F 'name="robots" content="noindex' missing.html
       - uses: actions/upload-artifact@v4
         if: always()
         with:
