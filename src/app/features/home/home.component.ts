@@ -1,4 +1,5 @@
-import { Component, computed, inject } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { Component, PLATFORM_ID, computed, inject } from '@angular/core';
 
 import { RouterLink } from '@angular/router';
 import { CategoryShowcaseComponent } from './components/category-showcase/category-showcase.component';
@@ -25,12 +26,14 @@ import { assetUrl } from '@shared/utils/asset-url';
     TrustGuaranteesComponent,
     DiscountShowcaseComponent,
     SubcategoryCarouselComponent
-],
+  ],
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.css']
 })
 export class HomeComponent {
   private readonly appearanceApi = inject(AppearanceApiService);
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
+
   readonly bridalImage = computed(() =>
     this.appearanceApi.appearance()?.bridalHeroImage || assetUrl('assets/images/home-hero-bride.webp')
   );
@@ -39,6 +42,10 @@ export class HomeComponent {
   );
 
   constructor() {
-    this.appearanceApi.load();
+    // Appearance customization is decorative and has deterministic fallback assets.
+    // Do not make SSR metadata/status rendering depend on an external appearance API.
+    if (this.isBrowser) {
+      this.appearanceApi.load();
+    }
   }
 }
