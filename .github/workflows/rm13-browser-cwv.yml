@@ -1,0 +1,97 @@
+name: RM-13 Browser and CWV Evidence
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  CI: true
+  DB_TYPE: sqlite
+  DB_SQLITE_PATH: /tmp/gallery-mazhari-rm13.sqlite
+  FRONTEND_ORIGIN: http://127.0.0.1:4200
+  BACKEND_PUBLIC_URL: http://127.0.0.1:3000
+  JWT_SECRET: ci_only_jwt_secret_not_for_production
+  ADMIN_SETUP_KEY: ci_only_admin_setup_key
+  NODE_ENV: test
+  E2E_BASE_URL: http://127.0.0.1:4200
+  E2E_API_URL: http://127.0.0.1:3000
+
+jobs:
+  browser-matrix:
+    name: Chromium Firefox WebKit and constrained profile
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            backend/package-lock.json
+      - run: npm ci
+      - run: npm --prefix backend ci
+      - run: npx playwright install --with-deps chromium firefox webkit
+      - name: Run RM-13 browser reliability matrix
+        run: npx playwright test --config=playwright.rm13.config.ts
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: rm13-browser-report
+          path: playwright-report-rm13
+          retention-days: 14
+
+  lighthouse-cwv:
+    name: Lighthouse mobile CWV budgets
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            backend/package-lock.json
+      - run: npm ci
+      - run: npm --prefix backend ci
+      - name: Build production storefront
+        run: npm run build:prod
+      - name: Start production storefront artifact
+        shell: bash
+        run: |
+          python3 -m http.server 4200 --bind 127.0.0.1 --directory dist/gallery-mazhari-angular/browser > /tmp/rm13-frontend.log 2>&1 &
+          echo $! > /tmp/rm13-frontend.pid
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:4200/ >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/rm13-frontend.log
+          exit 1
+      - name: Run pinned Lighthouse CI budgets
+        run: npx --yes @lhci/cli@0.15.1 autorun --config=./lighthouserc.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: rm13-lighthouse-report
+          path: reports/lighthouse
+          retention-days: 14
+      - name: Stop production storefront artifact
+        if: always()
+        shell: bash
+        run: |
+          if [[ -f /tmp/rm13-frontend.pid ]]; then
+            kill "$(cat /tmp/rm13-frontend.pid)" || true
+          fi
