@@ -1,10 +1,13 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { DataSource } from 'typeorm';
+import type { WebVitalDto } from './dto/web-vital.dto';
 
 @Injectable()
 export class ObservabilityService {
+  private readonly logger = new Logger(ObservabilityService.name);
+
   constructor(private readonly dataSource: DataSource) {}
 
   live() {
@@ -58,6 +61,16 @@ export class ObservabilityService {
       `gallery_process_heap_used_bytes ${memory.heapUsed}`,
       '',
     ].join('\n');
+  }
+
+  recordWebVital(metric: WebVitalDto): void {
+    this.logger.log({
+      event: 'web_vital',
+      name: metric.name,
+      value: Number(metric.value.toFixed(metric.name === 'CLS' ? 4 : 2)),
+      route: metric.route,
+      navigationType: metric.navigationType,
+    });
   }
 
   private readText(path: string): string | null {
