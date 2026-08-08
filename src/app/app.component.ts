@@ -1,6 +1,4 @@
 import {
-  AfterViewInit,
-  ChangeDetectorRef,
   Component,
   DOCUMENT,
   OnInit,
@@ -38,7 +36,7 @@ import { PublishedCatalogSyncService } from './core/services/published-catalog-s
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
-export class AppComponent implements OnInit, AfterViewInit {
+export class AppComponent implements OnInit {
   title = 'گالری مظهری';
 
   @ViewChild('header') headerRef?: HeaderComponent;
@@ -46,7 +44,6 @@ export class AppComponent implements OnInit, AfterViewInit {
   private readonly seoService = inject(SeoService);
   private readonly router = inject(Router);
   private readonly publishedSync = inject(PublishedCatalogSyncService);
-  private readonly cdr = inject(ChangeDetectorRef);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly document = inject(DOCUMENT);
   private readonly isBrowser = isPlatformBrowser(this.platformId);
@@ -58,6 +55,7 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   constructor() {
     afterNextRender(() => {
+      if (!this.isBrowser) return;
       this.publishedSync.refresh();
       this.applyBrowserTheme();
       this.browserToolsReady.set(true);
@@ -71,13 +69,6 @@ export class AppComponent implements OnInit, AfterViewInit {
     this.router.events
       .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
       .subscribe((e) => this.syncAdminShell(e.urlAfterRedirects));
-  }
-
-  ngAfterViewInit(): void {
-    if (!this.isBrowser) return;
-    // The drawer template comes from the conditionally rendered header.
-    // Run one stable pass after the ViewChild query has resolved.
-    this.cdr.detectChanges();
   }
 
   private applyBrowserTheme(): void {
