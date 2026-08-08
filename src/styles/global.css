@@ -84,6 +84,17 @@ input:focus-visible {
   outline-offset: 2px;
 }
 
+/* CI-blocking WCAG AA contrast repairs discovered by the required axe suite.
+   Component-scoped Angular rules load with generated attribute specificity,
+   so these accessibility corrections must win the cascade deterministically. */
+.bridal-catalog__custom-request b {
+  color: var(--color-white) !important;
+}
+
+.contact__branch-num {
+  color: var(--color-gold-hover) !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

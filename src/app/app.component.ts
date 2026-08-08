@@ -18,6 +18,7 @@ import { WeddingTimelineWidgetComponent } from './shared/components/wedding-time
 import { ConsultationToastComponent } from './shared/components/consultation-toast/consultation-toast.component';
 import { ArMagicMirrorComponent } from './shared/components/ar-magic-mirror/ar-magic-mirror.component';
 import { SeoService } from './core/services/seo.service';
+import { PerformanceHintsService } from './core/services/performance-hints.service';
 import { PublishedCatalogSyncService } from './core/services/published-catalog-sync.service';
 
 @Component({
@@ -42,6 +43,7 @@ export class AppComponent implements OnInit {
   @ViewChild('header') headerRef?: HeaderComponent;
 
   private readonly seoService = inject(SeoService);
+  private readonly performanceHints = inject(PerformanceHintsService);
   private readonly router = inject(Router);
   private readonly publishedSync = inject(PublishedCatalogSyncService);
   private readonly platformId = inject(PLATFORM_ID);
@@ -64,6 +66,7 @@ export class AppComponent implements OnInit {
 
   ngOnInit(): void {
     this.seoService.init();
+    this.performanceHints.init();
     this.syncAdminShell(this.router.url);
 
     this.router.events
