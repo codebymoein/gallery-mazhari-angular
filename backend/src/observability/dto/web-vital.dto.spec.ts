@@ -22,7 +22,7 @@ describe('WebVitalDto', () => {
     });
 
     const errors = await validate(dto);
-    expect(errors.map(error => error.property)).toEqual(
+    expect(errors.map((error) => error.property)).toEqual(
       expect.arrayContaining(['name', 'route']),
     );
   });
@@ -41,7 +41,11 @@ describe('WebVitalDto', () => {
       navigationType: 'reload',
     });
 
-    expect((await validate(negative)).some(error => error.property === 'value')).toBe(true);
-    expect((await validate(excessive)).some(error => error.property === 'value')).toBe(true);
+    expect(
+      (await validate(negative)).some((error) => error.property === 'value'),
+    ).toBe(true);
+    expect(
+      (await validate(excessive)).some((error) => error.property === 'value'),
+    ).toBe(true);
   });
 });
