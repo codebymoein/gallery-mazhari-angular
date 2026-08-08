@@ -42,7 +42,7 @@ for route in / /catalog /contact; do
   target="${tmp_dir}/$(printf '%s' "$route" | tr '/?' '__').html"
   fetch_storefront "$route" "$target"
   grep -Eiq '<title>[^<]+' "$target" || { echo "missing title on ${route}" >&2; exit 70; }
-  grep -Eiq '<link[^>]+rel=["'"']canonical["'"']' "$target" || { echo "missing canonical on ${route}" >&2; exit 70; }
+  grep -Eiq "<link[^>]+rel=['\"]canonical['\"]" "$target" || { echo "missing canonical on ${route}" >&2; exit 70; }
 done
 
 sitemap="${tmp_dir}/sitemap.xml"
