@@ -3,6 +3,7 @@ import { Component, HostListener, OnDestroy, OnInit, PLATFORM_ID, inject } from 
 
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
+import { SeoService } from '@core/services/seo.service';
 import { ShoppingContextService } from '@core/services/shopping-context.service';
 import {
   BRIDAL_COLLECTION_CATEGORIES,
@@ -21,6 +22,7 @@ import {
 export class CollectionPageComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly shoppingContext = inject(ShoppingContextService);
+  private readonly seo = inject(SeoService);
   private readonly document = inject(DOCUMENT);
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   private sub?: Subscription;
@@ -39,6 +41,7 @@ export class CollectionPageComponent implements OnInit, OnDestroy {
       this.isAllDresses = this.activeCollection.slug === 'bridal-clothing';
       this.products = productsForCategory(this.activeCollection.slug);
       this.visibleCount = Math.min(this.products.length, this.rowsPerBatch());
+      this.applyCollectionSeo();
       this.shoppingContext.rememberPath(['/collections', this.activeCollection.slug]);
       this.scrollToTop();
     });
@@ -65,6 +68,17 @@ export class CollectionPageComponent implements OnInit, OnDestroy {
     if (remaining < view.innerHeight * 1.5) {
       this.visibleCount = Math.min(this.products.length, this.visibleCount + this.rowsPerBatch());
     }
+  }
+
+  private applyCollectionSeo(): void {
+    const collection = this.activeCollection;
+    this.seo.applyCollectionSeo({
+      title: `${collection.title} | گالری مظهری`,
+      description: `مشاهده ${collection.title} و مدل‌های منتخب لباس عروس در گالری مظهری.`,
+      canonicalPath: `/collections/${collection.slug}`,
+      image: collection.image,
+      imageAlt: collection.title
+    });
   }
 
   private rowsPerBatch(): number {
