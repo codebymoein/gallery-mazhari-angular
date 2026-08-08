@@ -22,6 +22,10 @@ If documents conflict, the conflict must be reconciled in a PR; do not silently 
 | Engineering operating rules | `docs/handbook/README.md` | Tech Lead + domain owners |
 | Project operational context | `docs/PROJECT_MEMORY.md` | Tech Lead |
 | Remediation execution | Master Remediation Roadmap + `docs/remediation/` records | Tech Lead + RM owner |
+| Post-remediation product planning / backlog | `docs/product/PRODUCT_ROADMAP.md` + `docs/product/BACKLOG.md` | Product Owner + Tech Lead |
+| Feature/change specification | `docs/product/FEATURE_TEMPLATE.md` | Product Owner + Tech Lead + domain owner |
+| Post-remediation development lifecycle | `docs/engineering/DEVELOPMENT_WORKFLOW.md` | Tech Lead + domain owners |
+| Product development Definition of Done | `docs/engineering/DEFINITION_OF_DONE.md` | Tech Lead + QA + domain owners |
 | Environment configuration | `docs/operations/ENVIRONMENT.md` | Backend/DevOps |
 | Secrets and rotation | `docs/operations/SECRETS.md` | Security/DevOps |
 | Commands/migrations/tools | `docs/operations/TOOL_MANIFEST.md` | Tech Lead + DevOps |
