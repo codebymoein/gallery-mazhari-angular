@@ -39,13 +39,15 @@ The following are intentional product systems and must not be deleted, flattened
 - Tool/migration manifest: `docs/operations/TOOL_MANIFEST.md`
 - Documentation ownership/index: `docs/DOCUMENTATION_INDEX.md`
 - Legacy/stale document classification: `docs/operations/STALE_DOCUMENT_REGISTER.md`
+- Production certification protocol: `docs/release/PRODUCTION_CERTIFICATION.md`
+- Release risk register: `docs/release/OPEN_RISK_REGISTER.md`
 
 ## Current remediation sequence
-Wave 0 is complete. Wave 1 implementation slices through PR-015 are complete on the approved `main` lineage. Wave 2 design-system work PR-016/PR-017 is complete. PR-018 removed the proven dormant direct Angular WordPress/WooCommerce product path. PR-019 attempted to establish RM-09 evidence but its analyzer job was invalid; corrective PR #40 produced the first trustworthy RM-09 dependency/dead-code/duplication evidence. PR #41 then retired the proven one-off WordPress migration preparation/reconciliation tools and merged at `main@d9844c1a67246f267751c539ad1d7b15c34b808a`. The final approved RM-09 cleanup slice merged via PR #42, closing the legacy-removal gate and allowing Wave 3 to begin.
+Wave 0 and Waves 1–3 implementation slices are complete on the approved `main` lineage through PR-024. RM-12 SSR/SEO, RM-13 browser/CWV and RM-14 accessibility evidence are established as permanent regression gates.
 
-PR-020 / RM-12 establishes the SSR/hydration foundation: indexable public routes are server-rendered, private/admin routes remain client-rendered with noindex policy, unknown routes return a true HTTP 404, browser-only effects are guarded for server execution, and the immutable release/deployment path includes a supervised Angular SSR runtime. Dedicated RM-12 CI evidence verifies the production server bundle, raw HTML title/description/canonical output, and true 404 behavior. Accessibility contrast debt remains explicitly deferred to RM-14 and is non-blocking for this slice.
+PR-024 / RM-14 merged at `main@ab168119bced3f3809aa5764f6be5364da98794e`, adding focus management, expanded Axe/keyboard/reflow evidence and the manual VoiceOver/NVDA acceptance protocol.
 
-After PR-020 is merged on the approved `main` lineage, the next Roadmap slice is PR-021 under RM-12 for dynamic entity metadata, structured-data lifecycle, sitemap indexes and redirect/canonical governance. RM-13 performance/CWV and RM-14 accessibility remediation remain separate subsequent programs.
+The active and final Roadmap slice is PR-025 / RM-17 — Production Certification and Controlled Launch. It owns exact-SHA release provenance validation, production-like crawler/smoke evidence, staging certification records, open-risk disposition, rollback/restore rehearsal evidence, Business UAT and controlled-launch authorization. Automated evidence cannot replace human Business Owner risk acceptance, UAT sign-off or production GO authorization.
 
 This file records sequence/context only; the Master Remediation Roadmap remains authoritative for scope and ordering.
 
