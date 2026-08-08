@@ -9,6 +9,7 @@ import {
   ViewChild,
   inject
 } from '@angular/core';
+import { A11yModule } from '@angular/cdk/a11y';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink, NavigationEnd } from '@angular/router';
 import { Subscription, filter } from 'rxjs';
@@ -19,7 +20,7 @@ import { getBridalProductById } from '@shared/data/bridal-collection-categories'
 @Component({
   selector: 'app-dream-canvas-widget',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [A11yModule, CommonModule, RouterLink],
   templateUrl: './dream-canvas-widget.component.html',
   styleUrls: ['./dream-canvas-widget.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -85,6 +86,7 @@ export class DreamCanvasWidgetComponent implements AfterViewInit, OnDestroy {
     };
     requestAnimationFrame(() => {
       restoreViewport();
+      this.triggerBtn?.nativeElement.focus({ preventScroll: true });
       requestAnimationFrame(restoreViewport);
     });
   }
