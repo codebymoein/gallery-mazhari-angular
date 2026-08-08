@@ -26,7 +26,7 @@ interface DiscoveryCategory {
 export class SubcategoryCarouselComponent {
   @ViewChild('track') private track?: ElementRef<HTMLElement>;
 
-  readonly items: DiscoveryCategory[] = this.shuffle(
+  readonly items: DiscoveryCategory[] = this.stableDiscoveryOrder(
     CATALOG_CATEGORIES.flatMap(category => {
       if (!category.subcategories.length) {
         return [{
@@ -59,12 +59,19 @@ export class SubcategoryCarouselComponent {
     onImgErrorUseFallback(event);
   }
 
-  private shuffle<T>(values: T[]): T[] {
-    const result = [...values];
-    for (let index = result.length - 1; index > 0; index--) {
-      const randomIndex = Math.floor(Math.random() * (index + 1));
-      [result[index], result[randomIndex]] = [result[randomIndex], result[index]];
+  private stableDiscoveryOrder<T extends DiscoveryCategory>(values: T[]): T[] {
+    return [...values].sort((left, right) =>
+      this.stableHash(`${left.parentTitle}/${left.title}`) -
+      this.stableHash(`${right.parentTitle}/${right.title}`)
+    );
+  }
+
+  private stableHash(value: string): number {
+    let hash = 2166136261;
+    for (let index = 0; index < value.length; index++) {
+      hash ^= value.charCodeAt(index);
+      hash = Math.imul(hash, 16777619);
     }
-    return result;
+    return hash >>> 0;
   }
 }
