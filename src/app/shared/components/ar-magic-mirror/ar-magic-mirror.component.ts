@@ -8,6 +8,7 @@ import {
   ViewChild,
   inject
 } from '@angular/core';
+import { A11yModule } from '@angular/cdk/a11y';
 
 import { Subscription } from 'rxjs';
 import { ArMagicMirrorService } from '@core/services/ar-magic-mirror.service';
@@ -23,7 +24,7 @@ export interface ArAccessory {
 @Component({
   selector: 'app-ar-magic-mirror',
   standalone: true,
-  imports: [],
+  imports: [A11yModule],
   templateUrl: './ar-magic-mirror.component.html',
   styleUrls: ['./ar-magic-mirror.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -57,6 +58,7 @@ export class ArMagicMirrorComponent implements OnDestroy {
   private stream: MediaStream | null = null;
   private openSub?: Subscription;
   private leaveTimer?: ReturnType<typeof setTimeout>;
+  private previouslyFocusedElement: HTMLElement | null = null;
 
   constructor() {
     this.openSub = this.mirror.isOpen$.subscribe(open => {
@@ -135,6 +137,9 @@ export class ArMagicMirrorComponent implements OnDestroy {
   }
 
   private async openMirror(): Promise<void> {
+    this.previouslyFocusedElement = document.activeElement instanceof HTMLElement
+      ? document.activeElement
+      : null;
     this.isOpen = true;
     this.isEntering = true;
     this.isLeaving = false;
@@ -175,6 +180,12 @@ export class ArMagicMirrorComponent implements OnDestroy {
       this.isLeaving = false;
       this.cameraReady = false;
       this.cdr.markForCheck();
+      requestAnimationFrame(() => {
+        if (this.previouslyFocusedElement?.isConnected) {
+          this.previouslyFocusedElement.focus({ preventScroll: true });
+        }
+        this.previouslyFocusedElement = null;
+      });
     }, 320);
   }
 
