@@ -28,7 +28,6 @@ done
 required_paths=(
   "REVISION"
   "BUILD.json"
-  "frontend/browser/index.html"
   "frontend/server/server.mjs"
   "backend/dist/main.js"
   "deploy/release.sh"
@@ -42,6 +41,11 @@ for path in "${required_paths[@]}"; do
     exit 66
   fi
 done
+
+if [ ! -f "${release_dir}/frontend/browser/index.html" ] && [ ! -f "${release_dir}/frontend/browser/index.csr.html" ]; then
+  echo "release candidate is incomplete: missing frontend/browser/index.html or index.csr.html" >&2
+  exit 66
+fi
 
 actual_revision="$(tr -d '\r\n' < "${release_dir}/REVISION")"
 if [ "$actual_revision" != "$expected_sha" ]; then
