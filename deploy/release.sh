@@ -12,14 +12,20 @@ app_root="${APP_ROOT:-/srv/gallery-mazhari}"
 env_file="${BACKEND_ENV_FILE:-/etc/gallery-mazhari/backend.env}"
 backend_service_name="${BACKEND_SERVICE_NAME:-gallery-mazhari-backend.service}"
 ssr_service_name="${SSR_SERVICE_NAME:-gallery-mazhari-ssr.service}"
+runtime_group="${RELEASE_RUNTIME_GROUP:-gallerymazhari}"
 lock_file="${DEPLOY_LOCK_FILE:-/var/lock/gallery-mazhari-deploy.lock}"
 
-for command in sha256sum tar node systemctl flock readlink; do
+for command in sha256sum tar node systemctl flock readlink getent chgrp chmod; do
   command -v "$command" >/dev/null 2>&1 || {
     echo "required command missing: $command" >&2
     exit 69
   }
 done
+
+getent group "$runtime_group" >/dev/null 2>&1 || {
+  echo "release runtime group does not exist: $runtime_group" >&2
+  exit 78
+}
 
 restart_runtime() {
   systemctl restart "$backend_service_name" && systemctl restart "$ssr_service_name"
@@ -75,6 +81,12 @@ if [ "$certification_status" -ne 0 ]; then
   rm -rf "$staging_dir"
   exit "$certification_status"
 fi
+
+# Artifacts can be extracted under a restrictive deployment umask. Keep root as
+# owner, but grant the dedicated runtime group read/traverse access before the
+# immutable release is activated. World access remains explicitly denied.
+chgrp -R "$runtime_group" "$staging_dir"
+chmod -R g+rX,o-rwx "$staging_dir"
 
 mv "$staging_dir" "$release_dir"
 
