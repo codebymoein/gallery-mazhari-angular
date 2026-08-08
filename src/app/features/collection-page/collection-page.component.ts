@@ -1,3 +1,4 @@
+import { DOCUMENT } from '@angular/common';
 import { Component, HostListener, OnDestroy, OnInit, inject } from '@angular/core';
 
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -20,6 +21,7 @@ import {
 export class CollectionPageComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly shoppingContext = inject(ShoppingContextService);
+  private readonly document = inject(DOCUMENT);
   private sub?: Subscription;
 
   readonly collections = BRIDAL_COLLECTION_CATEGORIES;
@@ -37,7 +39,7 @@ export class CollectionPageComponent implements OnInit, OnDestroy {
       this.products = productsForCategory(this.activeCollection.slug);
       this.visibleCount = Math.min(this.products.length, this.rowsPerBatch());
       this.shoppingContext.rememberPath(['/collections', this.activeCollection.slug]);
-      window.scrollTo({ top: 0, behavior: 'auto' });
+      this.scrollToTop();
     });
   }
 
@@ -65,15 +67,26 @@ export class CollectionPageComponent implements OnInit, OnDestroy {
   @HostListener('window:scroll')
   loadMoreNearBottom(): void {
     if (this.visibleCount >= this.products.length) return;
-    const remaining = document.documentElement.scrollHeight - (window.scrollY + window.innerHeight);
-    if (remaining < window.innerHeight * 1.5) {
+    const view = this.document.defaultView;
+    if (!view) return;
+    const remaining = this.document.documentElement.scrollHeight - (view.scrollY + view.innerHeight);
+    if (remaining < view.innerHeight * 1.5) {
       this.visibleCount = Math.min(this.products.length, this.visibleCount + this.rowsPerBatch());
     }
   }
 
   private rowsPerBatch(): number {
-    const columns = window.innerWidth >= 1024 ? 4 : window.innerWidth >= 640 ? 3 : 2;
+    const width = this.document.defaultView?.innerWidth ?? 1024;
+    const columns = width >= 1024 ? 4 : width >= 640 ? 3 : 2;
     return columns * 10;
+  }
+
+  private scrollToTop(): void {
+    const view = this.document.defaultView;
+    const scrollTo = view?.scrollTo;
+    if (typeof scrollTo === 'function') {
+      scrollTo.call(view, { top: 0, behavior: 'auto' });
+    }
   }
 
   ngOnDestroy(): void {
