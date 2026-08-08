@@ -102,6 +102,12 @@ export const routes: Routes = [
   },
   {
     path: 'looks',
+    data: {
+      seo: {
+        title: 'استایل‌های عروس | گالری مظهری',
+        description: 'مشاهده استایل‌ها و ترکیب‌های منتخب لباس و اکسسوری عروس در گالری مظهری.'
+      }
+    },
     loadComponent: () => import('./features/looks/looks.component').then(m => m.LooksComponent)
   },
   {
@@ -218,258 +224,99 @@ export const routes: Routes = [
     },
     canActivate: [adminGuestGuard],
     loadComponent: () =>
-      import('./features/admin/login/admin-login.component').then(
-        (m) => m.AdminLoginComponent
+      import('./features/admin/admin-login/admin-login.component').then(
+        m => m.AdminLoginComponent
       )
-  },
-  {
-    path: 'admin/reset-password',
-    data: { seo: { title: 'بازیابی رمز پنل | گالری مظهری', robots: 'noindex,nofollow' } },
-    loadComponent: () => import('./features/admin/reset-password/admin-reset-password.component').then(m => m.AdminResetPasswordComponent)
   },
   {
     path: 'admin',
     canActivate: [adminAuthGuard],
-    data: {
-      seo: {
-        title: 'پنل مدیریت | گالری مظهری',
-        description: 'مدیریت انبار، صف انتشار و تایید نهایی محصولات.',
-        robots: 'noindex,nofollow'
-      }
-    },
     loadComponent: () =>
-      import('./features/admin/admin-shell/admin-shell.component').then(
-        (m) => m.AdminShellComponent
-      ),
+      import('./features/admin/admin-shell/admin-shell.component').then(m => m.AdminShellComponent),
     children: [
-      { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
+      {
+        path: '',
+        pathMatch: 'full',
+        redirectTo: 'dashboard'
+      },
       {
         path: 'dashboard',
-        canActivate: [adminPermissionGuard('dashboard.view')],
-        data: {
-          seo: {
-            title: 'مرکز فرماندهی | گالری مظهری',
-            robots: 'noindex,nofollow'
-          }
-        },
         loadComponent: () =>
-          import('./features/admin/dashboard/admin-dashboard.component').then(
-            (m) => m.AdminDashboardComponent
+          import('./features/admin/admin-dashboard/admin-dashboard.component').then(
+            m => m.AdminDashboardComponent
+          )
+      },
+      {
+        path: 'staging',
+        canActivate: [adminPermissionGuard('publishing.staging.view')],
+        loadComponent: () =>
+          import('./features/admin/staging-queue/staging-queue.component').then(
+            m => m.StagingQueueComponent
+          )
+      },
+      {
+        path: 'published',
+        canActivate: [adminPermissionGuard('publishing.published.manage')],
+        loadComponent: () =>
+          import('./features/admin/published-products/published-products.component').then(
+            m => m.PublishedProductsComponent
+          )
+      },
+      {
+        path: 'media',
+        canActivate: [adminPermissionGuard('media.manage')],
+        loadComponent: () =>
+          import('./features/admin/media-manager/media-manager.component').then(
+            m => m.MediaManagerComponent
+          )
+      },
+      {
+        path: 'imports',
+        canActivate: [adminPermissionGuard('inventory.import.manage')],
+        loadComponent: () =>
+          import('./features/admin/import-history/import-history.component').then(
+            m => m.ImportHistoryComponent
           )
       },
       {
         path: 'orders',
         canActivate: [adminPermissionGuard('orders.manage')],
-        data: {
-          seo: {
-            title: 'کانبان سفارش عروس | گالری مظهری',
-            robots: 'noindex,nofollow'
-          }
-        },
         loadComponent: () =>
-          import('./features/admin/orders/orders-kanban.component').then(
-            (m) => m.OrdersKanbanComponent
+          import('./features/admin/orders-kanban/orders-kanban.component').then(
+            m => m.OrdersKanbanComponent
           )
       },
       {
-        path: 'crm',
-        canActivate: [adminPermissionGuard('crm.manage')],
-        data: {
-          seo: {
-            title: 'CRM مشتریان | گالری مظهری',
-            robots: 'noindex,nofollow'
-          }
-        },
+        path: 'discounts',
+        canActivate: [adminPermissionGuard('discounts.manage')],
         loadComponent: () =>
-          import('./features/admin/crm/crm-clients.component').then(
-            (m) => m.CrmClientsComponent
-          )
-      },
-      {
-        path: 'crm/:id',
-        canActivate: [adminPermissionGuard('crm.manage')],
-        data: {
-          seo: {
-            title: 'پروفایل مشتری | گالری مظهری',
-            robots: 'noindex,nofollow'
-          }
-        },
-        loadComponent: () =>
-          import('./features/admin/crm/crm-profile.component').then(
-            (m) => m.CrmProfileComponent
-          )
-      },
-      {
-        path: 'inventory',
-        canActivate: [adminPermissionGuard('inventory.manage')],
-        data: {
-          seo: {
-            title: 'هاب انبار | گالری مظهری',
-            robots: 'noindex,nofollow'
-          }
-        },
-        loadComponent: () =>
-          import('./features/admin/inventory/inventory-hub.component').then(
-            (m) => m.InventoryHubComponent
-          )
-      },
-      {
-        path: 'inventory/category/:slug',
-        canActivate: [adminPermissionGuard('inventory.manage')],
-        data: {
-          seo: {
-            title: 'محصولات دسته | گالری مظهری',
-            robots: 'noindex,nofollow'
-          }
-        },
-        loadComponent: () =>
-          import('./features/admin/inventory/inventory-category.component').then(
-            (m) => m.InventoryCategoryComponent
-          )
-      },
-      {
-        path: 'marketing',
-        canActivate: [adminPermissionGuard('marketing.manage')],
-        data: {
-          seo: {
-            title: 'بازاریابی | گالری مظهری',
-            robots: 'noindex,nofollow'
-          }
-        },
-        loadComponent: () =>
-          import('./features/admin/marketing/marketing-hub.component').then(
-            (m) => m.MarketingHubComponent
+          import('./features/admin/discount-manager/discount-manager.component').then(
+            m => m.DiscountManagerComponent
           )
       },
       {
         path: 'appearance',
-        canActivate: [adminPermissionGuard('marketing.manage')],
-        data: {
-          seo: {
-            title: 'مرکز مدیریت سایت | گالری مظهری',
-            robots: 'noindex,nofollow'
-          }
-        },
+        canActivate: [adminPermissionGuard('appearance.manage')],
         loadComponent: () =>
-          import('./features/admin/appearance/appearance-manager.component').then(
+          import('./features/admin/appearance-manager/appearance-manager.component').then(
             m => m.AppearanceManagerComponent
           )
       },
       {
-        path: 'import',
-        canActivate: [adminPermissionGuard('inventory.manage')],
-        data: {
-          seo: {
-            title: 'بارگذاری اکسل انبار | گالری مظهری',
-            robots: 'noindex,nofollow'
-          }
-        },
-        loadComponent: () =>
-          import('./features/admin/excel-import/excel-import.component').then(
-            (m) => m.ExcelImportComponent
-          )
-      },
-      {
         path: 'platform',
-        canActivate: [adminPermissionGuard('inventory.manage')],
-        data: {
-          seo: {
-            title: 'پلتفرم هوشمند واردات | گالری مظهری',
-            robots: 'noindex,nofollow'
-          }
-        },
+        canActivate: [managerRoleGuard],
         loadComponent: () =>
           import('./features/admin/platform-hub/platform-hub.component').then(
-            (m) => m.PlatformHubComponent
+            m => m.PlatformHubComponent
           )
-      },
-      {
-        path: 'published-products',
-        canActivate: [adminPermissionGuard('publishing.published.manage')],
-        data: {
-          seo: {
-            title: 'کالاهای منتشر شده | گالری مظهری',
-            robots: 'noindex,nofollow'
-          }
-        },
-        loadComponent: () =>
-          import('./features/admin/published-products/published-products.component').then(
-            (m) => m.PublishedProductsComponent
-          )
-      },
-      {
-        path: 'staging',
-        canActivate: [adminPermissionGuard('publishing.queue.manage')],
-        data: {
-          seo: {
-            title: 'محصولات منتظر انتشار | گالری مظهری',
-            robots: 'noindex,nofollow'
-          }
-        },
-        loadComponent: () =>
-          import('./features/admin/staging-queue/staging-queue.component').then(
-            (m) => m.StagingQueueComponent
-          )
-      },
-      {
-        path: 'manager',
-        canActivate: [managerRoleGuard],
-        data: {
-          seo: {
-            title: 'تایید نهایی مدیر | گالری مظهری',
-            robots: 'noindex,nofollow'
-          }
-        },
-        loadComponent: () =>
-          import(
-            './features/admin/manager-dashboard/manager-dashboard.component'
-          ).then((m) => m.ManagerDashboardComponent)
       },
       {
         path: 'users',
         canActivate: [managerRoleGuard],
-        data: {
-          seo: { title: 'مدیریت کاربران | گالری مظهری', robots: 'noindex,nofollow' }
-        },
         loadComponent: () =>
-          import('./features/admin/user-manager/user-manager.component').then(
-            (m) => m.UserManagerComponent
+          import('./features/admin/user-management/user-management.component').then(
+            m => m.UserManagementComponent
           )
-      },
-      {
-        path: 'activity',
-        canActivate: [managerRoleGuard],
-        data: {
-          seo: {
-            title: 'لاگ حسابرسی | گالری مظهری',
-            robots: 'noindex,nofollow'
-          }
-        },
-        loadComponent: () =>
-          import('./features/admin/activity/admin-activity.component').then(
-            (m) => m.AdminActivityComponent
-          )
-      },
-      {
-        path: 'client-insights',
-        canActivate: [adminPermissionGuard('consultation.manage')],
-        data: {
-          seo: {
-            title: 'مشتریان بالقوه | گالری مظهری',
-            description: 'مدیریت، انتخاب و چاپ درخواست‌های مشاوره تلفنی.',
-            robots: 'noindex,nofollow'
-          }
-        },
-        loadComponent: () =>
-          import('./features/admin/client-insights/client-insights.component').then(
-            (m) => m.ClientInsightsComponent
-          )
-      },
-      {
-        path: 'custom-requests',
-        canActivate: [adminPermissionGuard('consultation.manage')],
-        data: { seo: { title: 'درخواست‌های سفارشی مشتریان | گالری مظهری', robots: 'noindex,nofollow' } },
-        loadComponent: () => import('./features/admin/custom-requests/custom-requests-admin.component').then(m => m.CustomRequestsAdminComponent)
       }
     ]
   },
@@ -478,7 +325,7 @@ export const routes: Routes = [
     data: {
       seo: {
         title: 'صفحه پیدا نشد | گالری مظهری',
-        description: 'صفحه‌ای که به دنبال آن بودید پیدا نشد.',
+        description: 'صفحه موردنظر پیدا نشد. برای ادامه به صفحه اصلی یا فروشگاه گالری مظهری بازگردید.',
         robots: 'noindex,nofollow'
       }
     },
