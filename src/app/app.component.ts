@@ -20,6 +20,7 @@ import { ArMagicMirrorComponent } from './shared/components/ar-magic-mirror/ar-m
 import { SeoService } from './core/services/seo.service';
 import { PerformanceHintsService } from './core/services/performance-hints.service';
 import { PublishedCatalogSyncService } from './core/services/published-catalog-sync.service';
+import { WebVitalsRumService } from './core/services/web-vitals-rum.service';
 
 @Component({
   selector: 'app-root',
@@ -44,6 +45,7 @@ export class AppComponent implements OnInit {
 
   private readonly seoService = inject(SeoService);
   private readonly performanceHints = inject(PerformanceHintsService);
+  private readonly webVitalsRum = inject(WebVitalsRumService);
   private readonly router = inject(Router);
   private readonly publishedSync = inject(PublishedCatalogSyncService);
   private readonly platformId = inject(PLATFORM_ID);
@@ -59,6 +61,7 @@ export class AppComponent implements OnInit {
     afterNextRender(() => {
       if (!this.isBrowser) return;
       this.publishedSync.refresh();
+      this.webVitalsRum.init();
       this.applyBrowserTheme();
       this.browserToolsReady.set(true);
     });
