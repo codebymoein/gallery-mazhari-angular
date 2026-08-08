@@ -60,14 +60,21 @@ rm -rf "$staging_dir"
 mkdir -p "$staging_dir"
 tar -xzf "$artifact" -C "$staging_dir" --strip-components=1
 
-[ "$(cat "$staging_dir/REVISION")" = "$revision" ] || {
-  echo "artifact revision metadata mismatch" >&2
+candidate_certifier="$staging_dir/deploy/certify-release-candidate.sh"
+if [ ! -f "$candidate_certifier" ]; then
+  echo "release candidate is incomplete: missing deploy/certify-release-candidate.sh" >&2
   rm -rf "$staging_dir"
-  exit 65
-}
-[ -f "$staging_dir/backend/dist/main.js" ] || { echo "backend build missing" >&2; exit 65; }
-[ -f "$staging_dir/frontend/browser/index.html" ] || { echo "frontend browser build missing" >&2; exit 65; }
-[ -f "$staging_dir/frontend/server/server.mjs" ] || { echo "frontend SSR server build missing" >&2; exit 65; }
+  exit 66
+fi
+
+set +e
+bash "$candidate_certifier" "$staging_dir" "$revision"
+certification_status=$?
+set -e
+if [ "$certification_status" -ne 0 ]; then
+  rm -rf "$staging_dir"
+  exit "$certification_status"
+fi
 
 mv "$staging_dir" "$release_dir"
 
