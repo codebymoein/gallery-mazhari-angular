@@ -6,7 +6,9 @@
     [class.ar-mirror--leaving]="isLeaving"
     role="dialog"
     aria-modal="true"
-    aria-labelledby="ar-mirror-title">
+    aria-labelledby="ar-mirror-title"
+    cdkTrapFocus
+    [cdkTrapFocusAutoCapture]="true">
     <!-- Camera viewfinder -->
     <div class="ar-mirror__stage">
       <video
@@ -15,7 +17,7 @@
         playsinline
         muted
         autoplay
-      [attr.aria-hidden]="!cameraReady"></video>
+        [attr.aria-hidden]="!cameraReady"></video>
       <canvas #canvasEl class="ar-mirror__canvas" aria-hidden="true"></canvas>
       <!-- Mock accessory overlay -->
       <div
@@ -29,13 +31,13 @@
         <div class="ar-mirror__flash" aria-hidden="true"></div>
       }
       @if (!cameraReady && !cameraError) {
-        <div class="ar-mirror__loading">
+        <div class="ar-mirror__loading" role="status" aria-live="polite" aria-atomic="true">
           <span class="ar-mirror__spinner" aria-hidden="true"></span>
           <p>در حال فعال‌سازی دوربین…</p>
         </div>
       }
       @if (cameraError) {
-        <div class="ar-mirror__error" role="alert">
+        <div class="ar-mirror__error" role="alert" aria-live="assertive">
           <p>{{ cameraError }}</p>
         </div>
       }
@@ -62,7 +64,7 @@
       </button>
     </header>
     @if (statusMessage) {
-      <p class="ar-mirror__status" role="status" aria-live="polite">
+      <p class="ar-mirror__status" role="status" aria-live="polite" aria-atomic="true">
         {{ statusMessage }}
       </p>
     }
