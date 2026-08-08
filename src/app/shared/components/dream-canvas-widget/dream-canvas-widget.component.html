@@ -11,6 +11,7 @@
     type="button"
     aria-haspopup="dialog"
     aria-controls="dream-canvas-dialog"
+    [attr.aria-expanded]="(canvas.isOpen$ | async) ? 'true' : 'false'"
     [attr.aria-label]="'باز کردن بوم رویایی من؛ ' + persianCount((canvas.count$ | async) || 0) + ' انتخاب'"
     [attr.tabindex]="dockVisible ? null : -1"
     (click)="open()"
@@ -22,7 +23,7 @@
     <bdi class="dream-canvas__trigger-count">{{ persianCount((canvas.count$ | async) || 0) }}</bdi>
   </button>
 
-  <p class="dream-canvas__announcement" role="status" aria-live="polite">
+  <p class="dream-canvas__announcement" role="status" aria-live="polite" aria-atomic="true">
     {{ canvas.announcement$ | async }}
   </p>
 
@@ -31,13 +32,17 @@
     #dialogEl
     class="dream-canvas__dialog"
     id="dream-canvas-dialog"
+    role="dialog"
+    aria-modal="true"
     aria-labelledby="dream-canvas-title"
     aria-describedby="dream-canvas-description"
+    cdkTrapFocus
+    [cdkTrapFocusAutoCapture]="true"
     >
     <header class="dream-canvas__header">
       <div>
         <p class="dream-canvas__eyebrow" lang="en" dir="ltr">MY DREAM CANVAS</p>
-        <h2 class="dream-canvas__title" id="dream-canvas-title" tabindex="-1">بوم رویایی من</h2>
+        <h2 class="dream-canvas__title" id="dream-canvas-title">بوم رویایی من</h2>
         <p class="dream-canvas__description" id="dream-canvas-description">
           مدل‌ها و جزئیاتی را که دوست دارید کنار هم نگه دارید و با آرامش مقایسه کنید.
         </p>
