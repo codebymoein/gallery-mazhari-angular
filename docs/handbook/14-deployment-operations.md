@@ -46,4 +46,15 @@ Before production certification, staging/recovery rehearsal MUST record:
 - confirmation that database state was not destructively reverted;
 - any failed probe/restart and automatic prior-symlink restoration evidence.
 
-References: [`../PLATFORM_DEPLOYMENT.md`](../PLATFORM_DEPLOYMENT.md), [`../SERVER_DEPLOYMENT_HANDOFF_FA.md`](../SERVER_DEPLOYMENT_HANDOFF_FA.md), [`../../deploy/nginx.conf.example`](../../deploy/nginx.conf.example), [`../../deploy/release.sh`](../../deploy/release.sh), [`../../deploy/rollback-release.sh`](../../deploy/rollback-release.sh), [`../../deploy/gallery-mazhari-ssr.service.example`](../../deploy/gallery-mazhari-ssr.service.example).
+## RM-17 production certification gate
+
+PR-025 adds a release-candidate gate without granting production deployment authority:
+
+- `deploy/certify-release-candidate.sh` validates that `REVISION`, `BUILD.json`, frontend SSR/browser output, backend output and required deployment tooling all belong to the exact expected 40-character Git SHA; it emits a deterministic file-hash evidence list for the candidate surface.
+- `deploy/certification-smoke.sh` performs non-mutating crawler/health probes against an already running candidate: representative SSR routes must expose title/canonical metadata, sitemap index must be available, unknown routes must return HTTP 404 with noindex policy, backend live/ready must pass and `/api/ops/version` must match the expected SHA.
+- `.github/workflows/rm17-release-certification.yml` builds and exercises those controls on the exact PR head. It does not deploy to production, restore production data or accept business risk.
+- `docs/release/PRODUCTION_CERTIFICATION.md` is the canonical staging/UAT/rehearsal/controlled-launch protocol and `docs/release/OPEN_RISK_REGISTER.md` records human-owned risk disposition.
+
+A green automated certification run is necessary but not sufficient for production GO. Business UAT, risk acceptance, staging rollback/restore rehearsal and final launch authorization remain explicit human-owner responsibilities.
+
+References: [`../PLATFORM_DEPLOYMENT.md`](../PLATFORM_DEPLOYMENT.md), [`../SERVER_DEPLOYMENT_HANDOFF_FA.md`](../SERVER_DEPLOYMENT_HANDOFF_FA.md), [`../release/PRODUCTION_CERTIFICATION.md`](../release/PRODUCTION_CERTIFICATION.md), [`../../deploy/nginx.conf.example`](../../deploy/nginx.conf.example), [`../../deploy/release.sh`](../../deploy/release.sh), [`../../deploy/rollback-release.sh`](../../deploy/rollback-release.sh), [`../../deploy/certify-release-candidate.sh`](../../deploy/certify-release-candidate.sh), [`../../deploy/certification-smoke.sh`](../../deploy/certification-smoke.sh), [`../../deploy/gallery-mazhari-ssr.service.example`](../../deploy/gallery-mazhari-ssr.service.example).
