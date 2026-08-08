@@ -19,7 +19,7 @@ Production releases MUST come from `.github/workflows/release-artifact.yml` for 
 Nginx serves `/srv/gallery-mazhari/current/frontend`. The backend systemd unit runs `/srv/gallery-mazhari/current/backend/dist/main.js`.
 
 ## Deploy
-Use the immutable artifact/checksum with `deploy/release.sh`. The script verifies checksum/revision metadata, refuses release-directory reuse, serializes concurrent deployments with `flock`, extracts to staging, runs TypeORM migrations from the exact release, atomically switches `current`, and restarts the supervised backend.
+Use the immutable artifact/checksum with `deploy/release.sh`. The script verifies the outer SHA-256 checksum, extracts to a staging directory, and then delegates the extracted release contract to the versioned `deploy/certify-release-candidate.sh` shipped inside that exact artifact. That single certification boundary validates `REVISION`/`BUILD.json`, backend and SSR output, required deployment tooling, and a valid Angular browser entry point (`index.html` or `index.csr.html`) before migrations or activation can proceed. The release script refuses release-directory reuse, serializes concurrent deployments with `flock`, runs TypeORM migrations from the exact certified release, atomically switches `current`, and restarts the supervised backend and SSR runtimes.
 
 After activation verify:
 - `GET /api/ops/health/live`
