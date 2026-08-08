@@ -1,3 +1,4 @@
+import { DOCUMENT } from '@angular/common';
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -42,6 +43,7 @@ const COLLECTION_SLUGS = new Set([
 export class CatalogComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly searchService = inject(SearchService);
+  private readonly document = inject(DOCUMENT);
   private querySub?: Subscription;
   private readonly collectionSlugs = COLLECTION_SLUGS;
 
@@ -65,7 +67,7 @@ export class CatalogComponent implements OnInit, OnDestroy {
       if (searchTerm) {
         this.searchQuery = searchTerm;
         this.searchResult = this.searchService.search(searchTerm);
-        window.scrollTo({ top: 0, behavior: 'auto' });
+        this.scrollToTop();
         return;
       }
 
@@ -90,9 +92,9 @@ export class CatalogComponent implements OnInit, OnDestroy {
         .filter(c => c.slug !== 'bridal-clothing')
         .map(category => ({
           category,
-          products: this.shuffleProducts(productsForCategory(category.slug)).slice(0, 8)
+          products: this.stableProductOrder(productsForCategory(category.slug)).slice(0, 8)
         }));
-      window.scrollTo({ top: 0, behavior: 'auto' });
+      this.scrollToTop();
     });
   }
 
@@ -182,13 +184,20 @@ export class CatalogComponent implements OnInit, OnDestroy {
     return cat.slug === this.activeSlug;
   }
 
-  private shuffleProducts(products: BridalSampleProduct[]): BridalSampleProduct[] {
-    const copy = [...products];
-    for (let i = copy.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [copy[i], copy[j]] = [copy[j], copy[i]];
+  private stableProductOrder(products: BridalSampleProduct[]): BridalSampleProduct[] {
+    return [...products].sort((a, b) => this.stableKey(a.id) - this.stableKey(b.id));
+  }
+
+  private stableKey(value: string): number {
+    let hash = 0;
+    for (const char of value) {
+      hash = ((hash << 5) - hash + char.charCodeAt(0)) | 0;
     }
-    return copy;
+    return hash;
+  }
+
+  private scrollToTop(): void {
+    this.document.defaultView?.scrollTo({ top: 0, behavior: 'auto' });
   }
 
   ngOnDestroy(): void {
