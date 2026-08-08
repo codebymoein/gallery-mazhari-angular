@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'src/**'
+      - 'scripts/**'
       - 'angular.json'
       - 'package.json'
       - 'package-lock.json'
@@ -25,9 +26,11 @@ jobs:
           cache: npm
           cache-dependency-path: package-lock.json
       - run: npm ci
+      - name: Validate sitemap canonical governance
+        run: python3 scripts/validate_sitemaps.py
       - name: Build production SSR artifact
         run: npm run build:prod
-      - name: Verify SSR raw HTML and HTTP status contract
+      - name: Verify SSR raw HTML, structured data, sitemaps, and HTTP status contract
         run: |
           set -euo pipefail
           node dist/gallery-mazhari-angular/server/server.mjs > ssr-server.log 2>&1 &
@@ -51,6 +54,30 @@ jobs:
           grep -F 'name="description"' home.html
           grep -F 'rel="canonical"' home.html
 
+          curl --fail --silent --show-error -H 'Host: gallery-mazhari.ir' \
+            'http://127.0.0.1:4000/shop/bridal-clothing?utm_source=rm12' > category.html
+          grep -F '<title>پوشاک عروس | گالری مظهری</title>' category.html
+          grep -F 'href="https://gallery-mazhari.ir/shop/bridal-clothing"' category.html
+          grep -F '"@type":"CollectionPage"' category.html
+          if grep -Fq 'utm_source=rm12' category.html; then
+            echo 'query parameter leaked into SSR metadata/canonical output'
+            exit 1
+          fi
+
+          curl --fail --silent --show-error -H 'Host: gallery-mazhari.ir' \
+            http://127.0.0.1:4000/looks > content.html
+          grep -F 'href="https://gallery-mazhari.ir/looks"' content.html
+
+          curl --fail --silent --show-error -H 'Host: gallery-mazhari.ir' \
+            http://127.0.0.1:4000/sitemap.xml > sitemap.xml
+          curl --fail --silent --show-error -H 'Host: gallery-mazhari.ir' \
+            http://127.0.0.1:4000/sitemap-pages.xml > sitemap-pages.xml
+          curl --fail --silent --show-error -H 'Host: gallery-mazhari.ir' \
+            http://127.0.0.1:4000/sitemap-catalog.xml > sitemap-catalog.xml
+          grep -F '<sitemapindex' sitemap.xml
+          grep -F '<urlset' sitemap-pages.xml
+          grep -F '<urlset' sitemap-catalog.xml
+
           status=$(curl --silent --show-error -H 'Host: gallery-mazhari.ir' --output missing.html --write-out '%{http_code}' http://127.0.0.1:4000/this-route-must-not-exist)
           echo "unknown route status=${status}"
           test "$status" = '404'
@@ -63,6 +90,11 @@ jobs:
           path: |
             ssr-server.log
             home.html
+            category.html
+            content.html
             missing.html
+            sitemap.xml
+            sitemap-pages.xml
+            sitemap-catalog.xml
           if-no-files-found: warn
           retention-days: 14
