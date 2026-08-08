@@ -28,6 +28,7 @@ If documents conflict, the conflict must be reconciled in a PR; do not silently 
 | Platform architecture | `docs/PLATFORM_ARCHITECTURE.md` | Solution Architect |
 | Platform API | `docs/PLATFORM_API.md` | Backend Lead |
 | Deployment | `docs/handbook/14-deployment-operations.md` then `docs/PLATFORM_DEPLOYMENT.md` | DevOps |
+| Production certification / controlled launch | `docs/release/PRODUCTION_CERTIFICATION.md` + `docs/release/OPEN_RISK_REGISTER.md` | Release Manager + Business Owner + Tech Lead |
 | Security | `docs/handbook/09-security.md` then `SECURITY.md` | Security Lead |
 | Design system | `docs/handbook/08-design-system.md` then `DESIGN_SYSTEM.md` | Design System Lead |
 | Business workflows | `docs/handbook/07-business-workflows.md` plus specialized workflow docs | Domain Owner |
