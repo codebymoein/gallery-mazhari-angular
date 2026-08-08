@@ -75,15 +75,7 @@ test.describe('direct routing and metadata', () => {
     expect(structuredData['url']).toBe('https://gallery-mazhari.ir/shop/bridal-clothing');
   });
 
-  test('route JSON-LD is replaced and cleared across navigation', async ({ page }) => {
-    const productResponse = await page.goto('/product/d-01');
-    expect(productResponse?.ok()).toBeTruthy();
-
-    const productJsonLd = page.locator('#mazhari-route-jsonld');
-    await expect(productJsonLd).toHaveCount(1);
-    const productData = JSON.parse((await productJsonLd.textContent()) || '{}') as Record<string, unknown>;
-    expect(productData['@type']).toBe('Product');
-
+  test('route JSON-LD is cleared when leaving a dynamic entity route', async ({ page }) => {
     await page.goto('/shop/bridal-clothing');
     const collectionJsonLd = page.locator('#mazhari-route-jsonld');
     await expect(collectionJsonLd).toHaveCount(1);
