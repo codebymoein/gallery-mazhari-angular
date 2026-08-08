@@ -3,11 +3,17 @@ name: Release Artifact
 on:
   workflow_dispatch:
   push:
+    branches:
+      - main
     tags:
       - 'v*'
 
 permissions:
-  contents: read
+  contents: write
+
+concurrency:
+  group: release-artifact-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   build-release:
@@ -52,7 +58,7 @@ jobs:
           cp -a backend/node_modules "${release_dir}/backend/node_modules"
           cp backend/package.json backend/package-lock.json "${release_dir}/backend/"
           cp -a deploy/. "${release_dir}/deploy/"
-          chmod +x "${release_dir}/deploy/release.sh" "${release_dir}/deploy/backup-postgres.sh" "${release_dir}/deploy/backup-media.sh"
+          find "${release_dir}/deploy" -maxdepth 1 -type f -name '*.sh' -exec chmod +x {} +
           printf '%s\n' "${RELEASE_SHA}" > "${release_dir}/REVISION"
           printf '{"revision":"%s","workflow_run":"%s"}\n' "${RELEASE_SHA}" "${GITHUB_RUN_ID}" > "${release_dir}/BUILD.json"
           tar -czf "gallery-mazhari-${RELEASE_SHA}.tar.gz" "${release_dir}"
@@ -67,3 +73,24 @@ jobs:
             gallery-mazhari-${{ github.sha }}.tar.gz.sha256
           if-no-files-found: error
           retention-days: 30
+
+      - name: Publish immutable V2 release assets
+        if: github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          tag="auto-v2-${RELEASE_SHA}"
+          artifact="gallery-mazhari-${RELEASE_SHA}.tar.gz"
+          checksum="${artifact}.sha256"
+
+          if gh release view "$tag" >/dev/null 2>&1; then
+            gh release upload "$tag" "$artifact" "$checksum" --clobber
+          else
+            gh release create "$tag" "$artifact" "$checksum" \
+              --target "$RELEASE_SHA" \
+              --title "V2 ${RELEASE_SHA}" \
+              --notes "Immutable V2 deployment candidate for main@${RELEASE_SHA}." \
+              --prerelease
+          fi

@@ -33,7 +33,9 @@ jobs:
             deploy/rollback-release.sh \
             deploy/health-check.sh \
             deploy/certify-release-candidate.sh \
-            deploy/certification-smoke.sh
+            deploy/certification-smoke.sh \
+            deploy/v2-auto-deploy.sh \
+            deploy/install-v2-auto-deploy.sh
       - name: ShellCheck deployment scripts
         run: |
           shellcheck \
@@ -44,7 +46,9 @@ jobs:
             deploy/rollback-release.sh \
             deploy/health-check.sh \
             deploy/certify-release-candidate.sh \
-            deploy/certification-smoke.sh
+            deploy/certification-smoke.sh \
+            deploy/v2-auto-deploy.sh \
+            deploy/install-v2-auto-deploy.sh
       - name: Prove production restore is fail-closed
         run: |
           set +e
@@ -60,12 +64,22 @@ jobs:
           set -euo pipefail
           unit_dir="$(mktemp -d)"
           cp deploy/gallery-mazhari-backend.service.example "${unit_dir}/gallery-mazhari-backend.service"
+          cp deploy/gallery-mazhari-ssr.service.example "${unit_dir}/gallery-mazhari-ssr.service"
           cp deploy/gallery-mazhari-backup.service.example "${unit_dir}/gallery-mazhari-backup.service"
           cp deploy/gallery-mazhari-backup.timer.example "${unit_dir}/gallery-mazhari-backup.timer"
+          cp deploy/gallery-mazhari-v2-auto-deploy.service.example "${unit_dir}/gallery-mazhari-v2-auto-deploy.service"
+          cp deploy/gallery-mazhari-v2-auto-deploy.timer.example "${unit_dir}/gallery-mazhari-v2-auto-deploy.timer"
           sed -i 's|^ExecStart=.*|ExecStart=/bin/true|' "${unit_dir}/gallery-mazhari-backend.service"
+          sed -i 's|^ExecStart=.*|ExecStart=/bin/true|' "${unit_dir}/gallery-mazhari-ssr.service"
           sed -i 's|^ExecStart=.*|ExecStart=/bin/true|' "${unit_dir}/gallery-mazhari-backup.service"
-          systemd-analyze verify "${unit_dir}/gallery-mazhari-backend.service"
-          systemd-analyze verify "${unit_dir}/gallery-mazhari-backup.service" "${unit_dir}/gallery-mazhari-backup.timer"
+          sed -i 's|^ExecStart=.*|ExecStart=/bin/true|' "${unit_dir}/gallery-mazhari-v2-auto-deploy.service"
+          systemd-analyze verify \
+            "${unit_dir}/gallery-mazhari-backend.service" \
+            "${unit_dir}/gallery-mazhari-ssr.service" \
+            "${unit_dir}/gallery-mazhari-backup.service" \
+            "${unit_dir}/gallery-mazhari-backup.timer" \
+            "${unit_dir}/gallery-mazhari-v2-auto-deploy.service" \
+            "${unit_dir}/gallery-mazhari-v2-auto-deploy.timer"
 
   postgres-restore-drill:
     runs-on: ubuntu-latest

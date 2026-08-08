@@ -28,6 +28,21 @@ After activation verify:
 - structured application/request logs
 - monitoring/alert path
 
+## Automatic V2 rollout
+`v2.gallerymazhari.com` is the non-public pre-production host. Once its one-time host bootstrap is installed, every reviewed merge to `main` follows this automatic path:
+
+1. `.github/workflows/release-artifact.yml` builds the exact merged SHA on a GitHub-hosted Ubuntu runner; no production build occurs on the VPS.
+2. The workflow keeps the Actions artifact and also publishes the tarball/checksum as a uniquely tagged prerelease named `auto-v2-<git-sha>`. The `auto-v2-` prefix deliberately does not match the separate `v*` release-tag trigger.
+3. `gallery-mazhari-v2-auto-deploy.timer` runs on the VPS every two minutes. It makes an outbound HTTPS request to the public GitHub Releases API, so inbound SSH or a long-lived GitHub token on the host is not required.
+4. `deploy/v2-auto-deploy.sh` accepts only a complete `auto-v2-<40-character-sha>` release, downloads the exact tarball/checksum, verifies SHA-256, then runs the artifact's own `deploy/release.sh` against `/srv/gallery-mazhari`.
+5. The new backend and SSR runtimes must pass readiness and exact `/api/ops/version` provenance checks before the rollout is considered healthy. On a failed first migration the legacy API service is restored; on later failures the immutable prior release is selected through the canonical rollback helper when possible.
+6. The current V2 Nginx host still serves `/var/www/gallery-mazhari/browser` as a static compatibility path. Only after the new exact-SHA backend/SSR release is healthy, the poller atomically publishes the certified browser output there. If Angular emits only `index.csr.html`, the V2 bridge creates `index.html` from that certified browser entry point. This bridge exists only so the current V2 host reflects each merge without rewriting a potentially shared Nginx server block.
+
+The V2 compatibility bridge is **not** the final production reverse-proxy architecture. Production still requires the canonical SSR Nginx configuration, Business UAT, risk disposition, rollback/restore rehearsal and explicit launch authorization. Automatic V2 rollout must not be interpreted as automatic production GO.
+
+### One-time V2 host bootstrap
+Run `deploy/install-v2-auto-deploy.sh` once from a clean checkout of the reviewed `main`. It creates the least-privileged `gallerymazhari` service account when absent, prepares `/srv/gallery-mazhari`, migrates an already-existing backend environment file into `/etc/gallery-mazhari/backend.env` without printing secret values, installs the backend/SSR and V2 poller systemd units, enables the timer and triggers an initial poll. The legacy `gallery-mazhari-api.service` is not stopped by the installer; the poller stops it only immediately before the first canonical release activation and restores it if that activation fails.
+
 ## Backup and restore drill
 PR-014 backup jobs create encrypted PostgreSQL and off-server media backups. PR-015 adds `deploy/restore-postgres.sh` for an explicit non-production drill. The restore helper refuses `NODE_ENV=production`, requires `RESTORE_TARGET_ENV` to be exactly `staging`, `recovery`, or `test`, requires the exact non-production acknowledgement, verifies the encrypted backup checksum, decrypts only to a temporary file, and executes `pg_restore --exit-on-error` against `RESTORE_DATABASE_URL`.
 
@@ -41,9 +56,9 @@ Restore success MUST also be followed in staging/incident recovery by schema/mig
 Application rollback never means database rollback. Do not restore an old PostgreSQL snapshot over newer valid business transactions. A target release must be compatible with already-applied migrations or the operator must use an approved roll-forward/recovery plan.
 
 ## Monitoring and alerts
-NestJS emits JSON logs and request IDs. Operational endpoints expose safe liveness, PostgreSQL readiness, release provenance and Prometheus-text process metrics. `deploy/health-check.sh` verifies systemd process state plus readiness and can deliver a generic alert through a protected host-configured `ALERT_WEBHOOK_URL`.
+NestJS emits JSON logs and request IDs. Operational endpoints expose safe liveness, PostgreSQL readiness, release provenance and Prometheus-text process metrics. `deploy/health-check.sh` verifies systemd process state plus readiness and can optionally deliver a generic alert to `ALERT_WEBHOOK_URL`.
 
 Backup failure, storage/disk exhaustion and external provider signals must also be monitored by infrastructure. Application health must not be used as proof that backups succeeded.
 
 ## Verification
-`.github/workflows/deployment-tooling.yml` validates deployment/backup/restore/rollback/health scripts with `bash -n` and ShellCheck, proves the restore helper refuses execution when `NODE_ENV=production`, and performs an encrypted backup-to-clean-database restore drill with data-integrity verification. Backend regression tests cover readiness success/failure, safe version output and metrics shape. Staging rollback rehearsal and environment-specific alert delivery evidence remain required before production certification.
+`.github/workflows/deployment-tooling.yml` validates deployment/backup/restore/rollback/health and V2 auto-deploy scripts with `bash -n` and ShellCheck, verifies the relevant systemd unit syntax, proves the restore helper refuses execution when `NODE_ENV=production`, and performs an encrypted backup-to-clean-database restore drill with data-integrity verification. Backend regression tests cover readiness success/failure, safe version output and metrics shape. Staging rollback rehearsal and environment-specific alert delivery evidence remain required before production certification.

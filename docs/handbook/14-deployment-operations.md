@@ -22,6 +22,18 @@ RM-11 PR-014 establishes the deploy contract and RM-12 PR-020 extends the fronte
 5. The release script applies compatible migrations before the symlink switch.
 6. After activation, verify `/api/ops/health/live`, `/api/ops/health/ready`, `/api/ops/version`, an SSR storefront document request, logs and monitoring before declaring the release healthy.
 
+## V2 automatic rollout boundary
+
+The non-public `v2.gallerymazhari.com` host MAY automatically consume reviewed `main` merges, but automation MUST preserve the immutable-release contract rather than turning the VPS Git working tree into a deployment source.
+
+- A merge to `main` builds on a GitHub-hosted runner and publishes an exact-SHA `auto-v2-<sha>` prerelease containing the canonical tarball and checksum.
+- The V2 host polls GitHub outbound over HTTPS. No inbound SSH path or long-lived GitHub credential is required for routine V2 deployment.
+- The host verifies the release/checksum and executes the artifact's versioned `release.sh`; it MUST NOT run `npm install`, rebuild application code or modify an immutable release directory.
+- Backend readiness, SSR readiness and `/api/ops/version` exact-SHA provenance MUST pass before a V2 deployment is declared healthy.
+- First migration from the legacy `gallery-mazhari-api.service` preserves that service as the recovery path until the new exact-SHA runtime has passed health/provenance checks.
+- Because the current V2 Nginx server block still serves a static browser root, an atomic browser-output compatibility publish is permitted **only for V2** after canonical backend/SSR health succeeds. This bridge must not be copied into the final production architecture.
+- The V2 timer is a deployment convenience, not production authorization. Production still requires the RM-17 certification protocol, explicit risk/UAT/GO decisions and the canonical SSR reverse-proxy configuration.
+
 ## Operational rules
 - No manual production code edits as normal deployment practice.
 - Environment variables are validated; production secrets are not copied into repository files.
@@ -57,4 +69,4 @@ PR-025 adds a release-candidate gate without granting production deployment auth
 
 A green automated certification run is necessary but not sufficient for production GO. Business UAT, risk acceptance, staging rollback/restore rehearsal and final launch authorization remain explicit human-owner responsibilities.
 
-References: [`../PLATFORM_DEPLOYMENT.md`](../PLATFORM_DEPLOYMENT.md), [`../SERVER_DEPLOYMENT_HANDOFF_FA.md`](../SERVER_DEPLOYMENT_HANDOFF_FA.md), [`../release/PRODUCTION_CERTIFICATION.md`](../release/PRODUCTION_CERTIFICATION.md), [`../../deploy/nginx.conf.example`](../../deploy/nginx.conf.example), [`../../deploy/release.sh`](../../deploy/release.sh), [`../../deploy/rollback-release.sh`](../../deploy/rollback-release.sh), [`../../deploy/certify-release-candidate.sh`](../../deploy/certify-release-candidate.sh), [`../../deploy/certification-smoke.sh`](../../deploy/certification-smoke.sh), [`../../deploy/gallery-mazhari-ssr.service.example`](../../deploy/gallery-mazhari-ssr.service.example).
+References: [`../PLATFORM_DEPLOYMENT.md`](../PLATFORM_DEPLOYMENT.md), [`../SERVER_DEPLOYMENT_HANDOFF_FA.md`](../SERVER_DEPLOYMENT_HANDOFF_FA.md), [`../release/PRODUCTION_CERTIFICATION.md`](../release/PRODUCTION_CERTIFICATION.md), [`../../deploy/nginx.conf.example`](../../deploy/nginx.conf.example), [`../../deploy/release.sh`](../../deploy/release.sh), [`../../deploy/rollback-release.sh`](../../deploy/rollback-release.sh), [`../../deploy/certify-release-candidate.sh`](../../deploy/certify-release-candidate.sh), [`../../deploy/certification-smoke.sh`](../../deploy/certification-smoke.sh), [`../../deploy/gallery-mazhari-ssr.service.example`](../../deploy/gallery-mazhari-ssr.service.example), [`../../deploy/v2-auto-deploy.sh`](../../deploy/v2-auto-deploy.sh), [`../../deploy/install-v2-auto-deploy.sh`](../../deploy/install-v2-auto-deploy.sh).

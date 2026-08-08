@@ -1,0 +1,22 @@
+[Unit]
+Description=Gallery Mazhari V2 exact-SHA auto deploy
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+Environment=APP_ROOT=/srv/gallery-mazhari
+Environment=V2_DEPLOY_REPOSITORY=codebymoein/gallery-mazhari-angular
+Environment=SSR_READY_HOST=v2.gallerymazhari.com
+Environment=V2_LEGACY_BROWSER_ROOT=/var/www/gallery-mazhari/browser
+Environment=V2_LEGACY_BACKEND_SERVICE=gallery-mazhari-api.service
+ExecStart=/usr/local/sbin/gallery-mazhari-v2-auto-deploy
+TimeoutStartSec=15min
+UMask=0027
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
