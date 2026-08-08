@@ -13,12 +13,11 @@
   }
 </div>
 
-<!-- ═══ Mobile Drawer — در root رندر می‌شود تا position:fixed کار کند ═══ -->
-@if (!isAdminShell() && headerRef) {
+<!-- Browser-only root overlays mount after hydration so SSR markup stays stable. -->
+@if (browserToolsReady() && !isAdminShell() && headerRef) {
   <ng-container *ngTemplateOutlet="headerRef.drawerTpl"></ng-container>
 }
 
-<!-- Browser-only floating tools mount after the hydrated app has rendered. -->
 @if (browserToolsReady() && !isAdminShell() && !isFocusedForm()) {
   <app-dream-canvas-widget></app-dream-canvas-widget>
   <app-wedding-timeline-widget></app-wedding-timeline-widget>
