@@ -9,6 +9,7 @@ RM-11 PR-014 establishes the deploy contract and RM-12 PR-020 extends the fronte
 - `.github/workflows/release-artifact.yml` builds frontend/backend from one Git SHA and publishes a tarball plus SHA-256 checksum.
 - The artifact contains `REVISION` and `BUILD.json` provenance plus frontend browser/server output, frontend production runtime dependencies, backend runtime dependencies and the versioned `deploy/` tooling.
 - `/srv/gallery-mazhari/releases/<sha>` is immutable after extraction.
+- Release extraction MUST normalize ownership/access before activation: root remains owner, the dedicated runtime group receives read/traverse access, and world access is denied. A restrictive deployment umask MUST NOT make an immutable release unreadable by the supervised Backend/SSR service account.
 - `/srv/gallery-mazhari/current` is the only live symlink. `deploy/release.sh` verifies checksum/revision, runs migrations before activation, atomically swaps the symlink and restarts both supervised backend and SSR services.
 - A host-level `flock` prevents concurrent deploy invocations. If application runtime restart fails after the switch, the previous symlink is restored when available.
 - Nginx serves immutable browser assets from `/srv/gallery-mazhari/current/frontend/browser` and proxies storefront document requests to the supervised Angular SSR process on `127.0.0.1:4000`.
