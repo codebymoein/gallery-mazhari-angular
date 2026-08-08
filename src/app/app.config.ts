@@ -15,6 +15,7 @@ import { appStore } from '@core/store';
 import { CartEffects } from '@core/store/cart/cart.effects';
 import { routes } from './app.routes';
 
+registerLocaleData(localeFa, 'fa');
 registerLocaleData(localeFa, 'fa-IR');
 
 export const appConfig: ApplicationConfig = {
