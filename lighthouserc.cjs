@@ -1,13 +1,15 @@
 module.exports = {
   ci: {
     collect: {
-      startServerCommand: 'npm start -- --host 127.0.0.1 --port 4200',
-      startServerReadyPattern: 'Local:',
       url: ['http://127.0.0.1:4200/'],
       numberOfRuns: 2,
       settings: {
         chromeFlags: '--no-sandbox --headless=new',
         onlyCategories: ['performance'],
+        blockedUrlPatterns: [
+          'https://api.gallery-mazhari.ir/*',
+          'https://gallery-mazhari.ir/wp-json/*',
+        ],
       },
     },
     assert: {
