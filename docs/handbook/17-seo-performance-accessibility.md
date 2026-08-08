@@ -15,8 +15,12 @@ RM-12 PR-020 establishes server-rendered document delivery for public routes. Pu
 - New dependencies and large assets require bundle/runtime impact review.
 - SSR is not by itself a performance pass; RM-13 owns Core Web Vitals budgets and browser-performance optimization.
 
+PR-022 establishes the responsive-media loading contract for the home experience: only the actual home LCP image receives eager/high priority and route-aware preload, while below-fold discovery/category media is deferred and explicit dimensions are preserved.
+
+PR-023 establishes measurable browser/CWV evidence. A dedicated CI workflow MUST run the storefront reliability journey in Chromium, Firefox and WebKit plus a constrained mobile Chromium profile. Lighthouse CI MUST enforce explicit mobile performance/CWV proxy budgets and retain its report artifact. Browser RUM MUST collect only allowlisted performance metrics (`CLS`, `INP`, `LCP`, `TTFB`), pathname without query/fragment, and navigation type. It MUST NOT collect user identifiers, query strings, authorization data, form payloads, user agent strings or other customer PII. The public telemetry endpoint is validation-bounded, rate-limited through the application throttler and logs structured aggregate metric records without writing durable business state.
+
 ## Accessibility
 Target WCAG 2.2 AA for customer/admin workflows where feasible. Semantic elements, labels, keyboard operation, visible focus, error association, contrast, reduced-motion respect, meaningful alt text and RTL reading order are mandatory review concerns. Interactive `div`/`span` substitutes require equivalent semantics only when native controls cannot be used.
 
 ## Verification
-Use existing Playwright accessibility/routing/SEO coverage and add regression tests for changed critical behavior. RM-12 SSR changes additionally require a production SSR build plus raw-HTML and HTTP-status evidence against the built Node server. Performance claims should include before/after measurement when material.
+Use existing Playwright accessibility/routing/SEO coverage and add regression tests for changed critical behavior. RM-12 SSR changes additionally require a production SSR build plus raw-HTML and HTTP-status evidence against the built Node server. Performance claims should include before/after measurement when material. RM-13 PR-023 evidence additionally requires the dedicated browser-matrix and Lighthouse/CWV workflow to pass on the exact PR head used for completion evidence.
