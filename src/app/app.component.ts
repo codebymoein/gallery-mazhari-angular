@@ -6,6 +6,7 @@ import {
   OnInit,
   PLATFORM_ID,
   ViewChild,
+  afterNextRender,
   inject,
   signal
 } from '@angular/core';
@@ -53,6 +54,15 @@ export class AppComponent implements OnInit, AfterViewInit {
   /** Hide storefront chrome on /admin routes for a focused ops UI. */
   readonly isAdminShell = signal(false);
   readonly isFocusedForm = signal(false);
+  readonly browserToolsReady = signal(false);
+
+  constructor() {
+    afterNextRender(() => {
+      this.publishedSync.refresh();
+      this.applyBrowserTheme();
+      this.browserToolsReady.set(true);
+    });
+  }
 
   ngOnInit(): void {
     this.seoService.init();
@@ -61,10 +71,16 @@ export class AppComponent implements OnInit, AfterViewInit {
     this.router.events
       .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
       .subscribe((e) => this.syncAdminShell(e.urlAfterRedirects));
+  }
 
+  ngAfterViewInit(): void {
     if (!this.isBrowser) return;
+    // The drawer template comes from the conditionally rendered header.
+    // Run one stable pass after the ViewChild query has resolved.
+    this.cdr.detectChanges();
+  }
 
-    this.publishedSync.refresh();
+  private applyBrowserTheme(): void {
     this.document.documentElement.setAttribute('data-theme', 'light');
     this.document.body.setAttribute('data-theme', 'light');
     this.document.documentElement.classList.remove('dark-mode');
@@ -77,13 +93,6 @@ export class AppComponent implements OnInit, AfterViewInit {
     } catch {
       // Ignore storage errors.
     }
-  }
-
-  ngAfterViewInit(): void {
-    if (!this.isBrowser) return;
-    // The drawer template comes from the conditionally rendered header.
-    // Run one stable pass after the ViewChild query has resolved.
-    this.cdr.detectChanges();
   }
 
   private syncAdminShell(url: string): void {
