@@ -84,6 +84,15 @@ input:focus-visible {
   outline-offset: 2px;
 }
 
+/* CI-blocking WCAG AA contrast repairs discovered by the required axe suite. */
+.bridal-catalog__custom-request b {
+  color: var(--color-white);
+}
+
+.contact__branch-num {
+  color: var(--color-gold-hover);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
