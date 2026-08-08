@@ -1,4 +1,5 @@
-import { Component, HostListener, OnDestroy, OnInit, inject } from '@angular/core';
+import { DOCUMENT, isPlatformBrowser } from '@angular/common';
+import { Component, HostListener, OnDestroy, OnInit, PLATFORM_ID, inject } from '@angular/core';
 
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
@@ -6,6 +7,7 @@ import {
   formatIrr,
 } from '@core/services/search.service';
 import { ShoppingContextService } from '@core/services/shopping-context.service';
+import { SeoService } from '@core/services/seo.service';
 import {
   BridalSampleProduct,
   getSizeOptionsForProduct,
@@ -32,6 +34,9 @@ export class CategoryProductsComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly shoppingContext = inject(ShoppingContextService);
+  private readonly seo = inject(SeoService);
+  private readonly document = inject(DOCUMENT);
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   private sub?: Subscription;
 
   parentSlug = '';
@@ -74,8 +79,9 @@ export class CategoryProductsComponent implements OnInit, OnDestroy {
         : [];
       this.selectedSize = '';
       this.resetVisibleProducts();
+      this.applyCategorySeo(cat, sub);
       this.shoppingContext.rememberPath(['/shop', slug, subSlug]);
-      window.scrollTo({ top: 0, behavior: 'auto' });
+      this.scrollToTop();
     });
   }
 
@@ -116,9 +122,11 @@ export class CategoryProductsComponent implements OnInit, OnDestroy {
 
   @HostListener('window:scroll')
   loadMoreNearBottom(): void {
-    if (this.visibleCount >= this.products.length) return;
-    const remaining = document.documentElement.scrollHeight - (window.scrollY + window.innerHeight);
-    if (remaining < window.innerHeight * 1.5) {
+    if (!this.isBrowser || this.visibleCount >= this.products.length) return;
+    const view = this.document.defaultView;
+    if (!view) return;
+    const remaining = this.document.documentElement.scrollHeight - (view.scrollY + view.innerHeight);
+    if (remaining < view.innerHeight * 1.5) {
       this.visibleCount = Math.min(this.products.length, this.visibleCount + this.rowsPerBatch());
     }
   }
@@ -131,12 +139,29 @@ export class CategoryProductsComponent implements OnInit, OnDestroy {
     this.sub?.unsubscribe();
   }
 
+  private applyCategorySeo(category: CatalogCategory, subcategory: CatalogSubcategory): void {
+    this.seo.applyCollectionSeo({
+      title: `${subcategory.label} | ${category.title} | گالری مظهری`,
+      description: `مشاهده محصولات ${subcategory.label} از مجموعه ${category.title} در گالری مظهری.`,
+      canonicalPath: `/shop/${category.slug}/${subcategory.slug}`,
+      image: subcategory.image || category.image,
+      imageAlt: subcategory.label
+    });
+  }
+
   private resetVisibleProducts(): void {
     this.visibleCount = Math.min(this.products.length, this.rowsPerBatch());
   }
 
   private rowsPerBatch(): number {
-    const columns = window.innerWidth >= 1024 ? 4 : window.innerWidth >= 640 ? 3 : 2;
+    if (!this.isBrowser) return 40;
+    const width = this.document.defaultView?.innerWidth ?? 1024;
+    const columns = width >= 1024 ? 4 : width >= 640 ? 3 : 2;
     return columns * 10;
+  }
+
+  private scrollToTop(): void {
+    if (!this.isBrowser) return;
+    this.document.defaultView?.scrollTo({ top: 0, behavior: 'auto' });
   }
 }

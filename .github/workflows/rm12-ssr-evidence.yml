@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'src/**'
+      - 'scripts/**'
       - 'angular.json'
       - 'package.json'
       - 'package-lock.json'
@@ -25,9 +26,11 @@ jobs:
           cache: npm
           cache-dependency-path: package-lock.json
       - run: npm ci
+      - name: Validate sitemap canonical governance
+        run: python3 scripts/validate_sitemaps.py
       - name: Build production SSR artifact
         run: npm run build:prod
-      - name: Verify SSR raw HTML and HTTP status contract
+      - name: Verify SSR raw HTML, structured data, sitemaps, and HTTP status contract
         run: |
           set -euo pipefail
           node dist/gallery-mazhari-angular/server/server.mjs > ssr-server.log 2>&1 &
@@ -51,6 +54,45 @@ jobs:
           grep -F 'name="description"' home.html
           grep -F 'rel="canonical"' home.html
 
+          curl --fail --silent --show-error -H 'Host: gallery-mazhari.ir' \
+            'http://127.0.0.1:4000/shop/bridal-clothing?utm_source=rm12' > category.html
+          node <<'NODE'
+          const fs = require('node:fs');
+          const html = fs.readFileSync('category.html', 'utf8');
+          const expected = 'https://gallery-mazhari.ir/shop/bridal-clothing';
+          const title = html.match(/<title>([^<]+)<\/title>/)?.[1];
+          const canonical = html.match(/<link[^>]*rel="canonical"[^>]*href="([^"]+)"[^>]*>/i)?.[1]
+            ?? html.match(/<link[^>]*href="([^"]+)"[^>]*rel="canonical"[^>]*>/i)?.[1];
+          const ogUrl = html.match(/<meta[^>]*property="og:url"[^>]*content="([^"]+)"[^>]*>/i)?.[1]
+            ?? html.match(/<meta[^>]*content="([^"]+)"[^>]*property="og:url"[^>]*>/i)?.[1];
+          const jsonLdText = html.match(/<script[^>]*id="mazhari-route-jsonld"[^>]*>([\s\S]*?)<\/script>/i)?.[1];
+          if (title !== 'پوشاک عروس | گالری مظهری') throw new Error(`unexpected title: ${title}`);
+          if (canonical !== expected) throw new Error(`unexpected canonical: ${canonical}`);
+          if (ogUrl !== expected) throw new Error(`unexpected og:url: ${ogUrl}`);
+          if (!jsonLdText) throw new Error('missing governed route JSON-LD');
+          const jsonLd = JSON.parse(jsonLdText);
+          if (jsonLd['@type'] !== 'CollectionPage') throw new Error(`unexpected JSON-LD type: ${jsonLd['@type']}`);
+          if (jsonLd.url !== expected) throw new Error(`unexpected JSON-LD url: ${jsonLd.url}`);
+          for (const [label, value] of Object.entries({ canonical, ogUrl, jsonLdUrl: jsonLd.url })) {
+            if (String(value).includes('utm_source=rm12')) throw new Error(`query leaked into ${label}`);
+          }
+          console.log('dynamic category SSR metadata contract passed');
+          NODE
+
+          curl --fail --silent --show-error -H 'Host: gallery-mazhari.ir' \
+            http://127.0.0.1:4000/looks > content.html
+          grep -F 'href="https://gallery-mazhari.ir/looks"' content.html
+
+          curl --fail --silent --show-error -H 'Host: gallery-mazhari.ir' \
+            http://127.0.0.1:4000/sitemap.xml > sitemap.xml
+          curl --fail --silent --show-error -H 'Host: gallery-mazhari.ir' \
+            http://127.0.0.1:4000/sitemap-pages.xml > sitemap-pages.xml
+          curl --fail --silent --show-error -H 'Host: gallery-mazhari.ir' \
+            http://127.0.0.1:4000/sitemap-catalog.xml > sitemap-catalog.xml
+          grep -F '<sitemapindex' sitemap.xml
+          grep -F '<urlset' sitemap-pages.xml
+          grep -F '<urlset' sitemap-catalog.xml
+
           status=$(curl --silent --show-error -H 'Host: gallery-mazhari.ir' --output missing.html --write-out '%{http_code}' http://127.0.0.1:4000/this-route-must-not-exist)
           echo "unknown route status=${status}"
           test "$status" = '404'
@@ -63,6 +105,11 @@ jobs:
           path: |
             ssr-server.log
             home.html
+            category.html
+            content.html
             missing.html
+            sitemap.xml
+            sitemap-pages.xml
+            sitemap-catalog.xml
           if-no-files-found: warn
           retention-days: 14

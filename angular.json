@@ -34,6 +34,8 @@
             "assets": [
               "src/robots.txt",
               "src/sitemap.xml",
+              "src/sitemap-pages.xml",
+              "src/sitemap-catalog.xml",
               "src/assets"
             ],
             "styles": [

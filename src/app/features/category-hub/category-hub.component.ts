@@ -1,4 +1,5 @@
-import { Component, OnDestroy, OnInit, effect, inject } from '@angular/core';
+import { DOCUMENT, isPlatformBrowser } from '@angular/common';
+import { Component, OnDestroy, OnInit, PLATFORM_ID, effect, inject } from '@angular/core';
 
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
@@ -8,6 +9,7 @@ import {
   getCatalogCategoryBySlug
 } from '@shared/data/catalog-categories';
 import { ShoppingContextService } from '@core/services/shopping-context.service';
+import { SeoService } from '@core/services/seo.service';
 import { assetUrl, onImgErrorUseFallback } from '@shared/utils/asset-url';
 import { AppearanceApiService } from '@core/services/appearance-api.service';
 
@@ -25,6 +27,9 @@ export class CategoryHubComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly shoppingContext = inject(ShoppingContextService);
   private readonly appearanceApi = inject(AppearanceApiService);
+  private readonly seo = inject(SeoService);
+  private readonly document = inject(DOCUMENT);
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   private sub?: Subscription;
 
   category: CatalogCategory | null = null;
@@ -68,8 +73,9 @@ export class CategoryHubComponent implements OnInit, OnDestroy {
       }
 
       this.setCategory(slug);
+      this.applyCategorySeo(found);
       this.shoppingContext.rememberPath(['/shop', found.slug]);
-      window.scrollTo({ top: 0, behavior: 'auto' });
+      this.scrollToTop();
     });
   }
 
@@ -86,6 +92,22 @@ export class CategoryHubComponent implements OnInit, OnDestroy {
         image: appearance?.subcategoryImages?.[sub.slug] || assetUrl(sub.image || found.image)
       }))
     };
+  }
+
+  private applyCategorySeo(category: CatalogCategory): void {
+    const image = this.category?.image || category.image;
+    this.seo.applyCollectionSeo({
+      title: `${category.title} | گالری مظهری`,
+      description: `مشاهده مجموعه ${category.title} و زیرگروه‌های منتخب عروس در گالری مظهری.`,
+      canonicalPath: `/shop/${category.slug}`,
+      image,
+      imageAlt: category.title
+    });
+  }
+
+  private scrollToTop(): void {
+    if (!this.isBrowser) return;
+    this.document.defaultView?.scrollTo({ top: 0, behavior: 'auto' });
   }
 
   cardShape(index: number): CardShape {
