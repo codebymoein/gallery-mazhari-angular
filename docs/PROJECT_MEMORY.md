@@ -5,7 +5,7 @@ Status: **Operational context; subordinate to `CONSTITUTION.md` and the Engineer
 ## Repository
 - Authoritative repository: `codebymoein/gallery-mazhari-angular`
 - Default integration branch: `main`
-- RM-00 established the remediation baseline lineage. New remediation work starts from the current approved `main`, never from reused/diverged work branches.
+- New work starts from the current approved `main`; stale/diverged work branches are not reused.
 
 ## Architecture
 - Frontend: Angular 21 with server-side rendering/hydration for indexable public routes and client rendering for private/admin routes.
@@ -17,12 +17,26 @@ Status: **Operational context; subordinate to `CONSTITUTION.md` and the Engineer
 ## Protected Gallery Mazhari workflows
 The following are intentional product systems and must not be deleted, flattened or bypassed for convenience: Excel inventory import; dry-run/confirm import; product/variation workflow; photo/media queue; orphan/quarantine handling; staging/publish queue; stock lifecycle/audit; taxonomy; SEO enrichment; merchandising; orders/payments; consultations; custom requests; and related approval/audit gates.
 
-## Remediation operating model
-- Master Remediation Roadmap controls implementation scope and Wave gates.
-- A raw audit finding is not permission to modify code.
-- One focused branch/PR per approved remediation purpose unless the Roadmap explicitly groups programs.
-- No adjacent RM program starts opportunistically.
-- Every PR states base SHA, scope/non-scope, risk, verification evidence and rollback/recovery.
+## Current remediation/release state
+- Waves 0–3 remediation work is complete on the approved `main` lineage.
+- RM-12 SSR/SEO, RM-13 browser/Core Web Vitals and RM-14 accessibility evidence are permanent regression controls rather than active cleanup backlogs.
+- RM-17 production certification/controlled launch is the only active remediation/release program.
+- Release certification tooling is merged; Business UAT, open-risk disposition, rollback/restore evidence and controlled-launch GO remain human/release activities governed by `docs/release/PRODUCTION_CERTIFICATION.md`.
+- `docs/remediation/MASTER_REMEDIATION_ROADMAP.md` intentionally contains only active/current remediation context. Completed 381-finding detail and PR sequencing remain recoverable from Git history and merged PRs rather than being loaded into every new agent session.
+
+## Deployment / V2 rollout
+- The release-activation contract delegates extracted-artifact validation to the versioned exact-SHA certifier rather than maintaining a second browser-entrypoint contract.
+- The non-public `v2.gallerymazhari.com` environment uses an immutable automatic rollout model: each reviewed `main` merge produces an exact-SHA `auto-v2-<sha>` prerelease on GitHub; the VPS polls outbound over HTTPS, verifies and activates that artifact through the canonical release path, then health/provenance-checks it.
+- A V2-only atomic static-browser compatibility bridge remains until its existing Nginx host is deliberately migrated to the canonical SSR reverse proxy.
+- V2 automation is not production GO and does not replace RM-17 human release authorization.
+
+## Repository hygiene
+- Obsolete early-phase documents that described superseded WordPress/Angular architecture or duplicate feature planning are removed once proven to have no active operational consumer.
+- `PHASE1_COMPLETION.md` and `IMPLEMENTATION_CHECKLIST.md` are retired from the active tree; Git history remains the recovery record.
+- `PRODUCTION_AUDIT.md` remains historical evidence while production certification is active.
+- `MEDIA_DEPLOYMENT.md` and deployment handoff material remain only where current media/release operations still consume them.
+- Further executable-code deletion requires candidate-specific usage/runtime/history proof; static-analysis findings alone are not deletion authority.
+- Repository-hygiene documentation work does not authorize additional runtime/code deletion; any later cleanup requires its own scoped evidence and review.
 
 ## Post-remediation product development model
 - New product ideas and changes are captured first in `docs/product/BACKLOG.md`; a backlog entry is not direct implementation authority.
@@ -50,21 +64,6 @@ The following are intentional product systems and must not be deleted, flattened
 - Production certification protocol: `docs/release/PRODUCTION_CERTIFICATION.md`
 - Release risk register: `docs/release/OPEN_RISK_REGISTER.md`
 - Deployment/runtime contract including V2 automatic rollout: `docs/PLATFORM_DEPLOYMENT.md` and Handbook 14.
-
-## Current remediation and release state
-Wave 0 and Waves 1–3 implementation slices are complete on the approved `main` lineage. RM-12 SSR/SEO, RM-13 browser/CWV and RM-14 accessibility evidence are established as permanent regression gates.
-
-PR-024 / RM-14 merged at `main@ab168119bced3f3809aa5764f6be5364da98794e`, adding focus management, expanded Axe/keyboard/reflow evidence and the manual VoiceOver/NVDA acceptance protocol.
-
-PR-025 / RM-17 release-certification tooling is merged at `main@7a9a584d4056a02e65d6064bb02030fb8a410ddd`. The tooling establishes exact-SHA release provenance validation, production-like crawler/smoke evidence and the governed production certification protocol. Production Business UAT, open-risk disposition, rollback/restore rehearsal evidence and controlled-launch GO remain human/release activities governed by `docs/release/PRODUCTION_CERTIFICATION.md`; automated evidence cannot replace human approval.
-
-The release-activation contract was subsequently aligned so `deploy/release.sh` delegates extracted-artifact validation to the versioned exact-SHA certifier instead of maintaining a second browser-entrypoint contract.
-
-The non-public `v2.gallerymazhari.com` environment uses an immutable automatic rollout model: each reviewed `main` merge produces an exact-SHA `auto-v2-<sha>` prerelease on GitHub; the VPS polls outbound over HTTPS, verifies and activates that artifact through the canonical release path, then health/provenance-checks it. A V2-only atomic static-browser compatibility bridge remains until its existing Nginx host is deliberately migrated to the canonical SSR reverse proxy. This automation is not production GO and does not replace RM-17 human release authorization.
-
-Post-remediation product development may be planned through the canonical product backlog/workflow, but it must not be confused with production certification or used to bypass release gates for the current launch.
-
-This file records sequence/context only; the Master Remediation Roadmap remains authoritative for remediation scope and ordering, while the canonical product/development documents govern future feature intake and delivery.
 
 ## Updating this file
 Update Project Memory when repository-wide operating facts change: architecture authority, canonical workflows, governance process, active remediation/release state, canonical operations documentation, or durable handoff information. Do not use it as a scratchpad, secret store, duplicate audit ledger or substitute for task-specific documentation.
