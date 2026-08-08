@@ -3,7 +3,8 @@
  * Manages shopping cart operations
  */
 
-import { Injectable } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { Inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { map, Observable, take } from 'rxjs';
 import { CartItem, EngravingRequest } from '@shared/models';
@@ -15,6 +16,7 @@ import * as CartSelectors from '../store/cart/cart.selectors';
 })
 export class CartService {
   private readonly cartTtlMs = 24 * 60 * 60 * 1000;
+  private readonly isBrowser: boolean;
   // Selectors
   cartItems$ = this.store.select(CartSelectors.selectCartItems);
   cartItemCount$ = this.store.select(CartSelectors.selectCartItemCount);
@@ -25,8 +27,14 @@ export class CartService {
   cartSummary$ = this.store.select(CartSelectors.selectCartSummary);
   cartValue$ = this.store.select(CartSelectors.selectCartValue);
 
-  constructor(private store: Store) {
-    // Load cart from localStorage on init
+  constructor(
+    private store: Store,
+    @Inject(PLATFORM_ID) platformId: object
+  ) {
+    this.isBrowser = isPlatformBrowser(platformId);
+    if (!this.isBrowser) return;
+
+    // Browser persistence is client-only; SSR must never read localStorage or keep timers alive.
     this.loadCart();
     setInterval(() => this.expireStaleCart(), 60 * 1000);
   }
@@ -39,6 +47,7 @@ export class CartService {
   }
 
   private expireStaleCart(): void {
+    if (!this.isBrowser) return;
     try {
       const raw = localStorage.getItem('mazhari_cart');
       if (!raw) return;
@@ -151,7 +160,9 @@ export class CartService {
    * Load cart from localStorage
    */
   loadCart(): void {
-    this.store.dispatch(CartActions.loadCart());
+    if (this.isBrowser) {
+      this.store.dispatch(CartActions.loadCart());
+    }
   }
 
   /**

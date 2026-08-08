@@ -10,7 +10,8 @@ artifact="$1"
 checksum_file="$2"
 app_root="${APP_ROOT:-/srv/gallery-mazhari}"
 env_file="${BACKEND_ENV_FILE:-/etc/gallery-mazhari/backend.env}"
-service_name="${BACKEND_SERVICE_NAME:-gallery-mazhari-backend.service}"
+backend_service_name="${BACKEND_SERVICE_NAME:-gallery-mazhari-backend.service}"
+ssr_service_name="${SSR_SERVICE_NAME:-gallery-mazhari-ssr.service}"
 lock_file="${DEPLOY_LOCK_FILE:-/var/lock/gallery-mazhari-deploy.lock}"
 
 for command in sha256sum tar node systemctl flock readlink; do
@@ -19,6 +20,10 @@ for command in sha256sum tar node systemctl flock readlink; do
     exit 69
   }
 done
+
+restart_runtime() {
+  systemctl restart "$backend_service_name" && systemctl restart "$ssr_service_name"
+}
 
 exec 9>"$lock_file"
 flock -n 9 || { echo "another deployment is already running" >&2; exit 75; }
@@ -61,7 +66,8 @@ tar -xzf "$artifact" -C "$staging_dir" --strip-components=1
   exit 65
 }
 [ -f "$staging_dir/backend/dist/main.js" ] || { echo "backend build missing" >&2; exit 65; }
-[ -f "$staging_dir/frontend/index.html" ] || { echo "frontend build missing" >&2; exit 65; }
+[ -f "$staging_dir/frontend/browser/index.html" ] || { echo "frontend browser build missing" >&2; exit 65; }
+[ -f "$staging_dir/frontend/server/server.mjs" ] || { echo "frontend SSR server build missing" >&2; exit 65; }
 
 mv "$staging_dir" "$release_dir"
 
@@ -83,12 +89,12 @@ fi
 ln -sfn "$release_dir" "${current_link}.next"
 mv -Tf "${current_link}.next" "$current_link"
 
-if ! systemctl restart "$service_name"; then
-  echo "backend restart failed; restoring previous release symlink" >&2
+if ! restart_runtime; then
+  echo "application runtime restart failed; restoring previous release symlink" >&2
   if [ -n "$previous_target" ]; then
     ln -sfn "$previous_target" "${current_link}.rollback"
     mv -Tf "${current_link}.rollback" "$current_link"
-    systemctl restart "$service_name" || true
+    restart_runtime || true
   fi
   exit 70
 fi

@@ -13,13 +13,12 @@
   }
 </div>
 
-<!-- ═══ Mobile Drawer — در root رندر می‌شود تا position:fixed کار کند ═══ -->
-@if (!isAdminShell() && headerRef) {
+<!-- Browser-only root overlays mount after hydration so SSR markup stays stable. -->
+@if (browserToolsReady() && !isAdminShell() && headerRef) {
   <ng-container *ngTemplateOutlet="headerRef.drawerTpl"></ng-container>
 }
 
-<!-- Global floating tools (same placement as WordPress theme) -->
-@if (!isAdminShell() && !isFocusedForm()) {
+@if (browserToolsReady() && !isAdminShell() && !isFocusedForm()) {
   <app-dream-canvas-widget></app-dream-canvas-widget>
   <app-wedding-timeline-widget></app-wedding-timeline-widget>
   <app-ar-magic-mirror></app-ar-magic-mirror>

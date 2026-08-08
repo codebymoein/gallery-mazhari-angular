@@ -27,13 +27,15 @@ jobs:
           npm ci
           npm --prefix backend ci
 
-      - name: Build frontend and backend
+      - name: Build frontend SSR and backend
         run: |
           npm run build:prod
           npm --prefix backend run build
 
-      - name: Retain backend production dependencies only
-        run: npm --prefix backend prune --omit=dev
+      - name: Retain production dependencies only
+        run: |
+          npm prune --omit=dev
+          npm --prefix backend prune --omit=dev
 
       - name: Assemble immutable release payload
         env:
@@ -41,8 +43,11 @@ jobs:
         run: |
           set -euo pipefail
           release_dir="release-${RELEASE_SHA}"
-          mkdir -p "${release_dir}/frontend" "${release_dir}/backend" "${release_dir}/deploy"
-          cp -a dist/gallery-mazhari-angular/browser/. "${release_dir}/frontend/"
+          mkdir -p "${release_dir}/frontend/browser" "${release_dir}/frontend/server" "${release_dir}/backend" "${release_dir}/deploy"
+          cp -a dist/gallery-mazhari-angular/browser/. "${release_dir}/frontend/browser/"
+          cp -a dist/gallery-mazhari-angular/server/. "${release_dir}/frontend/server/"
+          cp -a node_modules "${release_dir}/frontend/node_modules"
+          cp package.json package-lock.json "${release_dir}/frontend/"
           cp -a backend/dist "${release_dir}/backend/dist"
           cp -a backend/node_modules "${release_dir}/backend/node_modules"
           cp backend/package.json backend/package-lock.json "${release_dir}/backend/"

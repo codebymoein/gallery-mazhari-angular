@@ -1,0 +1,23 @@
+[Unit]
+Description=Gallery Mazhari Angular SSR
+After=network.target gallery-mazhari-backend.service
+Wants=gallery-mazhari-backend.service
+
+[Service]
+Type=simple
+User=gallery
+Group=gallery
+WorkingDirectory=/srv/gallery-mazhari/current/frontend
+Environment=NODE_ENV=production
+Environment=PORT=4000
+ExecStart=/usr/bin/node /srv/gallery-mazhari/current/frontend/server/server.mjs
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/tmp
+
+[Install]
+WantedBy=multi-user.target

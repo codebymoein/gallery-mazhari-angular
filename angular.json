@@ -10,11 +10,23 @@
       "prefix": "app",
       "architect": {
         "build": {
-          "builder": "@angular-devkit/build-angular:browser",
+          "builder": "@angular-devkit/build-angular:application",
           "options": {
             "outputPath": "dist/gallery-mazhari-angular",
             "index": "src/index.html",
-            "main": "src/main.ts",
+            "browser": "src/main.ts",
+            "server": "src/main.server.ts",
+            "ssr": {
+              "entry": "src/server.ts"
+            },
+            "outputMode": "server",
+            "security": {
+              "allowedHosts": [
+                "gallery-mazhari.ir",
+                "www.gallery-mazhari.ir",
+                "localhost"
+              ]
+            },
             "polyfills": [
               "zone.js"
             ],
@@ -56,7 +68,6 @@
               ]
             },
             "development": {
-              "buildOptimizer": false,
               "optimization": false,
               "sourceMap": true
             }

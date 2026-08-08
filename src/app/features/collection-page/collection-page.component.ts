@@ -1,4 +1,5 @@
-import { Component, HostListener, OnDestroy, OnInit, inject } from '@angular/core';
+import { DOCUMENT, isPlatformBrowser } from '@angular/common';
+import { Component, HostListener, OnDestroy, OnInit, PLATFORM_ID, inject } from '@angular/core';
 
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
@@ -20,6 +21,8 @@ import {
 export class CollectionPageComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly shoppingContext = inject(ShoppingContextService);
+  private readonly document = inject(DOCUMENT);
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   private sub?: Subscription;
 
   readonly collections = BRIDAL_COLLECTION_CATEGORIES;
@@ -37,46 +40,44 @@ export class CollectionPageComponent implements OnInit, OnDestroy {
       this.products = productsForCategory(this.activeCollection.slug);
       this.visibleCount = Math.min(this.products.length, this.rowsPerBatch());
       this.shoppingContext.rememberPath(['/collections', this.activeCollection.slug]);
-      window.scrollTo({ top: 0, behavior: 'auto' });
+      this.scrollToTop();
     });
   }
 
-  isActive(slug: string): boolean {
-    return this.activeCollection.slug === slug;
-  }
+  isActive(slug: string): boolean { return this.activeCollection.slug === slug; }
+  hideBrokenImage(event: Event): void { (event.currentTarget as HTMLImageElement).hidden = true; }
 
-  hideBrokenImage(event: Event): void {
-    (event.currentTarget as HTMLImageElement).hidden = true;
-  }
-
-  get visibleProducts(): BridalSampleProduct[] {
-    return this.products.slice(0, this.visibleCount);
-  }
+  get visibleProducts(): BridalSampleProduct[] { return this.products.slice(0, this.visibleCount); }
 
   galleryImages(product: BridalSampleProduct): string[] {
     const images = (product.gallery?.length ? product.gallery : [product.image]).filter(Boolean);
     return Array.from(new Set(images)).slice(0, 5);
   }
 
-  trackByProductId(_index: number, product: BridalSampleProduct): string {
-    return product.id;
-  }
+  trackByProductId(_index: number, product: BridalSampleProduct): string { return product.id; }
 
   @HostListener('window:scroll')
   loadMoreNearBottom(): void {
-    if (this.visibleCount >= this.products.length) return;
-    const remaining = document.documentElement.scrollHeight - (window.scrollY + window.innerHeight);
-    if (remaining < window.innerHeight * 1.5) {
+    if (!this.isBrowser || this.visibleCount >= this.products.length) return;
+    const view = this.document.defaultView;
+    if (!view) return;
+    const remaining = this.document.documentElement.scrollHeight - (view.scrollY + view.innerHeight);
+    if (remaining < view.innerHeight * 1.5) {
       this.visibleCount = Math.min(this.products.length, this.visibleCount + this.rowsPerBatch());
     }
   }
 
   private rowsPerBatch(): number {
-    const columns = window.innerWidth >= 1024 ? 4 : window.innerWidth >= 640 ? 3 : 2;
+    if (!this.isBrowser) return 40;
+    const width = this.document.defaultView?.innerWidth ?? 1024;
+    const columns = width >= 1024 ? 4 : width >= 640 ? 3 : 2;
     return columns * 10;
   }
 
-  ngOnDestroy(): void {
-    this.sub?.unsubscribe();
+  private scrollToTop(): void {
+    if (!this.isBrowser) return;
+    this.document.defaultView?.scrollTo({ top: 0, behavior: 'auto' });
   }
+
+  ngOnDestroy(): void { this.sub?.unsubscribe(); }
 }
