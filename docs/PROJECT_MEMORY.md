@@ -49,6 +49,7 @@ The following are intentional product systems and must not be deleted, flattened
 - Legacy/stale document classification: `docs/operations/STALE_DOCUMENT_REGISTER.md`
 - Production certification protocol: `docs/release/PRODUCTION_CERTIFICATION.md`
 - Release risk register: `docs/release/OPEN_RISK_REGISTER.md`
+- Deployment/runtime contract including V2 automatic rollout: `docs/PLATFORM_DEPLOYMENT.md` and Handbook 14.
 
 ## Current remediation and release state
 Wave 0 and Waves 1–3 implementation slices are complete on the approved `main` lineage. RM-12 SSR/SEO, RM-13 browser/CWV and RM-14 accessibility evidence are established as permanent regression gates.
@@ -56,6 +57,10 @@ Wave 0 and Waves 1–3 implementation slices are complete on the approved `main`
 PR-024 / RM-14 merged at `main@ab168119bced3f3809aa5764f6be5364da98794e`, adding focus management, expanded Axe/keyboard/reflow evidence and the manual VoiceOver/NVDA acceptance protocol.
 
 PR-025 / RM-17 release-certification tooling is merged at `main@7a9a584d4056a02e65d6064bb02030fb8a410ddd`. The tooling establishes exact-SHA release provenance validation, production-like crawler/smoke evidence and the governed production certification protocol. Production Business UAT, open-risk disposition, rollback/restore rehearsal evidence and controlled-launch GO remain human/release activities governed by `docs/release/PRODUCTION_CERTIFICATION.md`; automated evidence cannot replace human approval.
+
+The release-activation contract was subsequently aligned so `deploy/release.sh` delegates extracted-artifact validation to the versioned exact-SHA certifier instead of maintaining a second browser-entrypoint contract.
+
+The non-public `v2.gallerymazhari.com` environment uses an immutable automatic rollout model: each reviewed `main` merge produces an exact-SHA `auto-v2-<sha>` prerelease on GitHub; the VPS polls outbound over HTTPS, verifies and activates that artifact through the canonical release path, then health/provenance-checks it. A V2-only atomic static-browser compatibility bridge remains until its existing Nginx host is deliberately migrated to the canonical SSR reverse proxy. This automation is not production GO and does not replace RM-17 human release authorization.
 
 Post-remediation product development may be planned through the canonical product backlog/workflow, but it must not be confused with production certification or used to bypass release gates for the current launch.
 
