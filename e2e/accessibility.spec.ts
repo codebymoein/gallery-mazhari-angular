@@ -1,10 +1,10 @@
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 
 const publicRoutes = ['/', '/catalog', '/contact', '/cart', '/checkout', '/admin/login'];
 const reflowRoutes = ['/catalog', '/contact', '/admin/login'];
 
-async function expectNoBlockingAxeViolations(page: Parameters<typeof AxeBuilder>[0]['page']) {
+async function expectNoBlockingAxeViolations(page: Page) {
   const result = await new AxeBuilder({ page })
     .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
     .analyze();
