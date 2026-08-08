@@ -197,7 +197,10 @@ export class CatalogComponent implements OnInit, OnDestroy {
   }
 
   private scrollToTop(): void {
-    this.document.defaultView?.scrollTo({ top: 0, behavior: 'auto' });
+    const scrollTo = this.document.defaultView?.scrollTo;
+    if (typeof scrollTo === 'function') {
+      scrollTo.call(this.document.defaultView, { top: 0, behavior: 'auto' });
+    }
   }
 
   ngOnDestroy(): void {
