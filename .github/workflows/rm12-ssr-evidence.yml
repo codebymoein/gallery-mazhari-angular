@@ -58,9 +58,11 @@ jobs:
             'http://127.0.0.1:4000/shop/bridal-clothing?utm_source=rm12' > category.html
           grep -F '<title>پوشاک عروس | گالری مظهری</title>' category.html
           grep -F 'href="https://gallery-mazhari.ir/shop/bridal-clothing"' category.html
+          grep -F 'property="og:url" content="https://gallery-mazhari.ir/shop/bridal-clothing"' category.html
           grep -F '"@type":"CollectionPage"' category.html
-          if grep -Fq 'utm_source=rm12' category.html; then
-            echo 'query parameter leaked into SSR metadata/canonical output'
+          grep -F '"url":"https://gallery-mazhari.ir/shop/bridal-clothing"' category.html
+          if grep -Eq 'rel="canonical"[^>]*utm_source=rm12|property="og:url"[^>]*utm_source=rm12|"url":"[^"]*utm_source=rm12' category.html; then
+            echo 'query parameter leaked into governed SEO metadata'
             exit 1
           fi
 
