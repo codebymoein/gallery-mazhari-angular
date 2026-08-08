@@ -7,10 +7,12 @@ on:
       - 'deploy/**'
       - '.github/workflows/release-artifact.yml'
       - '.github/workflows/deployment-tooling.yml'
+      - '.github/workflows/rm17-release-certification.yml'
       - 'docs/PLATFORM_DEPLOYMENT.md'
       - 'docs/handbook/14-deployment-operations.md'
       - 'docs/handbook/15-observability.md'
       - 'docs/handbook/16-backup-disaster-recovery.md'
+      - 'docs/release/**'
   workflow_dispatch:
 
 permissions:
@@ -29,7 +31,9 @@ jobs:
             deploy/backup-media.sh \
             deploy/restore-postgres.sh \
             deploy/rollback-release.sh \
-            deploy/health-check.sh
+            deploy/health-check.sh \
+            deploy/certify-release-candidate.sh \
+            deploy/certification-smoke.sh
       - name: ShellCheck deployment scripts
         run: |
           shellcheck \
@@ -38,7 +42,9 @@ jobs:
             deploy/backup-media.sh \
             deploy/restore-postgres.sh \
             deploy/rollback-release.sh \
-            deploy/health-check.sh
+            deploy/health-check.sh \
+            deploy/certify-release-candidate.sh \
+            deploy/certification-smoke.sh
       - name: Prove production restore is fail-closed
         run: |
           set +e
