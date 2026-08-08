@@ -30,6 +30,7 @@ The following are intentional product systems and must not be deleted, flattened
 - `PRODUCTION_AUDIT.md` remains historical evidence while production certification is active.
 - `MEDIA_DEPLOYMENT.md` and deployment handoff material remain only where current media/release operations still consume them.
 - Further executable-code deletion requires candidate-specific usage/runtime/history proof; static-analysis findings alone are not deletion authority.
+- Repository-hygiene documentation work does not authorize additional runtime/code deletion; any later cleanup requires its own scoped evidence and review.
 
 ## Post-remediation product development model
 - New product ideas and changes are captured first in `docs/product/BACKLOG.md`; a backlog entry is not direct implementation authority.
