@@ -56,15 +56,28 @@ jobs:
 
           curl --fail --silent --show-error -H 'Host: gallery-mazhari.ir' \
             'http://127.0.0.1:4000/shop/bridal-clothing?utm_source=rm12' > category.html
-          grep -F '<title>پوشاک عروس | گالری مظهری</title>' category.html
-          grep -F 'href="https://gallery-mazhari.ir/shop/bridal-clothing"' category.html
-          grep -F 'property="og:url" content="https://gallery-mazhari.ir/shop/bridal-clothing"' category.html
-          grep -F '"@type":"CollectionPage"' category.html
-          grep -F '"url":"https://gallery-mazhari.ir/shop/bridal-clothing"' category.html
-          if grep -Eq 'rel="canonical"[^>]*utm_source=rm12|property="og:url"[^>]*utm_source=rm12|"url":"[^"]*utm_source=rm12' category.html; then
-            echo 'query parameter leaked into governed SEO metadata'
-            exit 1
-          fi
+          node <<'NODE'
+          const fs = require('node:fs');
+          const html = fs.readFileSync('category.html', 'utf8');
+          const expected = 'https://gallery-mazhari.ir/shop/bridal-clothing';
+          const title = html.match(/<title>([^<]+)<\/title>/)?.[1];
+          const canonical = html.match(/<link[^>]*rel="canonical"[^>]*href="([^"]+)"[^>]*>/i)?.[1]
+            ?? html.match(/<link[^>]*href="([^"]+)"[^>]*rel="canonical"[^>]*>/i)?.[1];
+          const ogUrl = html.match(/<meta[^>]*property="og:url"[^>]*content="([^"]+)"[^>]*>/i)?.[1]
+            ?? html.match(/<meta[^>]*content="([^"]+)"[^>]*property="og:url"[^>]*>/i)?.[1];
+          const jsonLdText = html.match(/<script[^>]*id="mazhari-route-jsonld"[^>]*>([\s\S]*?)<\/script>/i)?.[1];
+          if (title !== 'پوشاک عروس | گالری مظهری') throw new Error(`unexpected title: ${title}`);
+          if (canonical !== expected) throw new Error(`unexpected canonical: ${canonical}`);
+          if (ogUrl !== expected) throw new Error(`unexpected og:url: ${ogUrl}`);
+          if (!jsonLdText) throw new Error('missing governed route JSON-LD');
+          const jsonLd = JSON.parse(jsonLdText);
+          if (jsonLd['@type'] !== 'CollectionPage') throw new Error(`unexpected JSON-LD type: ${jsonLd['@type']}`);
+          if (jsonLd.url !== expected) throw new Error(`unexpected JSON-LD url: ${jsonLd.url}`);
+          for (const [label, value] of Object.entries({ canonical, ogUrl, jsonLdUrl: jsonLd.url })) {
+            if (String(value).includes('utm_source=rm12')) throw new Error(`query leaked into ${label}`);
+          }
+          console.log('dynamic category SSR metadata contract passed');
+          NODE
 
           curl --fail --silent --show-error -H 'Host: gallery-mazhari.ir' \
             http://127.0.0.1:4000/looks > content.html
