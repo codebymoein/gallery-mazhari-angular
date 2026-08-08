@@ -1,5 +1,5 @@
-import { DOCUMENT } from '@angular/common';
-import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { DOCUMENT, isPlatformBrowser } from '@angular/common';
+import { Component, OnDestroy, OnInit, PLATFORM_ID, inject } from '@angular/core';
 
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
@@ -44,6 +44,7 @@ export class CatalogComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly searchService = inject(SearchService);
   private readonly document = inject(DOCUMENT);
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   private querySub?: Subscription;
   private readonly collectionSlugs = COLLECTION_SLUGS;
 
@@ -103,72 +104,43 @@ export class CatalogComponent implements OnInit, OnDestroy {
   }
 
   categoryLink(slug: string): string[] {
-    if (this.collectionSlugs.has(slug)) {
-      return ['/collections', slug];
-    }
+    if (this.collectionSlugs.has(slug)) return ['/collections', slug];
     const parent = getCatalogCategoryBySlug(slug);
-    if (parent) {
-      return ['/shop', parent.slug];
-    }
+    if (parent) return ['/shop', parent.slug];
     const found = findCategoryForSubSlug(slug);
-    if (found) {
-      return ['/shop', found.category.slug, found.sub.slug];
-    }
+    if (found) return ['/shop', found.category.slug, found.sub.slug];
     return ['/catalog'];
   }
 
   categoryQueryParams(slug: string): { category: string } | null {
-    if (this.collectionSlugs.has(slug)) {
-      return null;
-    }
-    if (getCatalogCategoryBySlug(slug) || findCategoryForSubSlug(slug)) {
-      return null;
-    }
+    if (this.collectionSlugs.has(slug)) return null;
+    if (getCatalogCategoryBySlug(slug) || findCategoryForSubSlug(slug)) return null;
     return { category: slug };
   }
 
   categoryChipLink(cat: SearchCategoryHit): string[] {
-    if (this.collectionSlugs.has(cat.slug)) {
-      return ['/collections', cat.slug];
-    }
+    if (this.collectionSlugs.has(cat.slug)) return ['/collections', cat.slug];
     const parent = getCatalogCategoryBySlug(cat.slug);
-    if (parent) {
-      return ['/shop', parent.slug];
-    }
+    if (parent) return ['/shop', parent.slug];
     const found = findCategoryForSubSlug(cat.slug);
-    if (found) {
-      return ['/shop', found.category.slug, found.sub.slug];
-    }
+    if (found) return ['/shop', found.category.slug, found.sub.slug];
     return ['/catalog'];
   }
 
   categoryChipQueryParams(cat: SearchCategoryHit): { category: string } | null {
-    if (this.collectionSlugs.has(cat.slug)) {
-      return null;
-    }
-    if (getCatalogCategoryBySlug(cat.slug) || findCategoryForSubSlug(cat.slug)) {
-      return null;
-    }
+    if (this.collectionSlugs.has(cat.slug)) return null;
+    if (getCatalogCategoryBySlug(cat.slug) || findCategoryForSubSlug(cat.slug)) return null;
     return { category: cat.slug };
   }
 
-  formatPrice(product: SearchProductHit): string {
-    return formatIrr(product.price);
-  }
+  formatPrice(product: SearchProductHit): string { return formatIrr(product.price); }
 
   productPrice(product: BridalSampleProduct): string {
-    return product.price != null && product.price > 0
-      ? formatIrr(product.price)
-      : 'قیمت ثبت نشده';
+    return product.price != null && product.price > 0 ? formatIrr(product.price) : 'قیمت ثبت نشده';
   }
 
-  showPrice(product: { categorySlug: string }): boolean {
-    return !isConsultationCategory(product.categorySlug);
-  }
-
-  isDressProduct(product: { categorySlug: string }): boolean {
-    return COLLECTION_SLUGS.has(product.categorySlug);
-  }
+  showPrice(product: { categorySlug: string }): boolean { return !isConsultationCategory(product.categorySlug); }
+  isDressProduct(product: { categorySlug: string }): boolean { return COLLECTION_SLUGS.has(product.categorySlug); }
 
   galleryImages(product: { id: string; image: string }): string[] {
     const fullProduct = getBridalProductById(product.id);
@@ -176,13 +148,8 @@ export class CatalogComponent implements OnInit, OnDestroy {
     return Array.from(new Set(images)).slice(0, 5);
   }
 
-  hideBrokenImage(event: Event): void {
-    (event.currentTarget as HTMLImageElement).hidden = true;
-  }
-
-  isActive(cat: BridalCollectionCategory): boolean {
-    return cat.slug === this.activeSlug;
-  }
+  hideBrokenImage(event: Event): void { (event.currentTarget as HTMLImageElement).hidden = true; }
+  isActive(cat: BridalCollectionCategory): boolean { return cat.slug === this.activeSlug; }
 
   private stableProductOrder(products: BridalSampleProduct[]): BridalSampleProduct[] {
     return [...products].sort((a, b) => this.stableKey(a.id) - this.stableKey(b.id));
@@ -190,20 +157,14 @@ export class CatalogComponent implements OnInit, OnDestroy {
 
   private stableKey(value: string): number {
     let hash = 0;
-    for (const char of value) {
-      hash = ((hash << 5) - hash + char.charCodeAt(0)) | 0;
-    }
+    for (const char of value) hash = ((hash << 5) - hash + char.charCodeAt(0)) | 0;
     return hash;
   }
 
   private scrollToTop(): void {
-    const scrollTo = this.document.defaultView?.scrollTo;
-    if (typeof scrollTo === 'function') {
-      scrollTo.call(this.document.defaultView, { top: 0, behavior: 'auto' });
-    }
+    if (!this.isBrowser) return;
+    this.document.defaultView?.scrollTo({ top: 0, behavior: 'auto' });
   }
 
-  ngOnDestroy(): void {
-    this.querySub?.unsubscribe();
-  }
+  ngOnDestroy(): void { this.querySub?.unsubscribe(); }
 }
