@@ -1,5 +1,14 @@
-import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, ElementRef, ViewChild, inject } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  DestroyRef,
+  ElementRef,
+  PLATFORM_ID,
+  ViewChild,
+  inject
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { DiscountsApiService } from '@core/services/discounts-api.service';
@@ -19,13 +28,16 @@ export class DiscountShowcaseComponent {
   private readonly api = inject(DiscountsApiService);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   @ViewChild('rail') rail?: ElementRef<HTMLElement>;
 
   products: BackendProduct[] = [];
-  loading = true;
+  loading = this.isBrowser;
   now = Date.now();
 
   constructor() {
+    if (!this.isBrowser) return;
+
     this.api.getProducts(true).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: products => { this.products = products; this.loading = false; this.cdr.markForCheck(); },
       error: () => { this.loading = false; this.cdr.markForCheck(); }
