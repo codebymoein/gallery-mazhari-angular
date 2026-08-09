@@ -5,8 +5,13 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { randomUUID } from 'crypto';
 import { Repository } from 'typeorm';
-import { DeletePlannerDto, UpdatePlannerTaskDto, UpsertPlannerDto } from './dto/planner.dto';
+import {
+  DeletePlannerDto,
+  UpdatePlannerTaskDto,
+  UpsertPlannerDto,
+} from './dto/planner.dto';
 import { WeddingPlannerEntity } from './entities/wedding-planner.entity';
 import {
   CeremonyType,
@@ -51,6 +56,7 @@ export class PlannerService {
       try {
         const created = await this.planners.save(
           this.planners.create({
+            id: randomUUID(),
             userId,
             eventDate: dto.eventDate,
             ceremonyTypes,
@@ -63,7 +69,8 @@ export class PlannerService {
         if (this.isUniqueViolation(error)) {
           throw new ConflictException({
             code: 'planner_version_conflict',
-            message: 'Planner was created by another request. Refresh and try again.',
+            message:
+              'Planner was created by another request. Refresh and try again.',
           });
         }
         throw error;
@@ -75,11 +82,13 @@ export class PlannerService {
     }
 
     const allowedTaskIds = new Set(
-      PLANNER_TASK_CATALOG.filter((task) => taskAppliesToCeremonies(task, ceremonyTypes)).map(
-        (task) => task.id,
-      ),
+      PLANNER_TASK_CATALOG.filter((task) =>
+        taskAppliesToCeremonies(task, ceremonyTypes),
+      ).map((task) => task.id),
     );
-    const completedTaskIds = existing.completedTaskIds.filter((id) => allowedTaskIds.has(id));
+    const completedTaskIds = existing.completedTaskIds.filter((id) =>
+      allowedTaskIds.has(id),
+    );
 
     const result = await this.planners
       .createQueryBuilder()
@@ -100,10 +109,17 @@ export class PlannerService {
     return this.getRequired(userId);
   }
 
-  async updateTask(userId: string, taskId: string, dto: UpdatePlannerTaskDto) {
+  async updateTask(
+    userId: string,
+    taskId: string,
+    dto: UpdatePlannerTaskDto,
+  ) {
     const existing = await this.planners.findOne({ where: { userId } });
     if (!existing) {
-      throw new NotFoundException({ code: 'planner_not_found', message: 'Planner not found.' });
+      throw new NotFoundException({
+        code: 'planner_not_found',
+        message: 'Planner not found.',
+      });
     }
     if (dto.version !== existing.version) this.throwVersionConflict();
 
@@ -156,7 +172,10 @@ export class PlannerService {
     if (result.affected !== 1) {
       const exists = await this.planners.exist({ where: { userId } });
       if (exists) this.throwVersionConflict();
-      throw new NotFoundException({ code: 'planner_not_found', message: 'Planner not found.' });
+      throw new NotFoundException({
+        code: 'planner_not_found',
+        message: 'Planner not found.',
+      });
     }
 
     return { deleted: true };
@@ -165,7 +184,10 @@ export class PlannerService {
   private async getRequired(userId: string) {
     const planner = await this.planners.findOne({ where: { userId } });
     if (!planner) {
-      throw new NotFoundException({ code: 'planner_not_found', message: 'Planner not found.' });
+      throw new NotFoundException({
+        code: 'planner_not_found',
+        message: 'Planner not found.',
+      });
     }
     return this.toView(planner);
   }
@@ -173,10 +195,15 @@ export class PlannerService {
   private toView(planner: WeddingPlannerEntity) {
     const tasks = PLANNER_TASK_CATALOG.filter((task) =>
       taskAppliesToCeremonies(task, planner.ceremonyTypes),
-    ).map((task) => this.toTaskView(task, planner.eventDate, planner.completedTaskIds));
+    ).map((task) =>
+      this.toTaskView(task, planner.eventDate, planner.completedTaskIds),
+    );
     const completedCount = tasks.filter((task) => task.completed).length;
     const totalCount = tasks.length;
-    const daysRemaining = this.daysBetween(this.todayUtcMs(), this.parseDateUtc(planner.eventDate));
+    const daysRemaining = this.daysBetween(
+      this.todayUtcMs(),
+      this.parseDateUtc(planner.eventDate),
+    );
 
     return {
       id: planner.id,
@@ -188,7 +215,10 @@ export class PlannerService {
       progress: {
         completed: completedCount,
         total: totalCount,
-        percent: totalCount === 0 ? 0 : Math.round((completedCount / totalCount) * 100),
+        percent:
+          totalCount === 0
+            ? 0
+            : Math.round((completedCount / totalCount) * 100),
       },
       tasks,
       createdAt: planner.createdAt,
@@ -224,7 +254,11 @@ export class PlannerService {
     if (!Number.isFinite(eventMs)) this.throwInvalidDate();
 
     const today = new Date(this.todayUtcMs());
-    const max = Date.UTC(today.getUTCFullYear() + 3, today.getUTCMonth(), today.getUTCDate());
+    const max = Date.UTC(
+      today.getUTCFullYear() + 3,
+      today.getUTCMonth(),
+      today.getUTCDate(),
+    );
     if (eventMs < this.todayUtcMs() || eventMs > max) this.throwInvalidDate();
   }
 
@@ -248,7 +282,11 @@ export class PlannerService {
 
   private todayUtcMs(): number {
     const now = new Date();
-    return Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+    return Date.UTC(
+      now.getUTCFullYear(),
+      now.getUTCMonth(),
+      now.getUTCDate(),
+    );
   }
 
   private daysBetween(fromMs: number, toMs: number): number {
@@ -259,7 +297,9 @@ export class PlannerService {
     return new Date(ms).toISOString().slice(0, 10);
   }
 
-  private phase(daysRemaining: number): 'planning' | 'soon' | 'urgent' | 'today' | 'past' {
+  private phase(
+    daysRemaining: number,
+  ): 'planning' | 'soon' | 'urgent' | 'today' | 'past' {
     if (daysRemaining < 0) return 'past';
     if (daysRemaining === 0) return 'today';
     if (daysRemaining <= 30) return 'urgent';
@@ -284,6 +324,9 @@ export class PlannerService {
   private isUniqueViolation(error: unknown): boolean {
     if (!error || typeof error !== 'object') return false;
     const candidate = error as { code?: string; message?: string };
-    return candidate.code === '23505' || candidate.message?.includes('UNIQUE constraint failed') === true;
+    return (
+      candidate.code === '23505' ||
+      candidate.message?.includes('UNIQUE constraint failed') === true
+    );
   }
 }
