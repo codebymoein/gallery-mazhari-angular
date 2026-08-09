@@ -62,7 +62,7 @@ An authenticated customer can create one personal wedding planner, choose ceremo
 | API/DTO contracts | yes | New planner endpoints/DTOs; existing auth reused unchanged. |
 | NestJS business logic | yes | Planner ownership, validation, task derivation and concurrency. |
 | Auth/permissions/audit | yes | JWT + `CUSTOMER` role; no new auth mechanism. |
-| PostgreSQL/schema/migration | yes | New one-planner-per-user table with FK/indexes/version. |
+| PostgreSQL/schema/migration | yes | New one-planner-per-user table with non-null unique owner key and optimistic version. |
 | Existing data compatibility | yes | Additive empty table; no existing row transformation. |
 | Protected business workflows | no | Existing consultation/catalog/product workflows are linked only. |
 | Media/storage | no | No uploads/media. |
@@ -76,8 +76,10 @@ An authenticated customer can create one personal wedding planner, choose ceremo
 - Existing owner: NestJS auth/users + PostgreSQL persistence.
 - New domain concept: one `WeddingPlanner` per customer user.
 - Source of truth: PostgreSQL.
-- Server invariants: customer ownership; supported ceremony types; bounded date; known task IDs; version conflict rejection.
-- Representation: `wedding_planners` row with `userId` unique FK, `eventDate`, JSON-compatible ceremony type list, completed task ID list, integer `version`, timestamps.
+- Server invariants: authenticated customer ownership; supported ceremony types; bounded date; known task IDs; version conflict rejection.
+- Representation: `wedding_planners` row with non-null uniquely indexed `userId`, `eventDate`, JSON-compatible ceremony type list, completed task ID list, integer `version`, timestamps.
+- Ownership is derived from the authenticated JWT `userId`; planner requests never accept an owner identifier from the client.
+- The historical migration registry predates the `users` table bootstrap and must remain replayable on an empty database. GM-003 therefore does not add a physical `users` foreign key in this migration; it preserves unique owner-key integrity without rewriting released migrations.
 - Task definitions are code-owned server constants because they are versioned product behavior, not customer-authored data.
 - Existing browser Wedding Timeline cannot satisfy durable cross-device ownership and therefore remains a non-authoritative compatibility surface.
 
