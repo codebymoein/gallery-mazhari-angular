@@ -2,6 +2,7 @@ import {
   buildContentAddressedMediaKey,
   MediaStorageService,
 } from './media-storage.service';
+import { ServiceUnavailableException } from '@nestjs/common';
 
 describe('MediaStorageService', () => {
   const hash = 'a'.repeat(64);
@@ -88,6 +89,24 @@ describe('MediaStorageService', () => {
         visibility: 'public',
       }),
     ).rejects.toThrow(/media_storage_put_failed:503/);
+  });
+
+  it('fails closed when media storage is explicitly disabled', async () => {
+    process.env.MEDIA_STORAGE_DRIVER = 'disabled';
+    const storage = new MediaStorageService();
+
+    await expect(
+      storage.put({
+        buffer: Buffer.from('image'),
+        contentHash: hash,
+        extension: 'jpg',
+        contentType: 'image/jpeg',
+        visibility: 'public',
+      }),
+    ).rejects.toBeInstanceOf(ServiceUnavailableException);
+    await expect(
+      storage.exists(`public/aa/${hash}.jpg`),
+    ).rejects.toBeInstanceOf(ServiceUnavailableException);
   });
 });
 

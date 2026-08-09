@@ -106,8 +106,8 @@ export class EnvironmentVariables {
   TRUST_PROXY: 'true' | 'false';
 
   @IsOptional()
-  @IsEnum(['local', 's3'])
-  MEDIA_STORAGE_DRIVER: 'local' | 's3';
+  @IsEnum(['disabled', 'local', 's3'])
+  MEDIA_STORAGE_DRIVER: 'disabled' | 'local' | 's3';
 
   @IsOptional()
   @IsUrl({ require_tld: false })
@@ -170,6 +170,10 @@ function assertProductionDatabase(config: EnvironmentVariables): void {
 
 function assertProductionMediaStorage(config: EnvironmentVariables): void {
   if (config.NODE_ENV !== 'production') {
+    return;
+  }
+
+  if (config.MEDIA_STORAGE_DRIVER === 'disabled') {
     return;
   }
 
