@@ -43,6 +43,23 @@ describe('validateEnvironment', () => {
     ).toThrow(/MEDIA_STORAGE_DRIVER=s3/);
   });
 
+  it('accepts an explicit fail-closed media-disabled production runtime', () => {
+    expect(() =>
+      validateEnvironment({
+        ...productionBase,
+        MEDIA_STORAGE_DRIVER: 'disabled',
+        MEDIA_S3_ENDPOINT: undefined,
+        MEDIA_S3_REGION: undefined,
+        MEDIA_S3_BUCKET: undefined,
+        MEDIA_S3_ACCESS_KEY_ID: undefined,
+        MEDIA_S3_SECRET_ACCESS_KEY: undefined,
+        MEDIA_PUBLIC_BASE_URL: undefined,
+        MEDIA_MALWARE_SCAN_MODE: 'disabled',
+        MEDIA_MALWARE_SCAN_URL: undefined,
+      }),
+    ).not.toThrow();
+  });
+
   it('rejects incomplete object storage configuration in production', () => {
     expect(() =>
       validateEnvironment({ ...productionBase, MEDIA_S3_BUCKET: '' }),

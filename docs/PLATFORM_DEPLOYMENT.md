@@ -26,6 +26,12 @@ image processing by moving the V2 workload to a CPU/runtime supported by the
 locked Sharp release, not by editing an immutable release or downgrading to a
 vulnerable image library.
 
+When Object Storage and malware-scanner infrastructure are intentionally absent
+from a non-media V2 runtime, set `MEDIA_STORAGE_DRIVER=disabled` while retaining
+`NODE_ENV=production`. Media storage reads and writes then fail closed with HTTP
+503; the setting must not be presented as operational media capability. Restore
+media features by configuring the documented S3 and HTTP scanner contract.
+
 ## Deploy
 Use the immutable artifact/checksum with `deploy/release.sh`. The script verifies the outer SHA-256 checksum, extracts to a staging directory, and then delegates the extracted release contract to the versioned `deploy/certify-release-candidate.sh` shipped inside that exact artifact. That single certification boundary validates `REVISION`/`BUILD.json`, backend and SSR output, required deployment tooling, and a valid Angular browser entry point (`index.html` or `index.csr.html`) before migrations or activation can proceed. The release script refuses release-directory reuse, serializes concurrent deployments with `flock`, runs TypeORM migrations from the exact certified release, atomically switches `current`, and restarts the supervised backend and SSR runtimes.
 

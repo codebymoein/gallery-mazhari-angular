@@ -1,10 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, ServiceUnavailableException } from '@nestjs/common';
 import { createHash, createHmac } from 'crypto';
 import { existsSync, mkdirSync, writeFileSync } from 'fs';
 import { dirname, join } from 'path';
 
 export type MediaVisibility = 'public' | 'private';
-export type MediaStorageDriver = 'local' | 's3';
+export type MediaStorageDriver = 'disabled' | 'local' | 's3';
 
 export interface StoredMediaObject {
   key: string;
@@ -36,6 +36,7 @@ export class MediaStorageService {
   readonly driver: MediaStorageDriver = resolveDriver();
 
   async put(input: PutMediaObjectInput): Promise<StoredMediaObject> {
+    assertMediaStorageAvailable(this.driver);
     const key = buildContentAddressedMediaKey(
       input.contentHash,
       input.extension,
@@ -78,6 +79,7 @@ export class MediaStorageService {
   }
 
   async exists(key: string): Promise<boolean> {
+    assertMediaStorageAvailable(this.driver);
     assertStorageKey(key);
     if (this.driver === 's3') {
       return headS3Object(readS3Config(), key);
@@ -125,10 +127,18 @@ function resolveDriver(): MediaStorageDriver {
   const raw = (process.env.MEDIA_STORAGE_DRIVER || 'local')
     .trim()
     .toLowerCase();
-  if (raw !== 'local' && raw !== 's3') {
-    throw new Error('MEDIA_STORAGE_DRIVER must be local or s3.');
+  if (raw !== 'disabled' && raw !== 'local' && raw !== 's3') {
+    throw new Error('MEDIA_STORAGE_DRIVER must be disabled, local or s3.');
   }
   return raw;
+}
+
+function assertMediaStorageAvailable(driver: MediaStorageDriver): void {
+  if (driver === 'disabled') {
+    throw new ServiceUnavailableException(
+      'Media storage is temporarily unavailable',
+    );
+  }
 }
 
 function readS3Config(): S3Config {

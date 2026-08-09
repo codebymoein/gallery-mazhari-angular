@@ -21,7 +21,7 @@ Status: **Normative operational documentation** for RM-16.
 
 ### Production
 
-`NODE_ENV=production`. Production must use the NestJS backend contract, PostgreSQL deployment variables, `MEDIA_STORAGE_DRIVER=s3`, and `MEDIA_MALWARE_SCAN_MODE=http` with a configured scanner endpoint. Real secret values are supplied by the deployment secret store/environment, never by committed `.env` files.
+`NODE_ENV=production`. Production must use the NestJS backend contract and PostgreSQL deployment variables. A media-capable runtime uses `MEDIA_STORAGE_DRIVER=s3` and `MEDIA_MALWARE_SCAN_MODE=http` with a configured scanner endpoint. A deliberately media-incapable runtime may use `MEDIA_STORAGE_DRIVER=disabled`; all storage reads and writes then fail closed with HTTP 503 and no S3 or scanner configuration is accepted as operational media capability. Real secret values are supplied by the deployment secret store/environment, never by committed `.env` files.
 
 The runtime validator rejects:
 
@@ -49,7 +49,7 @@ The runtime validator rejects:
 | `JWT_SECRET` | JWT signing secret | secret; production placeholder rejection enforced |
 | `JWT_EXPIRES_IN` | token lifetime | security-sensitive configuration |
 | `ADMIN_SETUP_KEY` | bootstrap/setup protection | secret when configured |
-| `MEDIA_STORAGE_DRIVER` | media binary backend | production must be `s3` |
+| `MEDIA_STORAGE_DRIVER` | media binary backend | production must be `s3`, or explicitly `disabled` for fail-closed maintenance/V2 operation |
 | `MEDIA_S3_ENDPOINT` | S3-compatible API endpoint | environment-specific, server-only |
 | `MEDIA_S3_REGION` | signing region (`auto` where provider supports it) | environment-specific |
 | `MEDIA_S3_BUCKET` | media bucket/container | environment-specific |
@@ -71,6 +71,7 @@ The runtime validator rejects:
 - Quarantine/private objects never receive a public HTTP URL. Application metadata stores a non-public `private-object://...` reference instead.
 - S3 credentials never appear in Angular environments, API responses, logs, committed files, or public URLs.
 - Production media scanning is fail-closed: scanner errors, timeouts, invalid responses and infected results do not proceed to public storage/attachment.
+- `MEDIA_STORAGE_DRIVER=disabled` is an explicit unavailable state: media storage reads and writes return HTTP 503 and must not be represented as working media infrastructure.
 - Accepted images are decoded and re-encoded server-side before public storage; metadata is stripped and image dimensions/pixel counts are bounded.
 - Responsive derivatives are stored through the same media storage boundary and remain content-addressed.
 - `GET /platform/media/reconciliation` is a read-only protected report for storage/database drift; it does not repair or delete objects.
