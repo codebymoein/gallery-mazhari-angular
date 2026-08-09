@@ -118,7 +118,7 @@
           →
         </button>
 
-        <div class="heritage-book__progress" aria-label="پیشرفت کتاب">
+        <div class="heritage-book__progress" aria-hidden="true">
           @for (step of [0, 1, 2, 3]; track step) {
             <span [class.is-active]="step === pageIndex()"></span>
           }
