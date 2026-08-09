@@ -30,6 +30,7 @@ The non-public `v2.gallerymazhari.com` host MAY automatically consume reviewed `
 - A merge to `main` builds on a GitHub-hosted runner and publishes an exact-SHA `auto-v2-<sha>` prerelease containing the canonical tarball and checksum.
 - The V2 host polls GitHub outbound over HTTPS. No inbound SSH path or long-lived GitHub credential is required for routine V2 deployment.
 - The host verifies the release/checksum and executes the artifact's versioned `release.sh`; it MUST NOT run `npm install`, rebuild application code or modify an immutable release directory.
+- A certified V2 release refreshes the installed host poller from the versioned `deploy/v2-auto-deploy.sh` carried inside that same exact-SHA artifact, so future deployment-control changes propagate without manual VPS Git refreshes.
 - Backend readiness, SSR readiness and `/api/ops/version` exact-SHA provenance MUST pass before a V2 deployment is declared healthy.
 - First migration from the legacy `gallery-mazhari-api.service` preserves that service as the recovery path until the new exact-SHA runtime has passed health/provenance checks.
 - Because the current V2 Nginx server block still serves a static browser root, an atomic browser-output compatibility publish is permitted **only for V2** after canonical backend/SSR health succeeds. This bridge must not be copied into the final production architecture.
