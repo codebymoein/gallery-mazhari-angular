@@ -18,6 +18,14 @@ Production releases MUST come from `.github/workflows/release-artifact.yml` for 
 
 Nginx serves `/srv/gallery-mazhari/current/frontend`. The backend systemd unit runs `/srv/gallery-mazhari/current/backend/dist/main.js`.
 
+The backend must remain bootable when the host CPU cannot load Sharp's optional
+native image runtime. Image-processing entry points load Sharp on demand and fail
+closed with a service-unavailable response when it is unsupported; health,
+catalog, authentication and other non-image APIs must remain available. Restore
+image processing by moving the V2 workload to a CPU/runtime supported by the
+locked Sharp release, not by editing an immutable release or downgrading to a
+vulnerable image library.
+
 ## Deploy
 Use the immutable artifact/checksum with `deploy/release.sh`. The script verifies the outer SHA-256 checksum, extracts to a staging directory, and then delegates the extracted release contract to the versioned `deploy/certify-release-candidate.sh` shipped inside that exact artifact. That single certification boundary validates `REVISION`/`BUILD.json`, backend and SSR output, required deployment tooling, and a valid Angular browser entry point (`index.html` or `index.csr.html`) before migrations or activation can proceed. The release script refuses release-directory reuse, serializes concurrent deployments with `flock`, runs TypeORM migrations from the exact certified release, atomically switches `current`, and restarts the supervised backend and SSR runtimes.
 

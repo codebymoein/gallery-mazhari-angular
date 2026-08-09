@@ -8,6 +8,7 @@ import {
   Patch,
   Post,
   Query,
+  ServiceUnavailableException,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -17,7 +18,6 @@ import { memoryStorage } from 'multer';
 import { mkdir, writeFile } from 'fs/promises';
 import { join } from 'path';
 import { randomUUID } from 'crypto';
-import sharp from 'sharp';
 import { GalleryService } from './gallery.service';
 import { CreateGalleryItemDto } from './dto/create-gallery-item.dto';
 import { QueryGalleryDto } from './dto/query-gallery.dto';
@@ -29,6 +29,36 @@ import { UserRole } from '../users/entities/user.entity';
 import { ConfigService } from '@nestjs/config';
 import { getPublicBackendUrl } from '../config/public-url';
 import { Throttle } from '@nestjs/throttler';
+
+type SharpMetadata = { format?: string };
+type SharpFactory = (
+  input: Buffer,
+  options: { failOn: 'error' },
+) => { metadata: () => Promise<SharpMetadata> };
+
+let sharpFactory: SharpFactory | null | undefined;
+
+function loadSharp(): SharpFactory {
+  if (sharpFactory) return sharpFactory;
+  if (sharpFactory === null) {
+    throw new ServiceUnavailableException(
+      'Image processing is temporarily unavailable',
+    );
+  }
+
+  try {
+    // Keep image-processing availability from becoming an API startup dependency.
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const mod = require('sharp') as SharpFactory & { default?: SharpFactory };
+    sharpFactory = mod.default || mod;
+    return sharpFactory;
+  } catch {
+    sharpFactory = null;
+    throw new ServiceUnavailableException(
+      'Image processing is temporarily unavailable',
+    );
+  }
+}
 
 @Controller('gallery')
 export class GalleryController {
@@ -83,6 +113,7 @@ export class GalleryController {
       throw new BadRequestException('File is required');
     }
 
+    const sharp = loadSharp();
     let format: string | undefined;
     try {
       format = (await sharp(file.buffer, { failOn: 'error' }).metadata())
