@@ -56,8 +56,7 @@ export const PLANNER_TASK_CATALOG: readonly PlannerTaskDefinition[] = [
   {
     id: 'choose-engagement-look',
     title: 'استایل نامزدی را انتخاب کنید',
-    description:
-      'لباس و جزئیات هماهنگ با فضای مراسم نامزدی را نهایی کنید.',
+    description: 'لباس و جزئیات هماهنگ با فضای مراسم نامزدی را نهایی کنید.',
     group: 'style',
     daysBefore: 90,
     ceremonyTypes: [CeremonyType.ENGAGEMENT],
@@ -66,8 +65,7 @@ export const PLANNER_TASK_CATALOG: readonly PlannerTaskDefinition[] = [
   {
     id: 'choose-veil-hair-accessories',
     title: 'تور و اکسسوری مو را هماهنگ کنید',
-    description:
-      'تور، تاج یا ریسه را با فرم لباس و مدل مو هماهنگ کنید.',
+    description: 'تور، تاج یا ریسه را با فرم لباس و مدل مو هماهنگ کنید.',
     group: 'style',
     daysBefore: 75,
     action: { kind: 'catalog', target: 'accessories' },
@@ -84,8 +82,7 @@ export const PLANNER_TASK_CATALOG: readonly PlannerTaskDefinition[] = [
   {
     id: 'review-bale-boroon-details',
     title: 'جزئیات بله‌برون را کامل کنید',
-    description:
-      'اقلام و جزئیات مربوط به بله‌برون را یک‌جا مرور و تکمیل کنید.',
+    description: 'اقلام و جزئیات مربوط به بله‌برون را یک‌جا مرور و تکمیل کنید.',
     group: 'style',
     daysBefore: 45,
     ceremonyTypes: [CeremonyType.BALE_BOROON],
@@ -94,8 +91,7 @@ export const PLANNER_TASK_CATALOG: readonly PlannerTaskDefinition[] = [
   {
     id: 'final-fitting',
     title: 'پرو نهایی را انجام دهید',
-    description:
-      'فیت لباس، قد، کفش و جزئیات نهایی را با هم بررسی کنید.',
+    description: 'فیت لباس، قد، کفش و جزئیات نهایی را با هم بررسی کنید.',
     group: 'final',
     daysBefore: 21,
     action: { kind: 'consultation' },
