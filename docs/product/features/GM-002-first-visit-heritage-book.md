@@ -27,7 +27,7 @@ Public storefront visitors only. No admin, staff, authenticated workflow or busi
 2. The experience contains a concise cover plus heritage/story pages and a final entry page, with clear next/back controls and a persistent Skip action.
 3. Completing or skipping records only a local presentation preference so repeat visits do not auto-open the book; this preference is not business data or application authority.
 4. A visible but restrained replay control allows a visitor to reopen the heritage story later.
-5. Keyboard Escape closes the experience; controls are semantic, focus-visible and touch-target compliant.
+5. The dialog keeps a stable accessible name across page changes; Keyboard Escape closes the experience; controls are semantic, focus-visible and touch-target compliant.
 6. `prefers-reduced-motion: reduce` removes page-turn transforms and uses an effectively static/fade presentation.
 7. The Home LCP image priority contract remains unchanged and no new eager/high-priority media is introduced.
 8. Existing Home routes/actions remain available after dismissal and no new backend/API/database/deployment dependency is added.
@@ -66,7 +66,7 @@ Public storefront visitors only. No admin, staff, authenticated workflow or busi
 | Protected business workflows | no | No workflow semantics touched. |
 | Media/storage | no | Reuses existing local storefront asset; no upload/storage mutation. |
 | SEO | low | Existing crawlable Home remains server-rendered and unaffected by the client-only overlay. |
-| Accessibility | yes | Dialog semantics, semantic buttons, focus visibility, Escape and reduced motion required. |
+| Accessibility | yes | Stable dialog naming, semantic buttons, focus visibility, Escape and reduced motion required. |
 | Performance | yes | No dependency; no additional eager/high-priority media; overlay image is lazy. |
 | Deployment/config/monitoring | no | Normal frontend artifact only. |
 | Documentation | yes | This feature spec and backlog status. |
@@ -92,7 +92,7 @@ Public storefront visitors only. No admin, staff, authenticated workflow or busi
 
 - Approved intended state: a short editorial book/album ritual, not a vintage-themed site redesign. The rest of Home remains modern and warm.
 - Reused design-system primitives/tokens: ivory, espresso, burgundy, champagne, rose, butter, typography and editorial motion tokens from GM-001.
-- Mobile/RTL/accessibility: mobile-first single-page book framing; wider view adds book depth. Native buttons/links, logical CSS, visible focus and reduced motion are mandatory.
+- Mobile/RTL/accessibility: mobile-first single-page book framing; wider view adds book depth. Native buttons/links, logical CSS, stable dialog naming, visible focus and reduced motion are mandatory.
 - The first version reuses an existing Gallery Mazhari bridal asset with monochrome/sepia archival treatment; swapping to a verified archive photograph later is an asset/content update, not a reason to block the interaction architecture.
 
 ## Implementation plan
@@ -107,7 +107,7 @@ Public storefront visitors only. No admin, staff, authenticated workflow or busi
 - Unit tests: component behavior is small and browser-dependent; Playwright is the lowest useful behavioral layer for storage/render/motion interaction.
 - Backend/integration tests: not applicable.
 - PostgreSQL/migration verification: not applicable.
-- Browser/E2E tests: first visit opens, Skip/completion prevents auto-open, replay works, keyboard Escape works, reduced-motion style contract holds.
+- Browser/E2E tests: first visit opens, Skip/completion prevents auto-open, replay works, keyboard Escape works, dialog name remains stable, reduced-motion style contract holds.
 - SSR/SEO/accessibility/performance evidence: existing RM-12, RM-13, Design System and Quality Gates must pass on final PR head; Home LCP priority assertion remains.
 - Manual/staging acceptance: owner visually reviews exact V2 candidate before merge/release acceptance.
 
