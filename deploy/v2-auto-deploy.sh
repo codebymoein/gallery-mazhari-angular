@@ -55,9 +55,23 @@ print(revision)
 PY
 )"
 
+runtime_matches_revision() {
+  [ -L "${app_root}/current" ] || return 1
+  [ -f "${app_root}/current/REVISION" ] || return 1
+  [ "$(tr -d '\r\n' < "${app_root}/current/REVISION")" = "$revision" ] || return 1
+  systemctl is-active --quiet "$backend_service" || return 1
+  systemctl is-active --quiet "$ssr_service" || return 1
+  curl --fail --silent --show-error --max-time 5 "$backend_ready_url" >/dev/null || return 1
+  curl --fail --silent --show-error --max-time 5 -H "Host: ${ssr_ready_host}" "$ssr_ready_url" >/dev/null || return 1
+  local live_revision
+  live_revision="$(curl --fail --silent --show-error --max-time 5 "$backend_version_url" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("revision", ""))')" || return 1
+  [ "$live_revision" = "$revision" ]
+}
+
 if [ -f "${app_root}/LAST_DEPLOYED_REVISION" ] \
-  && [ "$(tr -d '\r\n' < "${app_root}/LAST_DEPLOYED_REVISION")" = "$revision" ]; then
-  echo "V2 is already on ${revision}"
+  && [ "$(tr -d '\r\n' < "${app_root}/LAST_DEPLOYED_REVISION")" = "$revision" ] \
+  && runtime_matches_revision; then
+  echo "V2 is already healthy on ${revision}"
   exit 0
 fi
 
@@ -190,7 +204,7 @@ fi
 
 if [ "$healthy" != true ] || [ "$version_revision" != "$revision" ]; then
   echo "post-deploy health/provenance check failed for ${revision}" >&2
-  if [ -n "$previous_revision" ] && [ -x "${app_root}/current/deploy/rollback-release.sh" ]; then
+  if [ -n "$previous_revision" ] && [ "$previous_revision" != "$revision" ] && [ -x "${app_root}/current/deploy/rollback-release.sh" ]; then
     APP_ROOT="$app_root" \
     BACKEND_SERVICE_NAME="$backend_service" \
     SSR_SERVICE_NAME="$ssr_service" \
@@ -204,9 +218,6 @@ if [ "$healthy" != true ] || [ "$version_revision" != "$revision" ]; then
   exit 70
 fi
 
-# V2-only compatibility bridge: the current v2.gallerymazhari.com Nginx host is
-# still a static browser-root host. Keep it updated atomically until that host
-# is deliberately migrated to the canonical SSR reverse-proxy configuration.
 publish_source="${app_root}/current/frontend/browser"
 publish_parent="$(dirname "$legacy_browser_root")"
 publish_name="$(basename "$legacy_browser_root")"
@@ -237,8 +248,10 @@ if ! mv "$publish_next" "$legacy_browser_root"; then
   exit 70
 fi
 
+printf '%s\n' "$revision" > "${app_root}/LAST_DEPLOYED_REVISION"
+
 if [ "$legacy_was_active" = true ]; then
   systemctl disable "$legacy_backend_service" >/dev/null 2>&1 || true
 fi
 
-echo "V2 auto-deploy completed: ${revision}"
+echo "V2 auto-deploy completed and verified: ${revision}"
