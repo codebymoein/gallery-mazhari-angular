@@ -11,6 +11,7 @@ describe('ALL_MIGRATIONS', () => {
       'AddCustomRequestContactDetails1785900000000',
       'CreateAuthSessions1786000000000',
       'AddImportBatchReplayProtection1786100000000',
+      'CreateWeddingPlanners1786200000000',
     ]);
   });
 
