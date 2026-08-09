@@ -109,11 +109,7 @@ export class PlannerService {
     return this.getRequired(userId);
   }
 
-  async updateTask(
-    userId: string,
-    taskId: string,
-    dto: UpdatePlannerTaskDto,
-  ) {
+  async updateTask(userId: string, taskId: string, dto: UpdatePlannerTaskDto) {
     const existing = await this.planners.findOne({ where: { userId } });
     if (!existing) {
       throw new NotFoundException({
@@ -170,7 +166,7 @@ export class PlannerService {
       .execute();
 
     if (result.affected !== 1) {
-      const exists = await this.planners.exist({ where: { userId } });
+      const exists = await this.planners.exists({ where: { userId } });
       if (exists) this.throwVersionConflict();
       throw new NotFoundException({
         code: 'planner_not_found',
@@ -282,11 +278,7 @@ export class PlannerService {
 
   private todayUtcMs(): number {
     const now = new Date();
-    return Date.UTC(
-      now.getUTCFullYear(),
-      now.getUTCMonth(),
-      now.getUTCDate(),
-    );
+    return Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
   }
 
   private daysBetween(fromMs: number, toMs: number): number {
