@@ -1,0 +1,275 @@
+<main class="planner-page" aria-labelledby="planner-title">
+  <header class="planner-hero">
+    <p class="planner-hero__kicker">YOUR WEDDING JOURNEY</p>
+    <h1 id="planner-title">مسیر مراسم شما، قدم‌به‌قدم</h1>
+    <p class="planner-hero__lead">
+      تاریخ و نوع مراسم را ثبت کنید تا برنامه‌ای شخصی برای انتخاب لباس، جزئیات استایل و روزهای
+      پایانی داشته باشید.
+    </p>
+  </header>
+
+  @if (loading()) {
+    <section class="planner-state" aria-live="polite">
+      <span class="planner-state__mark" aria-hidden="true">✦</span>
+      <p>در حال آماده‌کردن برنامه شما…</p>
+    </section>
+  } @else if (!auth.isAuthenticated()) {
+    <section class="planner-auth" aria-labelledby="planner-auth-title">
+      <div class="planner-auth__intro">
+        <p class="planner-section__eyebrow">ذخیره روی حساب شما</p>
+        <h2 id="planner-auth-title">برنامه‌تان را روی هر دستگاه ادامه دهید</h2>
+        <p>
+          Planner داخل حساب مشتری ذخیره می‌شود تا انتخاب‌ها و تیک‌های شما فقط به این مرورگر وابسته
+          نباشد.
+        </p>
+      </div>
+
+      <div class="planner-auth__panel">
+        <div class="planner-auth__tabs" role="group" aria-label="ورود یا ثبت‌نام">
+          <button
+            type="button"
+            [class.is-active]="authMode() === 'login'"
+            [attr.aria-pressed]="authMode() === 'login'"
+            (click)="switchAuthMode('login')"
+          >
+            ورود
+          </button>
+          <button
+            type="button"
+            [class.is-active]="authMode() === 'register'"
+            [attr.aria-pressed]="authMode() === 'register'"
+            (click)="switchAuthMode('register')"
+          >
+            ساخت حساب
+          </button>
+        </div>
+
+        <form class="planner-auth__form" (ngSubmit)="submitAuth()">
+          @if (authMode() === 'register') {
+            <label>
+              <span>نام و نام خانوادگی</span>
+              <input
+                type="text"
+                name="fullName"
+                autocomplete="name"
+                required
+                minlength="2"
+                [ngModel]="fullName()"
+                (ngModelChange)="fullName.set($event)"
+              />
+            </label>
+          }
+
+          <label>
+            <span>ایمیل</span>
+            <input
+              type="email"
+              name="email"
+              autocomplete="email"
+              required
+              [ngModel]="email()"
+              (ngModelChange)="email.set($event)"
+            />
+          </label>
+
+          <label>
+            <span>رمز عبور</span>
+            <input
+              type="password"
+              name="password"
+              [autocomplete]="authMode() === 'login' ? 'current-password' : 'new-password'"
+              required
+              minlength="6"
+              [ngModel]="password()"
+              (ngModelChange)="password.set($event)"
+            />
+          </label>
+
+          <button class="planner-button planner-button--primary" type="submit" [disabled]="authBusy()">
+            {{ authBusy() ? 'کمی صبر کنید…' : authMode() === 'login' ? 'ورود به برنامه من' : 'ساخت حساب و شروع' }}
+          </button>
+        </form>
+      </div>
+    </section>
+  } @else {
+    <section class="planner-account-bar" aria-label="حساب فعال">
+      <p>
+        <span>حساب فعال</span>
+        <strong>{{ auth.user()?.email }}</strong>
+      </p>
+      <button type="button" (click)="logout()">خروج</button>
+    </section>
+
+    @if (planner(); as currentPlanner) {
+      <section class="planner-overview" aria-labelledby="planner-overview-title">
+        <div class="planner-overview__date">
+          <p class="planner-section__eyebrow">تاریخ شما</p>
+          <h2 id="planner-overview-title">{{ formatDate(currentPlanner.eventDate) }}</h2>
+          <p class="planner-overview__countdown">
+            @if (currentPlanner.daysRemaining > 0) {
+              <strong>{{ currentPlanner.daysRemaining.toLocaleString('fa-IR') }}</strong>
+              روز تا مراسم
+            } @else if (currentPlanner.daysRemaining === 0) {
+              امروز، روز مراسم شماست
+            } @else {
+              مراسم ثبت‌شده برگزار شده است
+            }
+          </p>
+        </div>
+
+        <div class="planner-overview__progress">
+          <div class="planner-progress__copy">
+            <span>پیشرفت مسیر</span>
+            <strong>{{ currentPlanner.progress.percent.toLocaleString('fa-IR') }}٪</strong>
+          </div>
+          <div
+            class="planner-progress__track"
+            role="progressbar"
+            aria-label="پیشرفت برنامه مراسم"
+            aria-valuemin="0"
+            aria-valuemax="100"
+            [attr.aria-valuenow]="currentPlanner.progress.percent"
+          >
+            <span [style.width.%]="currentPlanner.progress.percent"></span>
+          </div>
+          <p>
+            {{ currentPlanner.progress.completed.toLocaleString('fa-IR') }} از
+            {{ currentPlanner.progress.total.toLocaleString('fa-IR') }} مرحله انجام شده
+          </p>
+        </div>
+      </section>
+    }
+
+    <section id="planner-setup" class="planner-setup" aria-labelledby="planner-setup-title">
+      <div class="planner-section__heading">
+        <p class="planner-section__eyebrow">SET YOUR DATE</p>
+        <h2 id="planner-setup-title">مراسم شما چیست؟</h2>
+        <p>می‌توانید بیش از یک مراسم را انتخاب کنید؛ برنامه بر اساس انتخاب‌های شما تنظیم می‌شود.</p>
+      </div>
+
+      <div class="planner-ceremonies" role="group" aria-label="نوع مراسم">
+        @for (option of ceremonyOptions; track option.value) {
+          <button
+            type="button"
+            class="planner-ceremony"
+            [class.is-selected]="ceremonySelected(option.value)"
+            [attr.aria-pressed]="ceremonySelected(option.value)"
+            (click)="toggleCeremony(option.value)"
+          >
+            <strong>{{ option.label }}</strong>
+            <span>{{ option.note }}</span>
+          </button>
+        }
+      </div>
+
+      <label class="planner-date-field">
+        <span>تاریخ مراسم اصلی</span>
+        <input
+          type="date"
+          name="eventDate"
+          [min]="minDate()"
+          [max]="maxDate()"
+          required
+          [ngModel]="eventDate()"
+          (ngModelChange)="eventDate.set($event)"
+        />
+      </label>
+
+      <div class="planner-setup__actions">
+        <button
+          type="button"
+          class="planner-button planner-button--primary"
+          [disabled]="saving()"
+          (click)="saveSetup()"
+        >
+          {{ planner() ? 'به‌روزرسانی برنامه' : 'ساخت برنامه من' }}
+        </button>
+      </div>
+    </section>
+
+    @if (planner(); as currentPlanner) {
+      <section class="planner-checklist" aria-labelledby="planner-checklist-title">
+        <div class="planner-section__heading planner-section__heading--wide">
+          <p class="planner-section__eyebrow">YOUR CHECKLIST</p>
+          <h2 id="planner-checklist-title">مسیر شما تا روز مراسم</h2>
+          <p>هر مرحله را انجام دادید تیک بزنید. برنامه شما همان لحظه روی حساب‌تان ذخیره می‌شود.</p>
+        </div>
+
+        @for (group of ['foundation', 'style', 'final']; track group) {
+          <section class="planner-task-group" [attr.aria-labelledby]="'planner-group-' + group">
+            <header class="planner-task-group__header">
+              <span aria-hidden="true">{{ group === 'foundation' ? '01' : group === 'style' ? '02' : '03' }}</span>
+              <h3 [id]="'planner-group-' + group">{{ groupLabel($any(group)) }}</h3>
+            </header>
+
+            <div class="planner-task-list">
+              @for (task of tasksFor($any(group)); track task.id) {
+                <article class="planner-task" [class.is-complete]="task.completed">
+                  <div class="planner-task__main">
+                    <label class="planner-task__check">
+                      <input
+                        type="checkbox"
+                        [checked]="task.completed"
+                        [disabled]="saving()"
+                        (change)="toggleTask(task)"
+                      />
+                      <span aria-hidden="true"></span>
+                      <strong>{{ task.title }}</strong>
+                    </label>
+
+                    <p>{{ task.description }}</p>
+
+                    <div class="planner-task__meta">
+                      <span [class]="'planner-task__status planner-task__status--' + task.status">
+                        {{ taskStatusLabel(task) }}
+                      </span>
+                      <span>تاریخ پیشنهادی: {{ formatDate(task.dueDate) }}</span>
+                    </div>
+                  </div>
+
+                  @if (actionLink(task); as link) {
+                    <a class="planner-task__action" [routerLink]="link">
+                      {{ actionLabel(task) }}
+                      <span aria-hidden="true">←</span>
+                    </a>
+                  }
+                </article>
+              }
+            </div>
+          </section>
+        }
+      </section>
+
+      <section class="planner-manage" aria-labelledby="planner-manage-title">
+        <div>
+          <p class="planner-section__eyebrow">مدیریت برنامه</p>
+          <h2 id="planner-manage-title">تاریخ یا مراسم تغییر کرده؟</h2>
+          <p>می‌توانید برنامه را ویرایش کنید یا در صورت نیاز از ابتدا شروع کنید.</p>
+        </div>
+        <div class="planner-manage__actions">
+          <button type="button" class="planner-button planner-button--quiet" (click)="editSetup()">
+            ویرایش مراسم
+          </button>
+          @if (!confirmReset()) {
+            <button type="button" class="planner-button planner-button--danger" (click)="resetPlanner()">
+              شروع از ابتدا
+            </button>
+          } @else {
+            <div class="planner-reset-confirm" role="group" aria-label="تایید حذف برنامه">
+              <span>همه تیک‌های برنامه حذف شوند؟</span>
+              <button type="button" (click)="resetPlanner()" [disabled]="saving()">بله، حذف شود</button>
+              <button type="button" (click)="cancelReset()">انصراف</button>
+            </div>
+          }
+        </div>
+      </section>
+    }
+  }
+
+  @if (error()) {
+    <p class="planner-message planner-message--error" role="alert">{{ error() }}</p>
+  }
+  @if (status()) {
+    <p class="planner-message planner-message--success" role="status">{{ status() }}</p>
+  }
+</main>
