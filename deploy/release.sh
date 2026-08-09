@@ -58,37 +58,46 @@ staging_dir="${releases_dir}/.${revision}.staging"
 current_link="${app_root}/current"
 
 mkdir -p "$releases_dir"
+
 if [ -e "$release_dir" ]; then
-  echo "release already exists: $release_dir" >&2
-  exit 73
-fi
-rm -rf "$staging_dir"
-mkdir -p "$staging_dir"
-tar -xzf "$artifact" -C "$staging_dir" --strip-components=1
-
-candidate_certifier="$staging_dir/deploy/certify-release-candidate.sh"
-if [ ! -f "$candidate_certifier" ]; then
-  echo "release candidate is incomplete: missing deploy/certify-release-candidate.sh" >&2
+  candidate_certifier="$release_dir/deploy/certify-release-candidate.sh"
+  [ -f "$candidate_certifier" ] || {
+    echo "existing release is incomplete: missing deploy/certify-release-candidate.sh" >&2
+    exit 66
+  }
+  bash "$candidate_certifier" "$release_dir" "$revision"
+  chgrp -R "$runtime_group" "$release_dir"
+  chmod -R g+rX,o-rwx "$release_dir"
+  echo "reusing certified immutable release: $release_dir"
+else
   rm -rf "$staging_dir"
-  exit 66
+  mkdir -p "$staging_dir"
+  tar -xzf "$artifact" -C "$staging_dir" --strip-components=1
+
+  candidate_certifier="$staging_dir/deploy/certify-release-candidate.sh"
+  if [ ! -f "$candidate_certifier" ]; then
+    echo "release candidate is incomplete: missing deploy/certify-release-candidate.sh" >&2
+    rm -rf "$staging_dir"
+    exit 66
+  fi
+
+  set +e
+  bash "$candidate_certifier" "$staging_dir" "$revision"
+  certification_status=$?
+  set -e
+  if [ "$certification_status" -ne 0 ]; then
+    rm -rf "$staging_dir"
+    exit "$certification_status"
+  fi
+
+  # Artifacts can be extracted under a restrictive deployment umask. Keep root as
+  # owner, but grant the dedicated runtime group read/traverse access before the
+  # immutable release is activated. World access remains explicitly denied.
+  chgrp -R "$runtime_group" "$staging_dir"
+  chmod -R g+rX,o-rwx "$staging_dir"
+
+  mv "$staging_dir" "$release_dir"
 fi
-
-set +e
-bash "$candidate_certifier" "$staging_dir" "$revision"
-certification_status=$?
-set -e
-if [ "$certification_status" -ne 0 ]; then
-  rm -rf "$staging_dir"
-  exit "$certification_status"
-fi
-
-# Artifacts can be extracted under a restrictive deployment umask. Keep root as
-# owner, but grant the dedicated runtime group read/traverse access before the
-# immutable release is activated. World access remains explicitly denied.
-chgrp -R "$runtime_group" "$staging_dir"
-chmod -R g+rX,o-rwx "$staging_dir"
-
-mv "$staging_dir" "$release_dir"
 
 set -a
 # shellcheck disable=SC1090
@@ -110,7 +119,7 @@ mv -Tf "${current_link}.next" "$current_link"
 
 if ! restart_runtime; then
   echo "application runtime restart failed; restoring previous release symlink" >&2
-  if [ -n "$previous_target" ]; then
+  if [ -n "$previous_target" ] && [ "$previous_target" != "$release_dir" ]; then
     ln -sfn "$previous_target" "${current_link}.rollback"
     mv -Tf "${current_link}.rollback" "$current_link"
     restart_runtime || true
@@ -118,5 +127,4 @@ if ! restart_runtime; then
   exit 70
 fi
 
-printf '%s\n' "$revision" > "${app_root}/LAST_DEPLOYED_REVISION"
-echo "release activated: $revision"
+echo "release activated pending health verification: $revision"
