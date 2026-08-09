@@ -13,9 +13,10 @@ env_file="${BACKEND_ENV_FILE:-/etc/gallery-mazhari/backend.env}"
 backend_service_name="${BACKEND_SERVICE_NAME:-gallery-mazhari-backend.service}"
 ssr_service_name="${SSR_SERVICE_NAME:-gallery-mazhari-ssr.service}"
 runtime_group="${RELEASE_RUNTIME_GROUP:-gallerymazhari}"
+auto_deploy_install_path="${V2_AUTO_DEPLOY_INSTALL_PATH:-/usr/local/sbin/gallery-mazhari-v2-auto-deploy}"
 lock_file="${DEPLOY_LOCK_FILE:-/var/lock/gallery-mazhari-deploy.lock}"
 
-for command in sha256sum tar node systemctl flock readlink getent chgrp chmod; do
+for command in sha256sum tar node systemctl flock readlink getent chgrp chmod install; do
   command -v "$command" >/dev/null 2>&1 || {
     echo "required command missing: $command" >&2
     exit 69
@@ -90,14 +91,19 @@ else
     exit "$certification_status"
   fi
 
-  # Artifacts can be extracted under a restrictive deployment umask. Keep root as
-  # owner, but grant the dedicated runtime group read/traverse access before the
-  # immutable release is activated. World access remains explicitly denied.
   chgrp -R "$runtime_group" "$staging_dir"
   chmod -R g+rX,o-rwx "$staging_dir"
-
   mv "$staging_dir" "$release_dir"
 fi
+
+poller_source="$release_dir/deploy/v2-auto-deploy.sh"
+[ -f "$poller_source" ] || {
+  echo "release is missing deploy/v2-auto-deploy.sh" >&2
+  exit 66
+}
+install -o root -g root -m 0755 "$poller_source" "$auto_deploy_install_path"
+
+echo "refreshed V2 auto-deploy poller from release: $revision"
 
 set -a
 # shellcheck disable=SC1090
