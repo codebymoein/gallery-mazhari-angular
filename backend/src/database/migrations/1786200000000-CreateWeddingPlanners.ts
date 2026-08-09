@@ -1,10 +1,4 @@
-import {
-  MigrationInterface,
-  QueryRunner,
-  Table,
-  TableForeignKey,
-  TableIndex,
-} from 'typeorm';
+import { MigrationInterface, QueryRunner, Table, TableIndex } from 'typeorm';
 
 export class CreateWeddingPlanners1786200000000 implements MigrationInterface {
   async up(queryRunner: QueryRunner): Promise<void> {
@@ -36,17 +30,6 @@ export class CreateWeddingPlanners1786200000000 implements MigrationInterface {
         name: 'UQ_wedding_planners_user_id',
         columnNames: ['userId'],
         isUnique: true,
-      }),
-    );
-
-    await queryRunner.createForeignKey(
-      'wedding_planners',
-      new TableForeignKey({
-        name: 'FK_wedding_planners_user',
-        columnNames: ['userId'],
-        referencedTableName: 'users',
-        referencedColumnNames: ['id'],
-        onDelete: 'CASCADE',
       }),
     );
   }
