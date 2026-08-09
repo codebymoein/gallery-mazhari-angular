@@ -19,13 +19,13 @@ describe('PlannerService', () => {
     (value: Partial<WeddingPlannerEntity>): WeddingPlannerEntity =>
       value as WeddingPlannerEntity,
   );
-  const exist = jest.fn();
+  const exists = jest.fn();
   const createQueryBuilder = jest.fn();
   const repository = {
     findOne,
     save,
     create,
-    exist,
+    exists,
     createQueryBuilder,
   } as unknown as Repository<WeddingPlannerEntity>;
 
@@ -38,11 +38,13 @@ describe('PlannerService', () => {
 
   it('creates a customer planner and returns server-derived tasks', async () => {
     findOne.mockResolvedValue(null);
-    save.mockImplementation(async (value: WeddingPlannerEntity) => ({
-      ...value,
-      createdAt: new Date('2026-01-01T00:00:00.000Z'),
-      updatedAt: new Date('2026-01-01T00:00:00.000Z'),
-    }));
+    save.mockImplementation((value: WeddingPlannerEntity) =>
+      Promise.resolve({
+        ...value,
+        createdAt: new Date('2026-01-01T00:00:00.000Z'),
+        updatedAt: new Date('2026-01-01T00:00:00.000Z'),
+      }),
+    );
 
     const result = await service.upsert('user-1', {
       eventDate: futureDate(200),
