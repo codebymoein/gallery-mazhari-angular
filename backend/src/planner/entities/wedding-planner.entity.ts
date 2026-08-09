@@ -3,7 +3,7 @@ import {
   CreateDateColumn,
   Entity,
   Index,
-  PrimaryGeneratedColumn,
+  PrimaryColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { CeremonyType } from '../planner-task-catalog';
@@ -11,7 +11,7 @@ import { CeremonyType } from '../planner-task-catalog';
 @Entity({ name: 'wedding_planners' })
 @Index('UQ_wedding_planners_user_id', ['userId'], { unique: true })
 export class WeddingPlannerEntity {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryColumn({ type: 'uuid' })
   id: string;
 
   @Column({ type: 'uuid' })
