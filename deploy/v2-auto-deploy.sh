@@ -2,7 +2,7 @@
 set -euo pipefail
 
 repo="${V2_DEPLOY_REPOSITORY:-codebymoein/gallery-mazhari-angular}"
-api_url="https://api.github.com/repos/${repo}/releases?per_page=20"
+main_api_url="https://api.github.com/repos/${repo}/commits/main"
 app_root="${APP_ROOT:-/srv/gallery-mazhari}"
 cache_root="${V2_DEPLOY_CACHE_ROOT:-/var/cache/gallery-mazhari/v2}"
 legacy_browser_root="${V2_LEGACY_BROWSER_ROOT:-/var/www/gallery-mazhari/browser}"
@@ -26,55 +26,34 @@ for command in curl python3 sha256sum tar systemctl install mv readlink; do
   }
 done
 
+main_json="$(mktemp)"
 release_json="$(mktemp)"
 release_runner="$(mktemp)"
 cleanup() {
-  rm -f "$release_json" "$release_runner"
+  rm -f "$main_json" "$release_json" "$release_runner"
 }
 trap cleanup EXIT
 
 curl --fail --silent --show-error --max-time 20 \
   -H 'Accept: application/vnd.github+json' \
   -H 'X-GitHub-Api-Version: 2022-11-28' \
-  "$api_url" > "$release_json"
+  "$main_api_url" > "$main_json"
 
-mapfile -t release_fields < <(
-  python3 - "$release_json" <<'PY'
+revision="$(
+  python3 - "$main_json" <<'PY'
 import json
 import re
 import sys
 
 with open(sys.argv[1], encoding="utf-8") as handle:
-    releases = json.load(handle)
+    payload = json.load(handle)
 
-for release in releases:
-    tag = str(release.get("tag_name", ""))
-    if not tag.startswith("auto-v2-"):
-        continue
-    revision = tag.removeprefix("auto-v2-")
-    if not re.fullmatch(r"[0-9a-f]{40}", revision):
-        continue
-    expected_artifact = f"gallery-mazhari-{revision}.tar.gz"
-    expected_checksum = f"{expected_artifact}.sha256"
-    assets = {asset.get("name"): asset.get("browser_download_url") for asset in release.get("assets", [])}
-    artifact_url = assets.get(expected_artifact)
-    checksum_url = assets.get(expected_checksum)
-    if artifact_url and checksum_url:
-        print(revision)
-        print(artifact_url)
-        print(checksum_url)
-        break
+revision = str(payload.get("sha", ""))
+if not re.fullmatch(r"[0-9a-f]{40}", revision):
+    raise SystemExit("GitHub main response did not contain a valid commit SHA")
+print(revision)
 PY
-)
-
-if [ "${#release_fields[@]}" -ne 3 ]; then
-  echo "no complete auto-v2 release is available yet"
-  exit 0
-fi
-
-revision="${release_fields[0]}"
-artifact_url="${release_fields[1]}"
-checksum_url="${release_fields[2]}"
+)"
 
 if [ -f "${app_root}/LAST_DEPLOYED_REVISION" ] \
   && [ "$(tr -d '\r\n' < "${app_root}/LAST_DEPLOYED_REVISION")" = "$revision" ]; then
@@ -82,6 +61,59 @@ if [ -f "${app_root}/LAST_DEPLOYED_REVISION" ] \
   exit 0
 fi
 
+tag="auto-v2-${revision}"
+release_api_url="https://api.github.com/repos/${repo}/releases/tags/${tag}"
+release_http_status="$(
+  curl --silent --show-error --max-time 20 \
+    -H 'Accept: application/vnd.github+json' \
+    -H 'X-GitHub-Api-Version: 2022-11-28' \
+    --output "$release_json" \
+    --write-out '%{http_code}' \
+    "$release_api_url"
+)"
+
+if [ "$release_http_status" = "404" ]; then
+  echo "exact-main V2 release is not available yet: ${tag}"
+  exit 0
+fi
+if [ "$release_http_status" != "200" ]; then
+  echo "GitHub release lookup failed for ${tag}: HTTP ${release_http_status}" >&2
+  exit 69
+fi
+
+mapfile -t release_fields < <(
+  python3 - "$release_json" "$revision" <<'PY'
+import json
+import sys
+
+release_path, revision = sys.argv[1:3]
+with open(release_path, encoding="utf-8") as handle:
+    release = json.load(handle)
+
+expected_tag = f"auto-v2-{revision}"
+if str(release.get("tag_name", "")) != expected_tag:
+    raise SystemExit("release tag does not match exact main revision")
+if not bool(release.get("prerelease")):
+    raise SystemExit("exact-main V2 release is not marked prerelease")
+
+expected_artifact = f"gallery-mazhari-{revision}.tar.gz"
+expected_checksum = f"{expected_artifact}.sha256"
+assets = {asset.get("name"): asset.get("browser_download_url") for asset in release.get("assets", [])}
+artifact_url = assets.get(expected_artifact)
+checksum_url = assets.get(expected_checksum)
+if artifact_url and checksum_url:
+    print(artifact_url)
+    print(checksum_url)
+PY
+)
+
+if [ "${#release_fields[@]}" -ne 2 ]; then
+  echo "exact-main V2 release exists but its immutable assets are not complete yet: ${tag}"
+  exit 0
+fi
+
+artifact_url="${release_fields[0]}"
+checksum_url="${release_fields[1]}"
 release_cache="${cache_root}/${revision}"
 artifact="${release_cache}/gallery-mazhari-${revision}.tar.gz"
 checksum="${artifact}.sha256"
