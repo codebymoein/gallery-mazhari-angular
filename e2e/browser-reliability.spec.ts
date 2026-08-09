@@ -44,7 +44,8 @@ test(
     }
 
     if (isConstrained) {
-      await expect(page.locator('.split-hero__panel--bridal')).toBeVisible();
+      await expect(page.locator('.editorial-hero')).toBeVisible();
+      await expect(page.locator('#home-hero-title')).toBeVisible();
     } else {
       await page.goto('/catalog', { waitUntil: 'domcontentloaded' });
       await expect(page.locator('main')).toBeVisible();

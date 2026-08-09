@@ -29,7 +29,12 @@ This file records requested work before implementation. A backlog entry is not i
 
 | ID | Epic | Request | Class | Priority | Status | Dependencies / notes |
 | --- | --- | --- | --- | --- | --- | --- |
-| — | — | Backlog ready for owner requests | — | — | INBOX | Add new requests below; do not implement directly from this placeholder. |
+| GM-001 | EPIC-01 | Warm editorial visual foundation, typography hierarchy, motion tokens and Home opening redesign | L2 | P1 | IN_PROGRESS | Active branch `feat/gm-001-editorial-visual-foundation`; foundation for GM-002/003/004/005/006 |
+| GM-002 | EPIC-01 | First-visit heritage book experience with touch/page-turn storytelling and graceful skip/revisit behavior | L2 | P1 | INBOX | Depends on GM-001 visual language; must remain SSR/hydration/performance safe and reduced-motion friendly |
+| GM-003 | EPIC-05 | Wedding Planner with ceremony/date setup, complete checklist, progress and contextual catalog/consultation actions | L3 | P1 | INBOX | Requires persistent-state/API/data/security design before implementation; must not use browser storage as business authority |
+| GM-004 | EPIC-05 | Bespoke services journey for custom veil/dress consultation, photo-led request entry points and Tehran fitting-at-home discovery | L3 | P1 | INBOX | Reuse existing consultation/custom-request/home-trial domain paths before adding any new backend concept |
+| GM-005 | EPIC-01 | Editorial category chapters and fashion-led mobile discovery instead of conventional card-grid presentation | L2 | P1 | INBOX | Depends on GM-001; preserve catalog authority/filtering semantics and indexable routes |
+| GM-006 | EPIC-01 | Storefront motion language: reveal, image drift, chapter transitions and gesture polish without scroll hijacking | L2 | P2 | INBOX | Depends on GM-001 motion tokens; no third-party animation dependency without review |
 
 ## Intake format
 

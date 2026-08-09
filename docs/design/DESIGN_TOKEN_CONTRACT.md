@@ -1,42 +1,69 @@
 # Gallery Mazhari Design Token & Font Contract
 
-Status: **Normative for RM-08 / PR-016**
+Status: **Normative runtime design contract**
 
 ## Authority
-`src/styles/tokens.css` is the runtime source of truth for design tokens. Documentation MUST describe those runtime values; documentation does not override the stylesheet. Component and feature CSS MUST consume tokens rather than introduce competing palette, spacing, typography, radius, elevation, or motion constants.
+`src/styles/tokens.css` is the runtime source of truth for design tokens. Documentation MUST describe those runtime values; documentation does not override the stylesheet. Component and feature CSS MUST consume tokens rather than introduce competing palette, spacing, typography, radius, elevation or motion constants.
 
-`DESIGN_SYSTEM.md` remains a broader design reference and historical usage guide. When a literal value shown there conflicts with `src/styles/tokens.css`, the runtime token file wins until the documentation is reconciled. PR-017 owns broad consumer migration/decomposition; PR-016 does not perform an arbitrary visual redesign.
+`DESIGN_SYSTEM.md` remains a broader design reference and historical usage guide. When a literal value shown there conflicts with `src/styles/tokens.css`, the runtime token file wins until the documentation is reconciled.
+
+GM-001 establishes the approved post-remediation storefront direction: **warm / editorial / romantic / fashion / heritage**. The reference direction may be inspired by external fashion sites selected by the owner, but Gallery Mazhari MUST use its own assets, content, tokens and implementation rather than copying a third-party design.
 
 ## Approved core palette
 
 | Role | Token | Value |
 | --- | --- | --- |
-| Matte neutral | `--color-matte-black` | `#656561` |
-| Dark charcoal | `--color-dark-charcoal` | `#484846` |
-| Champagne accent | `--color-champagne-gold` | `#9d7937` |
-| Primary gold | `--color-gold-primary` | `#89682f` |
-| Page background | `--color-bg-cream` | `#f4f3f0` |
-| Surface | `--color-surface` | `#fbfaf8` |
-| Primary text | `--color-text-main` | `#555552` |
-| Muted text | `--color-text-muted` | `#666560` |
+| Espresso dark | `--color-matte-black` | `#2b211d` |
+| Warm heading dark | `--color-dark-charcoal` | `#3a2a24` |
+| Champagne accent | `--color-champagne-gold` | `#b78b62` |
+| Primary burgundy | `--color-gold-primary` | `#8f4050` |
+| Warm ivory page background | `--color-bg-cream` | `#f5eadc` |
+| Warm surface | `--color-surface` | `#fff6ec` |
+| Primary text | `--color-text-main` | `#3a2a24` |
+| Muted warm text | `--color-text-muted` | `#6d554c` |
 
-Supporting state, alpha, surface, gradient and MDS compatibility tokens remain defined in `src/styles/tokens.css`. New raw color literals in feature/component CSS require a named design-system use case and should normally be promoted to a semantic token instead.
+Additional editorial semantic tokens include rose, burgundy, espresso, butter, peach and ivory roles. Supporting state, alpha, surface, gradient and MDS compatibility tokens remain defined in `src/styles/tokens.css`.
+
+### Palette rules
+
+- Cool grey MUST NOT be reintroduced as the dominant storefront brand/background language without a separately approved visual decision.
+- Clinical pure white SHOULD be limited to functional/on-dark use; public storefront surfaces SHOULD normally use warm semantic surface tokens.
+- Burgundy is the primary action/brand accent; champagne is a restrained secondary accent rather than a universal decoration color.
+- Feature/component CSS SHOULD use semantic tokens. New raw color literals require a named design-system use case and should normally be promoted to `tokens.css`.
+- Admin surfaces may retain a denser functional composition, but accessibility and token authority remain shared.
 
 ## Font contract
 
 - Persian/UI stack: `--font-persian: 'IRANSansX', 'YekanBakh', Tahoma, sans-serif`.
-- Display stack: `--font-display`, currently the same Persian stack to preserve established RTL typography.
+- Persian display stack: `--font-display: 'YekanBakh', 'IRANSansX', Tahoma, sans-serif` to allow a softer editorial hierarchy when the environment provides YekanBakh while retaining safe fallbacks.
 - English UI stack: `--font-english: 'Inter', Arial, sans-serif`.
 - English serif accent: `--font-serif-en: 'Playfair Display', Georgia, 'Times New Roman', serif`.
-- The repository currently does not bundle licensed font binaries under `src/assets`; therefore the stack MUST retain safe fallbacks and tests MUST verify the CSS contract rather than assume a particular host-installed font binary.
-- Adding/self-hosting a font binary later requires license/provenance review, performance review and explicit design-system documentation; it is not implicit authorization to add font files.
+- The repository does not implicitly gain permission to add font binaries because a family appears in a stack. Self-hosting requires license/provenance and performance review.
+- Editorial hierarchy SHOULD be created first through scale, line-height, weight, spacing and composition rather than unreviewed font downloads.
 
 ## Typography and responsive rules
 
-Typography consumes the font and weight tokens from `tokens.css`. Persian/RTL behavior remains mandatory. Mobile-first behavior, visible focus, reduced-motion handling and representative narrow/desktop visual evidence are part of design-system acceptance; accessibility remediation itself remains RM-14.
+Typography consumes the font and weight tokens from `tokens.css`. Persian/RTL behavior remains mandatory. The storefront is mobile-first: narrow touch layouts are the primary composition and wider layouts enhance rather than replace that experience.
+
+Large display type SHOULD use restrained weights and generous spacing rather than multiple decorative effects. English editorial accents MUST use explicit language/direction semantics where they differ from the surrounding RTL Persian document.
+
+## Motion contract
+
+- `--transition-editorial` and `--transition-editorial-fast` are the shared timing curves for deliberate fashion/editorial movement.
+- Motion MAY include restrained reveal, image scale/drift and chapter transitions when those movements explain hierarchy or improve discovery.
+- Scroll hijacking, mandatory long intro sequences and gratuitous continuous motion are not part of the approved language.
+- Every material motion surface MUST provide an effective `prefers-reduced-motion: reduce` path.
+- New animation dependencies require the normal dependency/security/bundle review; GM-001 adds none.
+
+## Accessibility and performance
+
+- Visible focus, semantic controls, contrast and RTL reading order are mandatory review concerns.
+- Warm/pastel surfaces MUST still meet the applicable WCAG contrast requirement for text and controls.
+- Home keeps one authoritative LCP image: the primary bridal hero is eager/high-priority; secondary discovery imagery remains deferred.
+- Stable image dimensions/aspect handling remain required to avoid layout shift.
 
 ## Verification
 
-PRs that change this contract MUST run the normal frontend quality gates and the dedicated `Design System Contract` workflow. `e2e/design-system.spec.ts` verifies the canonical runtime palette/font variables and captures Home/Catalog visual evidence in both desktop and mobile Playwright projects.
+PRs changing this contract MUST run normal frontend quality gates and the dedicated `Design System Contract` workflow. `e2e/design-system.spec.ts` verifies the canonical runtime palette/font variables and captures Home/Catalog evidence in desktop and mobile projects.
 
-The visual evidence is a regression aid, not permission for arbitrary visual change. PR-017 may migrate hard-coded consumers and decompose global CSS only while preserving the approved appearance unless a separately authorized design decision says otherwise.
+Material visual changes also require representative mobile/desktop review, keyboard/focus verification and reduced-motion review. SSR/SEO/performance/accessibility permanent regression gates remain release controls and MUST NOT be weakened to accept a redesign.
