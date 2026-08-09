@@ -5,36 +5,46 @@
    ================================================================ */
 
 :root {
-  /* ── Brand Core ─────────────────────────────────────────────── */
-  --color-matte-black: #656561;
-  --color-dark-charcoal: #484846;
-  --color-champagne-gold: #9d7937;
-  --color-gold-primary: #89682f;
+  /* ── Brand Core: warm editorial / romantic / heritage ───────── */
+  --color-matte-black: #2b211d;
+  --color-dark-charcoal: #3a2a24;
+  --color-champagne-gold: #b78b62;
+  --color-gold-primary: #8f4050;
   --color-gold-light: var(--color-champagne-gold);
-  --color-gold-hover: #705225;
-  --color-gold-subtle: #e5dcc8;
-  --color-gold-bright: #b99752;
-  --color-gold-deep: #765826;
+  --color-gold-hover: #733440;
+  --color-gold-subtle: #efd8d8;
+  --color-gold-bright: #c99b71;
+  --color-gold-deep: #672b37;
 
-  --color-bg-cream: #f4f3f0;
-  --color-cream-warm: #e9e7e2;
-  --color-cream-soft: #efeeea;
-  --color-surface: #fbfaf8;
+  --color-bg-cream: #f5eadc;
+  --color-cream-warm: #efd8c6;
+  --color-cream-soft: #faefe4;
+  --color-surface: #fff6ec;
   --color-white: #ffffff;
 
-  --color-text-main: #555552;
-  --color-text-muted: #666560;
-  --color-text-on-dark: rgba(255, 255, 252, 0.96);
-  --color-text-on-dark-soft: rgba(255, 255, 252, 0.78);
-  --color-text-on-dark-faint: rgba(255, 255, 252, 0.62);
+  --color-text-main: #3a2a24;
+  --color-text-muted: #6d554c;
+  --color-text-on-dark: rgba(255, 248, 239, 0.97);
+  --color-text-on-dark-soft: rgba(255, 248, 239, 0.82);
+  --color-text-on-dark-faint: rgba(255, 248, 239, 0.66);
 
-  --color-border: #d9d6d0;
-  --color-border-light: #e3e1dc;
+  --color-border: #d9c0b1;
+  --color-border-light: #ead5c7;
 
-  --color-error: #d32f2f;
-  --color-success: #388e3c;
-  --color-warning: #f57c00;
-  --color-info: #1976d2;
+  --color-error: #b93a4c;
+  --color-success: #47745a;
+  --color-warning: #b8752f;
+  --color-info: #526b8f;
+
+  /* Editorial semantic accents */
+  --color-rose-powder: #dcaeb0;
+  --color-rose-soft: #f1d5d3;
+  --color-burgundy: #7c3341;
+  --color-burgundy-deep: #57232d;
+  --color-espresso: #2b211d;
+  --color-butter: #f1d99c;
+  --color-peach: #edc0a6;
+  --color-ivory: #f9f0e5;
 
   /* Social (third-party brand — allowed as tokens) */
   --color-social-telegram: #229ed9;
@@ -42,12 +52,12 @@
   --color-social-bale: #00a3e0;
 
   /* RGB channels for alpha compositing */
-  --color-champagne-rgb: 157, 121, 55;
-  --color-gold-primary-rgb: 137, 104, 47;
-  --color-matte-rgb: 101, 101, 97;
-  --color-overlay-rgb: 72, 72, 70;
+  --color-champagne-rgb: 183, 139, 98;
+  --color-gold-primary-rgb: 143, 64, 80;
+  --color-matte-rgb: 43, 33, 29;
+  --color-overlay-rgb: 43, 33, 29;
 
-  /* Gold / matte alpha scales */
+  /* Accent / espresso alpha scales */
   --color-gold-a04: rgba(var(--color-champagne-rgb), 0.04);
   --color-gold-a08: rgba(var(--color-champagne-rgb), 0.08);
   --color-gold-a10: rgba(var(--color-champagne-rgb), 0.1);
@@ -97,40 +107,43 @@
   --color-overlay-a88: rgba(var(--color-overlay-rgb), 0.88);
 
   /* Luxury section surfaces */
-  --color-surface-dark: #70706c;
-  --color-surface-dark-elevated: #7d7d78;
-  --color-surface-dark-deep: #5d5d59;
-  --color-surface-dark-deeper: #50504d;
-  --color-loading-bg: #696965;
-  --color-text-cream: #fffffc;
-  --color-text-cream-muted: #ffffff;
-  --color-fallback-warm: #85857f;
-  --color-fallback-deep: #6d6d68;
-  --color-fallback-story: #797974;
+  --color-surface-dark: #6b3340;
+  --color-surface-dark-elevated: #7c4050;
+  --color-surface-dark-deep: #4d2b29;
+  --color-surface-dark-deeper: #2f211d;
+  --color-loading-bg: #b78f78;
+  --color-text-cream: #fff8ef;
+  --color-text-cream-muted: #f7e8dc;
+  --color-fallback-warm: #b88770;
+  --color-fallback-deep: #6a463b;
+  --color-fallback-story: #996f63;
 
   /* Luxury dark section shell (shared by lookbook / VIP / footer) */
   --bg-luxury-dark:
-    radial-gradient(ellipse 80% 60% at 90% 0%, var(--color-gold-a14), transparent 55%),
-    radial-gradient(ellipse 50% 40% at 10% 100%, var(--color-gold-a08), transparent 50%),
-    var(--color-matte-black);
+    radial-gradient(ellipse 80% 60% at 90% 0%, var(--color-primary-a22), transparent 55%),
+    radial-gradient(ellipse 50% 40% at 10% 100%, var(--color-gold-a10), transparent 50%),
+    var(--color-espresso);
 
   --bg-luxury-dark-alt:
-    radial-gradient(ellipse 70% 80% at 15% 0%, var(--color-gold-a16), transparent 55%),
-    radial-gradient(ellipse 55% 50% at 95% 100%, var(--color-gold-a10), transparent 50%),
-    var(--color-matte-black);
+    radial-gradient(ellipse 70% 80% at 15% 0%, var(--color-primary-a18), transparent 55%),
+    radial-gradient(ellipse 55% 50% at 95% 100%, var(--color-gold-a12), transparent 50%),
+    var(--color-burgundy-deep);
 
   --bg-luxury-footer:
-    radial-gradient(circle at 5% 15%, var(--color-gold-a12), transparent 28%),
-    var(--color-matte-black);
+    radial-gradient(circle at 5% 15%, var(--color-primary-a18), transparent 28%),
+    var(--color-espresso);
 
-  --gradient-gold-cta: linear-gradient(135deg, var(--color-champagne-gold) 0%, var(--color-gold-deep) 100%);
-  --gradient-cream-section: linear-gradient(180deg, var(--color-cream-warm) 0%, var(--color-bg-cream) 38%, var(--color-cream-soft) 100%);
+  --gradient-gold-cta: linear-gradient(135deg, var(--color-gold-primary) 0%, var(--color-gold-deep) 100%);
+  --gradient-cream-section: linear-gradient(180deg, var(--color-cream-warm) 0%, var(--color-bg-cream) 42%, var(--color-cream-soft) 100%);
+  --gradient-editorial-rose: linear-gradient(145deg, var(--color-rose-soft) 0%, var(--color-peach) 100%);
+  --gradient-editorial-ivory: linear-gradient(180deg, var(--color-ivory) 0%, var(--color-bg-cream) 100%);
 
   /* ── Typography ─────────────────────────────────────────────── */
   --font-persian: 'IRANSansX', 'YekanBakh', Tahoma, sans-serif;
   --font-english: 'Inter', Arial, sans-serif;
-  --font-display: 'IRANSansX', 'YekanBakh', Tahoma, sans-serif;
+  --font-display: 'YekanBakh', 'IRANSansX', Tahoma, sans-serif;
   --font-serif-en: 'Playfair Display', Georgia, 'Times New Roman', serif;
+  --font-weight-light: 300;
   --font-weight-regular: 400;
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
@@ -142,27 +155,33 @@
   --space-md: clamp(1.5rem, 3vw, 2.5rem);
   --space-lg: clamp(2rem, 5vw, 4rem);
   --space-xl: clamp(4rem, 8vw, 6rem);
+  --space-2xl: clamp(5.5rem, 12vw, 10rem);
 
   /* ── Radius ─────────────────────────────────────────────────── */
   --border-radius-sm: 0.25rem;
   --border-radius-md: 0.5rem;
   --border-radius-lg: 0.75rem;
+  --border-radius-editorial: 1.5rem;
 
   /* ── Shadows ────────────────────────────────────────────────── */
-  --shadow-luxury: 0 10px 30px rgba(0, 0, 0, 0.05);
-  --shadow-subtle: 0 2px 8px rgba(0, 0, 0, 0.1);
-  --shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.1);
-  --shadow-gold: 0 4px 12px rgba(var(--color-champagne-rgb), 0.2);
-  --shadow-gold-glow: 0 0 24px rgba(var(--color-champagne-rgb), 0.25);
-  --shadow-deep: 0 20px 60px rgba(0, 0, 0, 0.15);
-  --shadow-panel: 0 32px 80px rgba(20, 18, 14, 0.18);
-  --shadow-card-dark: 0 12px 28px rgba(0, 0, 0, 0.22);
+  --shadow-luxury: 0 12px 34px rgba(70, 36, 31, 0.07);
+  --shadow-subtle: 0 2px 8px rgba(70, 36, 31, 0.08);
+  --shadow-hover: 0 8px 24px rgba(70, 36, 31, 0.1);
+  --shadow-gold: 0 6px 18px rgba(var(--color-gold-primary-rgb), 0.16);
+  --shadow-gold-glow: 0 0 24px rgba(var(--color-gold-primary-rgb), 0.2);
+  --shadow-deep: 0 22px 64px rgba(48, 28, 24, 0.16);
+  --shadow-panel: 0 34px 90px rgba(48, 28, 24, 0.18);
+  --shadow-card-dark: 0 14px 34px rgba(35, 22, 19, 0.24);
 
   /* ── Motion ─────────────────────────────────────────────────── */
   --transition-smooth: 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   --transition-fast: 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   --transition-base: 250ms ease;
-  --transition-slow: 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --transition-slow: 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  --transition-editorial: 900ms cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-editorial-fast: 550ms cubic-bezier(0.16, 1, 0.3, 1);
+  --motion-image-scale: 1.035;
+  --motion-reveal-distance: 1.5rem;
 
   /* ── Z-Index ────────────────────────────────────────────────── */
   --z-dropdown: 100;
