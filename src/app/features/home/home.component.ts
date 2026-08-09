@@ -10,6 +10,7 @@ import { TrustGuaranteesComponent } from './components/trust-guarantees/trust-gu
 import { InteractiveGuideFaqComponent } from './components/interactive-guide-faq/interactive-guide-faq.component';
 import { DiscountShowcaseComponent } from './components/discount-showcase/discount-showcase.component';
 import { SubcategoryCarouselComponent } from './components/subcategory-carousel/subcategory-carousel.component';
+import { HeritageBookComponent } from './components/heritage-book/heritage-book.component';
 import { AppearanceApiService } from '@core/services/appearance-api.service';
 import { assetUrl } from '@shared/utils/asset-url';
 
@@ -25,7 +26,8 @@ import { assetUrl } from '@shared/utils/asset-url';
     InteractiveGuideFaqComponent,
     TrustGuaranteesComponent,
     DiscountShowcaseComponent,
-    SubcategoryCarouselComponent
+    SubcategoryCarouselComponent,
+    HeritageBookComponent
   ],
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.css']
