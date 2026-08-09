@@ -19,6 +19,7 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { ObservabilityModule } from './observability/observability.module';
 import { OrdersModule } from './orders/orders.module';
 import { PaymentsModule } from './payments/payments.module';
+import { PlannerModule } from './planner/planner.module';
 import { PlatformModule } from './platform/platform.module';
 import { ProductsModule } from './products/products.module';
 import { UsersModule } from './users/users.module';
@@ -76,6 +77,7 @@ export { ALL_ENTITIES } from './database/entities';
     NotificationsModule,
     ConsultationsModule,
     CustomRequestsModule,
+    PlannerModule,
     PlatformModule,
     ObservabilityModule,
   ],

@@ -10,6 +10,7 @@ import { NotificationSettingsEntity } from '../notifications/entities/notificati
 import { OrderEntity } from '../orders/entities/order.entity';
 import { PaymentSettingsEntity } from '../payments/entities/payment-settings.entity';
 import { PaymentTransactionEntity } from '../payments/entities/payment-transaction.entity';
+import { WeddingPlannerEntity } from '../planner/entities/wedding-planner.entity';
 import { PLATFORM_ENTITIES } from '../platform/platform.entities';
 import { ProductEntity } from '../products/entities/product.entity';
 import { UserEntity } from '../users/entities/user.entity';
@@ -30,5 +31,6 @@ export const ALL_ENTITIES = [
   ConsultationEntity,
   PasswordResetTokenEntity,
   CustomRequestEntity,
+  WeddingPlannerEntity,
   ...PLATFORM_ENTITIES,
 ];

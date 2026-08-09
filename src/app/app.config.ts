@@ -13,6 +13,7 @@ import { environment } from '@env/environment';
 import { HTTP_INTERCEPTOR_PROVIDERS } from '@core/interceptors';
 import { appStore } from '@core/store';
 import { CartEffects } from '@core/store/cart/cart.effects';
+import { plannerRoutes } from './features/planner/planner.routes';
 import { routes } from './app.routes';
 
 registerLocaleData(localeFa, 'fa');
@@ -24,7 +25,7 @@ export const appConfig: ApplicationConfig = {
     provideAnimations(),
     provideClientHydration(withEventReplay()),
     provideRouter(
-      routes,
+      [...plannerRoutes, ...routes],
       withInMemoryScrolling({
         scrollPositionRestoration: 'top',
         anchorScrolling: 'enabled'
