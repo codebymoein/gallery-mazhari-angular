@@ -14,6 +14,9 @@ PostgreSQL is the production durable system of record. The codebase currently su
 - Timestamps require explicit semantics/timezone handling. Status columns use controlled vocabularies synchronized with domain code.
 - Do not delete audit/history/import evidence merely to reduce table size; define retention policy first.
 
+## Wedding Planner persistence
+`wedding_planners` is an additive customer-owned table. `userId` is a unique foreign key to `users.id`, enforcing at most one planner per account and cascading deletion with the owning user. The row stores event date, selected ceremony types, completed canonical task IDs, optimistic `version`, and timestamps. Task definitions themselves are not duplicated into customer rows; the server task catalog remains the definition authority. Browser-local wedding timeline data is not a database migration source and MUST NOT overwrite planner rows implicitly.
+
 ## Query/transaction rules
 Avoid N+1 query patterns on catalog/admin lists; paginate unbounded collections; index measured access paths. Cross-entity workflow transitions use transactions where partial success would violate invariants.
 
