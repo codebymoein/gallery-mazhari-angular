@@ -28,8 +28,11 @@ Stock is business-critical. Imports and operational changes must preserve latest
 
 The admin inventory view MUST NOT persist business state to browser storage or report a local mutation as durable. Base stock and inventory pricing remain controlled by the Excel inventory workflow. Supported inventory bulk promotion uses the authenticated server-side discount command and durable `DiscountRule` records; unsupported local-only `onSale` flags and manual stock-zero overrides are not business commands. API failure must leave the authoritative state unchanged and be surfaced to the operator.
 
+## Customer Wedding Planner
+The Wedding Planner is a customer-owned persistent workflow. Each authenticated customer may own at most one planner. NestJS/PostgreSQL own event date, selected ceremony types, completed canonical task IDs and the optimistic planner version. The client submits the latest version with mutations; stale writes are rejected with `planner_version_conflict` and require refresh/review rather than last-write-wins replacement. Planner task definitions, applicability, due-date projection and progress are server-derived. Browser-local `WeddingTimelineService` state remains a non-authoritative presentation compatibility surface and MUST NOT be promoted into a durable planner implicitly. Planner actions may route customers into catalog, accessories or consultation, but those domains retain their existing workflow authority.
+
 ## Other protected workflows
-Orders/payment transitions, consultations, custom requests, notification delivery, taxonomy/tag approval, merchandising/collections, SEO enrichment, and admin permissions must retain their state/audit semantics.
+Orders/payment transitions, consultations, custom requests, notification delivery, taxonomy/tag approval, merchandising/collections, SEO enrichment, admin permissions, and the customer Wedding Planner must retain their state/audit semantics.
 
 Canonical ingestion detail: [`../INTELLIGENT_INGESTION_ARCHITECTURE.md`](../INTELLIGENT_INGESTION_ARCHITECTURE.md). Inventory-specific rules: [`../DAILY_INVENTORY_RULES.md`](../DAILY_INVENTORY_RULES.md).
 
