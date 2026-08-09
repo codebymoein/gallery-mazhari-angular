@@ -1,76 +1,100 @@
-<!-- ══════════════════════════════════
-     Split Hero
-     ══════════════════════════════════ -->
-<section class="split-hero" dir="rtl" aria-label="صفحه اصلی گالری مظهری">
-
-  <!-- Panel 1: اکسسوری -->
-  <article class="split-hero__panel split-hero__panel--accessories">
-    <img class="split-hero__media" [src]="accessoryImage()"
-         alt="" width="1000" height="1250"
-         loading="lazy" fetchpriority="low" decoding="async" aria-hidden="true"/>
-    <div class="split-hero__content">
-      <p class="split-hero__eyebrow" lang="en" dir="ltr">THE FINISHING TOUCH</p>
-      <h2 class="split-hero__title">دنیای اکسسوری عروس</h2>
-      <p class="split-hero__subtitle">
-        اکسسوری‌های منتخب را آنلاین، سریع و با اطمینان خرید کنید
-      </p>
-      <a class="split-hero__button split-hero__button--ghost"
-         routerLink="/accessories"
-         aria-label="رفتن به دسته‌بندی محصولات">
-        فروشگاه اکسسوری
-      </a>
+<main class="home-editorial" dir="rtl">
+  <section class="editorial-hero" aria-labelledby="home-hero-title">
+    <div class="editorial-hero__media-shell" aria-hidden="true">
+      <img
+        class="editorial-hero__media"
+        [src]="bridalImage()"
+        alt=""
+        width="1003"
+        height="1568"
+        loading="eager"
+        fetchpriority="high"
+        decoding="async"
+      />
     </div>
-  </article>
 
-  <!-- Panel 2: لباس عروس -->
-  <article class="split-hero__panel split-hero__panel--bridal">
-    <img class="split-hero__media" [src]="bridalImage()"
-         alt="" width="1003" height="1568"
-         loading="eager" fetchpriority="high" decoding="async" aria-hidden="true"/>
-    <div class="split-hero__content">
-      <p class="split-hero__eyebrow" lang="en" dir="ltr">THE BRIDAL COLLECTION</p>
-      <h1 class="split-hero__title">کالکشن<br>لباس عروس</h1>
-      <p class="split-hero__subtitle">
-        تجربه‌ای اختصاصی برای انتخاب و پرو لباس عروس با مشاوره VIP
+    <div class="editorial-hero__veil" aria-hidden="true"></div>
+
+    <div class="editorial-hero__copy">
+      <p class="editorial-kicker" lang="en" dir="ltr">GALLERY MAZHARI · SINCE 1337</p>
+      <h1 id="home-hero-title" class="editorial-hero__title">
+        لباسی برای<br />
+        <em>داستان شما</em>
+      </h1>
+      <p class="editorial-hero__lede">
+        انتخاب، مشاوره و پرو لباس عروس در تجربه‌ای شخصی‌تر؛ برای روزی که فقط یک‌بار اتفاق می‌افتد.
       </p>
-      <a class="split-hero__button split-hero__button--ghost"
-         routerLink="/catalog"
-         aria-label="مشاهده کالکشن لباس عروس">
-        مشاهده کالکشن و مشاوره
-      </a>
+
+      <nav class="editorial-hero__actions" aria-label="دسترسی سریع لباس عروس">
+        <a class="editorial-link editorial-link--filled" routerLink="/catalog">
+          مشاهده کالکشن
+          <span aria-hidden="true">←</span>
+        </a>
+        <a class="editorial-link editorial-link--quiet" routerLink="/consultation">
+          رزرو مشاوره
+        </a>
+      </nav>
     </div>
-  </article>
 
-</section>
+    <a
+      class="editorial-hero__chapter"
+      routerLink="/accessories"
+      aria-label="ورود به دنیای اکسسوری عروس"
+    >
+      <span class="editorial-hero__chapter-media" aria-hidden="true">
+        <img
+          [src]="accessoryImage()"
+          alt=""
+          width="1000"
+          height="1250"
+          loading="lazy"
+          fetchpriority="low"
+          decoding="async"
+        />
+      </span>
+      <span class="editorial-hero__chapter-copy">
+        <small lang="en" dir="ltr">THE DETAILS</small>
+        <strong>اکسسوری عروس</strong>
+        <span>کشف جزئیات استایل</span>
+      </span>
+    </a>
 
-<!-- ══════════════════════════════════
-     Category Showcase
-     ══════════════════════════════════ -->
-<app-category-showcase></app-category-showcase>
+    <span class="editorial-hero__scroll" aria-hidden="true">
+      <span></span>
+      SCROLL
+    </span>
+  </section>
 
-<!-- Optional discounts render nothing when the API has no active promotion. -->
-<app-discount-showcase></app-discount-showcase>
+  <section class="heritage-note" aria-labelledby="heritage-note-title">
+    <p class="heritage-note__year" lang="en" dir="ltr">EST. 1958</p>
+    <div class="heritage-note__body">
+      <p class="editorial-kicker">از سال ۱۳۳۷ با شما هستیم</p>
+      <h2 id="heritage-note-title">نسل‌ها کنار لحظه‌های ماندگار شما</h2>
+      <p>
+        گالری مظهری امروز همان تجربه‌ای را ادامه می‌دهد که از چند نسل قبل آغاز شد؛
+        با نگاهی تازه‌تر، شخصی‌تر و نزدیک‌تر به داستان هر عروس.
+      </p>
+    </div>
+    <a class="heritage-note__link" routerLink="/catalog">
+      شروع انتخاب شما
+      <span aria-hidden="true">←</span>
+    </a>
+  </section>
 
-<app-subcategory-carousel></app-subcategory-carousel>
+  <app-category-showcase></app-category-showcase>
 
-<app-home-appointment></app-home-appointment>
+  <!-- Optional discounts render nothing when the API has no active promotion. -->
+  <app-discount-showcase></app-discount-showcase>
 
-<!-- ══════════════════════════════════
-     Lookbook & Smart Matchmaker
-     ══════════════════════════════════ -->
-<app-lookbook-matchmaker></app-lookbook-matchmaker>
+  <app-subcategory-carousel></app-subcategory-carousel>
 
-<!-- ══════════════════════════════════
-     Real Brides & Testimonials
-     ══════════════════════════════════ -->
-<app-real-brides></app-real-brides>
+  <app-home-appointment></app-home-appointment>
 
-<!-- ══════════════════════════════════
-     Interactive Guide & Smart FAQ
-     ══════════════════════════════════ -->
-<app-interactive-guide-faq></app-interactive-guide-faq>
+  <app-lookbook-matchmaker></app-lookbook-matchmaker>
 
-<!-- ══════════════════════════════════
-     Trust & Guarantees (above footer)
-     ══════════════════════════════════ -->
-<app-trust-guarantees></app-trust-guarantees>
+  <app-real-brides></app-real-brides>
+
+  <app-interactive-guide-faq></app-interactive-guide-faq>
+
+  <app-trust-guarantees></app-trust-guarantees>
+</main>
