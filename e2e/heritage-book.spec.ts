@@ -3,15 +3,16 @@ import { expect, test } from '@playwright/test';
 const preferenceKey = 'gallerymazhari:heritage-intro:v1';
 
 async function startAsFirstVisit(page: import('@playwright/test').Page) {
-  await page.addInitScript(key => localStorage.removeItem(key), preferenceKey);
   await page.goto('/');
+  await page.evaluate(key => localStorage.removeItem(key), preferenceKey);
+  await page.reload();
 }
 
 test.describe('GM-002 heritage book', () => {
   test('first visit opens the optional story and completion prevents auto-open', async ({ page }) => {
     await startAsFirstVisit(page);
 
-    const dialog = page.getByRole('dialog', { name: /یک داستان، پیش از داستان شما/ });
+    const dialog = page.getByRole('dialog', { name: 'داستان گالری مظهری' });
     await expect(dialog).toBeVisible();
     await expect(dialog.getByRole('button', { name: 'رد کردن' })).toBeVisible();
 
@@ -71,7 +72,6 @@ test.describe('GM-002 heritage book', () => {
       const styles = getComputedStyle(element);
       return {
         animationName: styles.animationName,
-        animationDuration: styles.animationDuration,
         transform: styles.transform,
       };
     });
@@ -82,6 +82,9 @@ test.describe('GM-002 heritage book', () => {
 
   test('heritage media stays deferred so Home keeps one high-priority LCP image', async ({ page }) => {
     await startAsFirstVisit(page);
+
+    const dialog = page.getByRole('dialog');
+    await dialog.getByRole('button', { name: /باز کردن کتاب/ }).click();
 
     const heritagePriority = await page.locator('.heritage-book__archive-frame img').evaluate(image => ({
       loading: image.getAttribute('loading'),
