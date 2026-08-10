@@ -32,7 +32,7 @@
               decoding="async"
               width="80"
               height="80"
-              (error)="hideBrokenImage($event)"
+              (error)="hideBrokenImage($event, cat)"
               />
             <div class="cat-story__fallback" aria-hidden="true"></div>
           </div>
@@ -53,7 +53,7 @@
         >
         <img class="cat-card__img" [src]="cat.image" [alt]="cat.title"
           loading="lazy" decoding="async" width="600" height="700"
-          (error)="hideBrokenImage($event)"/>
+          (error)="hideBrokenImage($event, cat)"/>
         <div class="cat-card__overlay" aria-hidden="true"></div>
         <div class="cat-card__content">
           <p class="cat-card__eyebrow" lang="en" dir="ltr">{{ cat.subtitle }}</p>
@@ -78,7 +78,7 @@
         >
         <img class="cat-card__img" [src]="cat.image" [alt]="cat.title"
           loading="lazy" decoding="async" width="400" height="450"
-          (error)="hideBrokenImage($event)"/>
+          (error)="hideBrokenImage($event, cat)"/>
         <div class="cat-card__overlay" aria-hidden="true"></div>
         <div class="cat-card__content">
           <p class="cat-card__eyebrow" lang="en" dir="ltr">{{ cat.subtitle }}</p>
@@ -103,7 +103,7 @@
         >
         <img class="cat-card__img" [src]="cat.image" [alt]="cat.title"
           loading="lazy" decoding="async" width="300" height="300"
-          (error)="hideBrokenImage($event)"/>
+          (error)="hideBrokenImage($event, cat)"/>
         <div class="cat-card__overlay" aria-hidden="true"></div>
         <div class="cat-card__content">
           <h3 class="cat-card__title">{{ cat.title }}</h3>

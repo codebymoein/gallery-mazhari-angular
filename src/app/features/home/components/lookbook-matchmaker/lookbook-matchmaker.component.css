@@ -10,9 +10,9 @@
   isolation: isolate;
   overflow: hidden;
   padding-block: 1.35rem 1.5rem;
-  color: var(--color-text-on-dark);
-  background: var(--bg-luxury-dark);
-  border-block: 1px solid var(--color-primary-a28);
+  color: var(--color-text-main);
+  background: var(--color-ivory);
+  border-block: 1px solid var(--color-border-light);
   font-family: var(--font-persian);
 }
 
@@ -23,7 +23,7 @@
   inset-block-start: 20%;
   width: 16rem;
   height: 16rem;
-  border: 1px solid var(--color-gold-a10);
+  border: 1px solid var(--color-primary-a18);
   border-radius: 50%;
   pointer-events: none;
   z-index: 0;
@@ -56,7 +56,7 @@
 
 .lookbook__eyebrow {
   margin: 0;
-  color: #ffe2a3;
+  color: var(--color-burgundy);
   font-family: var(--font-english);
   font-size: 0.55rem;
   font-weight: 600;
@@ -66,7 +66,7 @@
 .lookbook__title {
   margin: 0;
   max-width: 16rem;
-  color: var(--color-white);
+  color: var(--color-text-main);
   font-family: var(--font-display);
   font-size: clamp(1.15rem, 4.2vw, 2.25rem);
   font-weight: 500;
@@ -80,7 +80,7 @@
   flex-direction: column;
   gap: 0.1rem;
   max-width: 18rem;
-  color: #ffffff;
+  color: var(--color-text-muted);
   font-size: clamp(0.72rem, 2vw, 0.92rem);
   line-height: 1.6;
 }
@@ -100,9 +100,9 @@
   height: 2.35rem;
   display: grid;
   place-items: center;
-  color: var(--color-champagne-gold);
-  background: var(--color-white-a04);
-  border: 1px solid var(--color-gold-a32);
+  color: var(--color-burgundy);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 50%;
   cursor: pointer;
   transition: background 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
@@ -110,7 +110,7 @@
 }
 .lookbook__nav-btn svg { width: 0.9rem; height: 0.9rem; }
 .lookbook__nav-btn:hover:not(:disabled) {
-  background: var(--color-gold-a14);
+  background: var(--color-rose-soft);
   transform: translateY(-1px);
 }
 .lookbook__nav-btn:disabled {
@@ -118,7 +118,7 @@
   cursor: default;
 }
 .lookbook__nav-btn:focus-visible {
-  outline: 2px solid var(--color-gold-light);
+  outline: 2px solid var(--color-gold-primary);
   outline-offset: 2px;
 }
 
@@ -143,25 +143,25 @@
   display: flex;
   flex-direction: column;
   scroll-snap-align: start;
-  background: var(--color-surface-dark);
-  border: 1px solid var(--color-primary-a30);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-light);
   border-radius: 0.9rem;
   overflow: hidden;
-  box-shadow: var(--shadow-card-dark);
+  box-shadow: var(--shadow-luxury);
   transition: border-color 0.3s ease, transform 0.3s ease;
   color: inherit;
   text-decoration: none;
   cursor: pointer;
 }
 .look-card:hover {
-  border-color: var(--color-gold-a55);
+  border-color: var(--color-primary-a55);
 }
 
 .look-card__media {
   position: relative;
   isolation: isolate;
   aspect-ratio: 3 / 3.6;
-  background: var(--color-surface-dark-elevated);
+  background: var(--color-cream-warm);
   overflow: hidden;
 }
 
@@ -223,7 +223,7 @@
 
 .look-card__style {
   margin: 0;
-  color: #ffffff;
+  color: var(--color-burgundy);
   font-family: var(--font-serif-en);
   font-size: 0.55rem;
   letter-spacing: 0.14em;
@@ -232,7 +232,7 @@
 
 .look-card__title {
   margin: 0;
-  color: var(--color-white);
+  color: var(--color-text-main);
   font-family: var(--font-display);
   font-size: clamp(1rem, 3.5vw, 1.2rem);
   font-weight: 500;
@@ -243,7 +243,7 @@
   margin: 0;
   display: -webkit-box;
   overflow: hidden;
-  color: #ffffff;
+  color: var(--color-text-muted);
   font-size: 0.72rem;
   line-height: 1.65;
   -webkit-box-orient: vertical;
@@ -261,8 +261,8 @@
 }
 .look-card__pieces li {
   padding: 0.2rem 0.5rem;
-  color: color-mix(in srgb, var(--color-gold-subtle) 88%, transparent);
-  background: var(--color-primary-a10);
+  color: var(--color-burgundy-deep);
+  background: var(--color-rose-soft);
   border: 1px solid var(--color-primary-a28);
   border-radius: var(--mds-radius-round);
   font-size: 0.62rem;
@@ -277,7 +277,7 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 0.25rem;
-  color: #ffffff;
+  color: var(--color-text-muted);
   font-size: 0.62rem;
   line-height: 1.4;
 }
@@ -291,12 +291,10 @@
   align-items: center;
   justify-content: center;
   gap: 0.4rem;
-  color: var(--color-white);
-  background: #656561;
-  border: 1px solid var(--color-white-a80);
+  color: var(--color-text-cream);
+  background: var(--color-burgundy-deep);
+  border: 1px solid var(--color-burgundy-deep);
   border-radius: 0.4rem;
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
   font-size: 0.78rem;
   font-weight: 600;
   line-height: 1;
@@ -311,14 +309,14 @@
   flex: 0 0 auto;
 }
 .look-card__cta:hover {
-  color: var(--color-white);
-  background: var(--color-white-a14);
+  color: var(--color-text-cream);
+  background: var(--color-burgundy);
   opacity: 0.88;
   transform: translateY(-2px);
 }
 .look-card__cta:active { transform: scale(0.98); }
 .look-card__cta:focus-visible {
-  outline: 2px solid var(--color-gold-light);
+  outline: 2px solid var(--color-gold-primary);
   outline-offset: 3px;
 }
 
@@ -334,7 +332,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  color: var(--color-gold-a90);
+  color: var(--color-burgundy);
   font-size: 0.78rem;
   font-weight: 500;
   text-decoration: none;
@@ -342,11 +340,11 @@
   transition: color 0.2s ease, border-color 0.2s ease;
 }
 .lookbook__all:hover {
-  color: var(--color-white);
-  border-block-end-color: var(--color-gold-a45);
+  color: var(--color-burgundy-deep);
+  border-block-end-color: var(--color-burgundy);
 }
 .lookbook__all:focus-visible {
-  outline: 2px solid var(--color-gold-light);
+  outline: 2px solid var(--color-gold-primary);
   outline-offset: 3px;
 }
 
@@ -451,7 +449,7 @@
   .look-card__img,
   .look-card__cta,
   .lookbook__nav-btn {
-    transition-duration: 0.01ms !important;
+    transition: none;
   }
   .lookbook__track { scroll-behavior: auto; }
 }

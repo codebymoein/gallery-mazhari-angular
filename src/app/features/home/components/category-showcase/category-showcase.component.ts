@@ -34,7 +34,17 @@ export class CategoryShowcaseComponent {
     this.appearanceApi.load();
   }
 
-  hideBrokenImage(event: Event): void {
+  hideBrokenImage(event: Event, category: CatalogCategory): void {
+    const image = event.target as HTMLImageElement;
+    const bundledImage = CATALOG_CATEGORIES.find(item => item.slug === category.slug)?.image;
+    const bundledUrl = assetUrl(bundledImage);
+
+    if (bundledUrl && image.dataset['bundledFallbackApplied'] !== '1' && !image.src.includes(bundledUrl)) {
+      image.dataset['bundledFallbackApplied'] = '1';
+      image.src = bundledUrl;
+      return;
+    }
+
     onImgErrorUseFallback(event);
   }
 }

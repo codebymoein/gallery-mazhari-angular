@@ -33,14 +33,20 @@ export class AppearanceApiService {
   private readonly auth = inject(AdminAuthService);
   private readonly url = `${environment.backendApiBaseUrl}/appearance`;
   readonly appearance = signal<SiteAppearance | null>(null);
+  private loadInFlight = false;
 
   load(): void {
+    if (this.loadInFlight) return;
+    this.loadInFlight = true;
+
     this.http.get<SiteAppearance>(this.url).subscribe({
       next: value => {
         applyCatalogOrder(value.categoryOrder ?? [], value.subcategoryOrder ?? {});
         this.appearance.set(value);
       },
-      error: () => this.appearance.set({ id: 1, categoryImages: {}, subcategoryImages: {} })
+      error: () => this.appearance.set({ id: 1, categoryImages: {}, subcategoryImages: {} }),
+    }).add(() => {
+      this.loadInFlight = false;
     });
   }
 

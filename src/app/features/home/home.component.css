@@ -61,7 +61,6 @@
   max-width: 36rem;
   display: grid;
   gap: 0.85rem;
-  animation: editorial-rise var(--transition-editorial) both;
 }
 
 .editorial-kicker {
@@ -229,7 +228,9 @@
   display: grid;
   gap: 1.45rem;
   padding: 4.5rem 1.1rem 4.75rem;
-  background: var(--color-butter);
+  background:
+    radial-gradient(circle at 12% 18%, var(--color-primary-a10), transparent 24rem),
+    var(--color-ivory);
   color: var(--color-espresso);
 }
 
@@ -287,17 +288,6 @@
 
 .heritage-note__link:hover {
   transform: translateX(-3px);
-}
-
-@keyframes editorial-rise {
-  from {
-    opacity: 0;
-    transform: translateY(var(--motion-reveal-distance));
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 @media (min-width: 640px) {
@@ -431,16 +421,12 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .editorial-hero__copy {
-    animation: none;
-  }
-
   .editorial-hero__media,
   .editorial-hero__chapter,
   .editorial-hero__chapter-media img,
   .editorial-link,
   .heritage-note__link {
-    transition-duration: 0.01ms !important;
+    transition: none;
   }
 
   .editorial-hero:hover .editorial-hero__media,
