@@ -22,8 +22,8 @@ import {
   findCategoryForSubSlug,
   getCatalogCategoryBySlug
 } from '@shared/data/catalog-categories';
-import { ResponsiveProductImageDirective } from '@shared/directives/responsive-product-image.directive';
 import { PublishedCatalogSyncService } from '@core/services/published-catalog-sync.service';
+import { StorefrontProductCardComponent } from '@shared/components/storefront-product-card/storefront-product-card.component';
 
 const BRIDAL_SLUGS = new Set(BRIDAL_COLLECTION_CATEGORIES.map(c => c.slug));
 const COLLECTION_SLUGS = new Set([
@@ -37,7 +37,7 @@ const COLLECTION_SLUGS = new Set([
 @Component({
   selector: 'app-catalog',
   standalone: true,
-  imports: [RouterLink, ResponsiveProductImageDirective],
+  imports: [RouterLink, StorefrontProductCardComponent],
   templateUrl: './catalog.component.html',
   styleUrls: ['./catalog.component.css']
 })

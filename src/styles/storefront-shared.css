@@ -25,11 +25,7 @@ nav[aria-label="مسیر صفحه"] > * {
 
 /* One restrained product typography system across lists, search, cart and orders. */
 :is(
-  .cat-products__name,
-  .collection-page__name,
   .bridal-catalog__rail-name,
-  .generic-catalog__card strong,
-  .search-catalog__card strong,
   .cart__item-name,
   .checkout__item-name,
   .orders__item-name
@@ -42,9 +38,6 @@ nav[aria-label="مسیر صفحه"] > * {
 
 :is(
   .bridal-product__price,
-  .cat-products__price,
-  .generic-catalog__card small,
-  .search-catalog__card small,
   .checkout__item-price,
   .checkout__shipping-price,
   .orders__item-price
@@ -62,25 +55,15 @@ nav[aria-label="مسیر صفحه"] > * {
 
 /* Product-card captions are centered consistently across every storefront view. */
 :is(
-  .cat-products__body,
-  .collection-page__body,
-  .bridal-catalog__rail-body,
-  .generic-catalog__card,
-  .search-catalog__card
+  .bridal-catalog__rail-body
 ) {
   justify-items: center !important;
   text-align: center !important;
 }
 
 :is(
-  .cat-products__name,
-  .cat-products__price,
-  .collection-page__name,
   .bridal-catalog__rail-name,
-  .generic-catalog__card strong,
-  .generic-catalog__card small,
-  .search-catalog__card strong,
-  .search-catalog__card small
+  .bridal-catalog__rail-cta
 ) {
   width: 100%;
   margin-inline: auto !important;
@@ -190,11 +173,7 @@ nav[aria-label="مسیر صفحه"] > * {
 
 /* Shared storefront image frame and equal-height card rhythm. */
 :is(
-  .cat-products__media,
-  .collection-page__media,
-  .bridal-catalog__rail-media,
-  .generic-catalog__media,
-  .search-catalog__media
+  .bridal-catalog__rail-media
 ) {
   width: 100% !important;
   aspect-ratio: 3 / 4 !important;
@@ -202,20 +181,14 @@ nav[aria-label="مسیر صفحه"] > * {
 }
 
 :is(
-  .cat-products__gallery,
-  .collection-page__gallery,
-  .bridal-catalog__rail-gallery,
-  .generic-catalog__gallery
+  .bridal-catalog__rail-gallery
 ) {
   touch-action: pan-x pan-y;
   cursor: grab;
 }
 
 :is(
-  .cat-products__gallery,
-  .collection-page__gallery,
-  .bridal-catalog__rail-gallery,
-  .generic-catalog__gallery
+  .bridal-catalog__rail-gallery
 ) > img {
   flex: 0 0 100% !important;
   width: 100% !important;
@@ -226,21 +199,13 @@ nav[aria-label="مسیر صفحه"] > * {
 }
 
 :is(
-  .cat-products__card,
-  .collection-page__card,
-  .bridal-catalog__rail-card,
-  .generic-catalog__card,
-  .search-catalog__card
+  .bridal-catalog__rail-card
 ) {
   height: 100%;
 }
 
 :is(
-  .cat-products__name,
-  .collection-page__name,
-  .bridal-catalog__rail-name,
-  .generic-catalog__card strong,
-  .search-catalog__card strong
+  .bridal-catalog__rail-name
 ) {
   min-height: 3.1em;
   display: -webkit-box !important;

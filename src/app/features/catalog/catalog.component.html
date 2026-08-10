@@ -10,22 +10,16 @@
       <section class="search-catalog__section" aria-labelledby="exact-title">
         <h2 class="search-catalog__section-title" id="exact-title">نتایج مرتبط</h2>
         <div class="search-catalog__grid">
-          @for (product of result.exactProducts; track product) {
-            <a
+          @for (product of result.exactProducts; track product.id) {
+            <app-storefront-product-card
               class="search-catalog__card"
-              [routerLink]="['/product', product.id]"
-              >
-              <span class="search-catalog__media">
-                <img [src]="product.image" [appResponsiveProductImage]="product.image" [alt]="product.name" loading="lazy" decoding="async" (error)="hideBrokenImage($event)" />
-                @if (isDressProduct(product)) {
-                  <span class="search-catalog__tag">{{ product.tag }}</span>
-                }
-              </span>
-              <strong>{{ product.name }}</strong>
-              @if (showPrice(product)) {
-                <small>{{ formatPrice(product) }}</small>
-              }
-            </a>
+              [productId]="product.id"
+              [name]="product.name"
+              [images]="[product.image]"
+              [tag]="isDressProduct(product) ? product.tag : ''"
+              [kicker]="'نتیجه مرتبط'"
+              [price]="showPrice(product) ? formatPrice(product) : ''"
+            />
           }
         </div>
       </section>
@@ -34,22 +28,16 @@
       <section class="search-catalog__section" aria-labelledby="related-title">
         <h2 class="search-catalog__section-title" id="related-title">پیشنهادها / محصولات مرتبط</h2>
         <div class="search-catalog__grid">
-          @for (product of result.relatedProducts; track product) {
-            <a
+          @for (product of result.relatedProducts; track product.id) {
+            <app-storefront-product-card
               class="search-catalog__card"
-              [routerLink]="['/product', product.id]"
-              >
-              <span class="search-catalog__media">
-                <img [src]="product.image" [appResponsiveProductImage]="product.image" [alt]="product.name" loading="lazy" decoding="async" (error)="hideBrokenImage($event)" />
-                @if (isDressProduct(product)) {
-                  <span class="search-catalog__tag">{{ product.tag }}</span>
-                }
-              </span>
-              <strong>{{ product.name }}</strong>
-              @if (showPrice(product)) {
-                <small>{{ formatPrice(product) }}</small>
-              }
-            </a>
+              [productId]="product.id"
+              [name]="product.name"
+              [images]="[product.image]"
+              [tag]="isDressProduct(product) ? product.tag : ''"
+              [kicker]="'پیشنهاد گالری'"
+              [price]="showPrice(product) ? formatPrice(product) : ''"
+            />
           }
         </div>
       </section>
@@ -58,7 +46,7 @@
       <section class="search-catalog__section" aria-labelledby="cats-title">
         <h2 class="search-catalog__section-title" id="cats-title">دسته‌بندی‌های مرتبط</h2>
         <div class="search-catalog__chips">
-          @for (cat of result.categories; track cat) {
+          @for (cat of result.categories; track cat.slug) {
             <a
               class="search-catalog__chip"
               [routerLink]="categoryChipLink(cat)"
@@ -74,22 +62,16 @@
       <section class="search-catalog__section" aria-labelledby="best-title">
         <h2 class="search-catalog__section-title" id="best-title">پرفروش‌ها</h2>
         <div class="search-catalog__grid">
-          @for (product of result.bestsellers; track product) {
-            <a
+          @for (product of result.bestsellers; track product.id) {
+            <app-storefront-product-card
               class="search-catalog__card"
-              [routerLink]="['/product', product.id]"
-              >
-              <span class="search-catalog__media">
-                <img [src]="product.image" [appResponsiveProductImage]="product.image" [alt]="product.name" loading="lazy" decoding="async" (error)="hideBrokenImage($event)" />
-                @if (isDressProduct(product)) {
-                  <span class="search-catalog__tag">{{ product.tag }}</span>
-                }
-              </span>
-              <strong>{{ product.name }}</strong>
-              @if (showPrice(product)) {
-                <small>{{ formatPrice(product) }}</small>
-              }
-            </a>
+              [productId]="product.id"
+              [name]="product.name"
+              [images]="[product.image]"
+              [tag]="isDressProduct(product) ? product.tag : ''"
+              [kicker]="'پرفروش'"
+              [price]="showPrice(product) ? formatPrice(product) : ''"
+            />
           }
         </div>
       </section>
@@ -111,7 +93,7 @@
         <p class="bridal-catalog__nav-eyebrow" lang="en" dir="ltr">COLLECTIONS</p>
         <!-- Mobile: in-page irregular cards -->
         <div class="bridal-catalog__nav-scroll" role="list">
-          @for (cat of categories; track cat; let i = $index) {
+          @for (cat of categories; track cat.slug; let i = $index) {
             <a
               class="bridal-catalog__chip"
               [class.bridal-catalog__chip--wide]="i % 4 === 0 || i % 4 === 3"
@@ -141,7 +123,7 @@
         </div>
         <!-- Desktop: card grid -->
         <div class="bridal-catalog__nav-grid">
-          @for (cat of categories; track cat) {
+          @for (cat of categories; track cat.slug) {
             <a
               class="bridal-catalog__nav-card"
               [class.bridal-catalog__nav-card--active]="isActive(cat)"
@@ -193,37 +175,16 @@
       </header>
       @if (products.length) {
         <div class="generic-catalog__grid">
-          @for (product of products; track product) {
-            <a
+          @for (product of products; track product.id) {
+            <app-storefront-product-card
               class="generic-catalog__card"
-              [routerLink]="['/product', product.id]"
-              >
-              <span class="generic-catalog__media">
-                <span class="generic-catalog__gallery">
-                  @for (image of galleryImages(product); track image; let first = $first) {
-                    <img
-                      [src]="image"
-                      [alt]="first ? product.name : ''"
-                      loading="lazy"
-                      decoding="async"
-                      width="320"
-                      height="420"
-                      (error)="hideBrokenImage($event)"
-                      />
-                  }
-                </span>
-                @if (galleryImages(product).length > 1) {
-                  <span class="product-gallery-hint" aria-hidden="true">‹ ›</span>
-                }
-                @if (isDressProduct(product)) {
-                  <span class="generic-catalog__tag">{{ product.tag }}</span>
-                }
-              </span>
-              <strong>{{ product.name }}</strong>
-              @if (showPrice(product)) {
-                <small>{{ productPrice(product) }}</small>
-              }
-            </a>
+              [productId]="product.id"
+              [name]="product.name"
+              [images]="galleryImages(product)"
+              [tag]="isDressProduct(product) ? product.tag : ''"
+              [kicker]="activeTitle"
+              [price]="showPrice(product) ? productPrice(product) : ''"
+            />
           }
         </div>
       } @else {

@@ -22,12 +22,12 @@ import {
   getCatalogCategoryBySlug,
   getSubcategory
 } from '@shared/data/catalog-categories';
-import { ResponsiveProductImageDirective } from '@shared/directives/responsive-product-image.directive';
+import { StorefrontProductCardComponent } from '@shared/components/storefront-product-card/storefront-product-card.component';
 
 @Component({
   selector: 'app-category-products',
   standalone: true,
-  imports: [RouterLink, ResponsiveProductImageDirective],
+  imports: [RouterLink, StorefrontProductCardComponent],
   templateUrl: './category-products.component.html',
   styleUrls: ['./category-products.component.css']
 })
@@ -127,10 +127,6 @@ export class CategoryProductsComponent implements OnInit, OnDestroy {
     if (remaining < view.innerHeight * 1.5) {
       this.visibleCount = Math.min(this.products.length, this.visibleCount + this.rowsPerBatch());
     }
-  }
-
-  hideBrokenImage(event: Event): void {
-    (event.currentTarget as HTMLImageElement).hidden = true;
   }
 
   ngOnDestroy(): void {
