@@ -36,7 +36,8 @@ This file records requested work before implementation. A backlog entry is not i
 | GM-005 | EPIC-01 | Editorial category chapters and fashion-led mobile discovery instead of conventional card-grid presentation | L2 | P1 | INBOX | Depends on GM-001; preserve catalog authority/filtering semantics and indexable routes |
 | GM-006 | EPIC-01 | Storefront motion language: reveal, image drift, chapter transitions and gesture polish without scroll hijacking | L2 | P2 | INBOX | Depends on GM-001 motion tokens; no third-party animation dependency without review |
 | GM-007 | EPIC-01 | WebKit-safe storefront hydration and centralized semantic foundation tokens | L2 | P1 | DONE | Merged via PR #66; WebKit reliability and semantic foundation delivered without page-by-page redesign or font download |
-| GM-008 | EPIC-01 | Unified storefront controls, line icons and editorial header/mobile navigation | L2 | P1 | IN_PROGRESS | Focused visible redesign slice on the GM-007 foundation; catalog, PDP, Home and Footer redesign remain separate follow-up slices |
+| GM-008 | EPIC-01 | Unified storefront controls, line icons and editorial header/mobile navigation | L2 | P1 | ACCEPTANCE | Focused visible redesign slice on the GM-007 foundation; implementation and local evidence complete, exact-head CI/merge pending |
+| GM-009 | EPIC-01 | Restore WCAG AA contrast for contact branch guidance text | L1 | P1 | DONE | Merged via PR #68; semantic muted-text token restores desktop/mobile WCAG AA axe evidence |
 
 ## Intake format
 
