@@ -1,10 +1,11 @@
 import { DOCUMENT, isPlatformBrowser } from '@angular/common';
-import { Component, HostListener, OnDestroy, OnInit, PLATFORM_ID, inject } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit, PLATFORM_ID, effect, inject } from '@angular/core';
 
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { SeoService } from '@core/services/seo.service';
 import { ShoppingContextService } from '@core/services/shopping-context.service';
+import { PublishedCatalogSyncService } from '@core/services/published-catalog-sync.service';
 import {
   BRIDAL_COLLECTION_CATEGORIES,
   BridalCollectionCategory,
@@ -23,6 +24,7 @@ export class CollectionPageComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly shoppingContext = inject(ShoppingContextService);
   private readonly seo = inject(SeoService);
+  private readonly publishedSync = inject(PublishedCatalogSyncService);
   private readonly document = inject(DOCUMENT);
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   private sub?: Subscription;
@@ -34,13 +36,19 @@ export class CollectionPageComponent implements OnInit, OnDestroy {
   isAllDresses = false;
   visibleCount = 20;
 
+  constructor() {
+    effect(() => {
+      if (!this.publishedSync.version()) return;
+      this.refreshProducts();
+    });
+  }
+
   ngOnInit(): void {
     this.sub = this.route.paramMap.subscribe(params => {
       const slug = params.get('slug') ?? this.collections[0].slug;
       this.activeCollection = this.collections.find(c => c.slug === slug) ?? this.collections[0];
       this.isAllDresses = this.activeCollection.slug === 'bridal-clothing';
-      this.products = productsForCategory(this.activeCollection.slug);
-      this.visibleCount = Math.min(this.products.length, this.rowsPerBatch());
+      this.refreshProducts();
       this.applyCollectionSeo();
       this.shoppingContext.rememberPath(['/collections', this.activeCollection.slug]);
       this.scrollToTop();
@@ -79,6 +87,11 @@ export class CollectionPageComponent implements OnInit, OnDestroy {
       image: collection.image,
       imageAlt: collection.title
     });
+  }
+
+  private refreshProducts(): void {
+    this.products = productsForCategory(this.activeCollection.slug);
+    this.visibleCount = Math.min(this.products.length, this.rowsPerBatch());
   }
 
   private rowsPerBatch(): number {

@@ -43,6 +43,17 @@ test.describe('design-system contract', () => {
           editorial: read('--transition-editorial'),
           editorialFast: read('--transition-editorial-fast'),
         },
+        foundation: {
+          surfacePage: read('--surface-page'),
+          radiusControl: read('--radius-control'),
+          borderDefault: read('--border-default'),
+          glassBlur: read('--glass-blur'),
+          durationBase: read('--duration-base'),
+          easingEditorial: read('--ease-editorial'),
+          controlHeight: read('--control-height'),
+          headerLayer: read('--z-header'),
+          pageGutter: read('--gutter-page'),
+        },
       };
     });
 
@@ -55,6 +66,17 @@ test.describe('design-system contract', () => {
     expect(contract.fonts.serifEnglish).toContain('Playfair Display');
     expect(contract.motion.editorial).toContain('900ms');
     expect(contract.motion.editorialFast).toContain('550ms');
+    expect(contract.foundation).toEqual({
+      surfacePage: '#f5eadc',
+      radiusControl: '0.5rem',
+      borderDefault: '1px solid #d9c0b1',
+      glassBlur: '16px',
+      durationBase: '250ms',
+      easingEditorial: 'cubic-bezier(0.16, 1, 0.3, 1)',
+      controlHeight: '2.75rem',
+      headerLayer: '1000',
+      pageGutter: 'clamp(0.75rem, 3vw, 1.5rem)',
+    });
   });
 
   test('home editorial opening preserves semantic actions and LCP priority', async ({

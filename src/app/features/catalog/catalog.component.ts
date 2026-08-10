@@ -1,5 +1,5 @@
 import { DOCUMENT, isPlatformBrowser } from '@angular/common';
-import { Component, OnDestroy, OnInit, PLATFORM_ID, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, PLATFORM_ID, effect, inject } from '@angular/core';
 
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
@@ -23,6 +23,7 @@ import {
   getCatalogCategoryBySlug
 } from '@shared/data/catalog-categories';
 import { ResponsiveProductImageDirective } from '@shared/directives/responsive-product-image.directive';
+import { PublishedCatalogSyncService } from '@core/services/published-catalog-sync.service';
 
 const BRIDAL_SLUGS = new Set(BRIDAL_COLLECTION_CATEGORIES.map(c => c.slug));
 const COLLECTION_SLUGS = new Set([
@@ -43,6 +44,7 @@ const COLLECTION_SLUGS = new Set([
 export class CatalogComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly searchService = inject(SearchService);
+  private readonly publishedSync = inject(PublishedCatalogSyncService);
   private readonly document = inject(DOCUMENT);
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   private querySub?: Subscription;
@@ -61,13 +63,20 @@ export class CatalogComponent implements OnInit, OnDestroy {
   searchQuery = '';
   searchResult: SmartSearchResult | null = null;
 
+  constructor() {
+    effect(() => {
+      if (!this.publishedSync.version()) return;
+      this.refreshProjection();
+    });
+  }
+
   ngOnInit(): void {
     this.querySub = this.route.queryParamMap.subscribe(params => {
       const searchTerm = params.get('s')?.trim() ?? '';
 
       if (searchTerm) {
         this.searchQuery = searchTerm;
-        this.searchResult = this.searchService.search(searchTerm);
+        this.refreshProjection();
         this.scrollToTop();
         return;
       }
@@ -88,13 +97,7 @@ export class CatalogComponent implements OnInit, OnDestroy {
         this.activeCategory.title ??
         'فروشگاه محصولات';
 
-      this.products = productsForCategory(slug);
-      this.collectionRails = this.categories
-        .filter(c => c.slug !== 'bridal-clothing')
-        .map(category => ({
-          category,
-          products: this.stableProductOrder(productsForCategory(category.slug)).slice(0, 8)
-        }));
+      this.refreshProjection();
       this.scrollToTop();
     });
   }
@@ -153,6 +156,20 @@ export class CatalogComponent implements OnInit, OnDestroy {
 
   private stableProductOrder(products: BridalSampleProduct[]): BridalSampleProduct[] {
     return [...products].sort((a, b) => this.stableKey(a.id) - this.stableKey(b.id));
+  }
+
+  private refreshProjection(): void {
+    if (this.searchQuery) {
+      this.searchResult = this.searchService.search(this.searchQuery);
+      return;
+    }
+    this.products = productsForCategory(this.activeSlug);
+    this.collectionRails = this.categories
+      .filter(c => c.slug !== 'bridal-clothing')
+      .map(category => ({
+        category,
+        products: this.stableProductOrder(productsForCategory(category.slug)).slice(0, 8)
+      }));
   }
 
   private stableKey(value: string): number {

@@ -6,14 +6,23 @@
 .luxury-nav {
   position: sticky;
   inset-block-start: 0;
-  z-index: 1000;
+  z-index: var(--z-header);
   width: 100%;
   color: var(--mds-color-heading);
-  background: color-mix(in srgb, var(--color-bg-cream) 94%, transparent);
+  background: var(--color-bg-cream);
   border-block-end: 1px solid color-mix(in srgb, var(--color-gold-primary) 24%, transparent);
   box-shadow: var(--shadow-luxury);
   font-family: var(--font-persian);
-  backdrop-filter: blur(16px);
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+}
+
+@supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+  .luxury-nav {
+    background: var(--glass-surface);
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    backdrop-filter: blur(var(--glass-blur));
+  }
 }
 
 /* ── Bar Layout: 3-col grid (nav | brand | actions) ── */
@@ -383,7 +392,7 @@
 .luxury-nav__drawer-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 998;
+  z-index: var(--z-drawer-backdrop);
   background: var(--color-overlay-a65);
   opacity: 0;
   visibility: hidden;
@@ -397,9 +406,9 @@
   inset-block: 0;
   inset-inline-start: 0;
   inset-inline-end: auto;
-  z-index: 999;
+  z-index: var(--z-drawer);
   width: min(92%, 28rem);
-  height: 100dvh;
+  height: 100vh;
   display: flex;
   flex-direction: column;
   overflow-y: auto;
@@ -408,7 +417,15 @@
   box-shadow: var(--shadow-luxury);
   transform: translateX(105%);
   transition: transform var(--transition-smooth);
+  padding-block-end: env(safe-area-inset-bottom, 0px);
 }
+
+@supports (height: 100dvh) {
+  .luxury-nav__drawer {
+    height: 100dvh;
+  }
+}
+
 .luxury-nav__drawer--open { transform: translateX(0); }
 .luxury-nav__drawer:not(.luxury-nav__drawer--open) { display: none; }
 
@@ -416,7 +433,7 @@
   position: sticky;
   inset-block-start: 0;
   z-index: 2;
-  padding: 1.25rem 1rem;
+  padding: calc(1.25rem + env(safe-area-inset-top, 0px)) 1rem 1.25rem;
   display: flex;
   align-items: center;
   justify-content: space-between;

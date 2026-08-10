@@ -46,6 +46,17 @@
   --color-peach: #edc0a6;
   --color-ivory: #f9f0e5;
 
+  /* Semantic storefront surfaces */
+  --surface-page: var(--color-bg-cream);
+  --surface-section: var(--color-cream-soft);
+  --surface-raised: var(--color-surface);
+  --surface-accent-soft: var(--color-rose-soft);
+  --text-primary: var(--color-text-main);
+  --text-secondary: var(--color-text-muted);
+  --text-inverse: var(--color-text-on-dark);
+  --accent-primary: var(--color-gold-primary);
+  --accent-secondary: var(--color-champagne-gold);
+
   /* Social (third-party brand — allowed as tokens) */
   --color-social-telegram: #229ed9;
   --color-social-whatsapp: #25d366;
@@ -148,6 +159,10 @@
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
   --font-weight-bold: 700;
+  --type-leading-tight: 1.2;
+  --type-leading-heading: 1.4;
+  --type-leading-body: 1.9;
+  --type-tracking-editorial: 0.16em;
 
   /* ── Fluid Spacing ──────────────────────────────────────────── */
   --space-xs: clamp(0.5rem, 1vw, 0.75rem);
@@ -156,12 +171,27 @@
   --space-lg: clamp(2rem, 5vw, 4rem);
   --space-xl: clamp(4rem, 8vw, 6rem);
   --space-2xl: clamp(5.5rem, 12vw, 10rem);
+  --space-control-inline: clamp(0.875rem, 2vw, 1.25rem);
+  --space-section-block: clamp(3rem, 8vw, 7rem);
+  --gutter-page-min: 0.75rem;
+  --gutter-page-max: 1.5rem;
+  --gutter-page: clamp(var(--gutter-page-min), 3vw, var(--gutter-page-max));
 
   /* ── Radius ─────────────────────────────────────────────────── */
   --border-radius-sm: 0.25rem;
   --border-radius-md: 0.5rem;
   --border-radius-lg: 0.75rem;
   --border-radius-editorial: 1.5rem;
+  --radius-control: var(--mds-radius-sm);
+  --radius-card: var(--mds-radius-md);
+  --radius-panel: var(--mds-radius-lg);
+  --radius-pill: var(--mds-radius-round);
+
+  /* â”€â”€ Borders â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  --border-width-hairline: 1px;
+  --border-subtle: var(--border-width-hairline) solid var(--color-border-light);
+  --border-default: var(--border-width-hairline) solid var(--color-border);
+  --border-focus: 2px solid var(--color-gold-primary);
 
   /* ── Shadows ────────────────────────────────────────────────── */
   --shadow-luxury: 0 12px 34px rgba(70, 36, 31, 0.07);
@@ -173,6 +203,13 @@
   --shadow-panel: 0 34px 90px rgba(48, 28, 24, 0.18);
   --shadow-card-dark: 0 14px 34px rgba(35, 22, 19, 0.24);
 
+  /* â”€â”€ Glass â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  --glass-surface: color-mix(in srgb, var(--color-bg-cream) 94%, transparent);
+  --glass-surface-raised: color-mix(in srgb, var(--color-surface) 88%, transparent);
+  --glass-border: color-mix(in srgb, var(--color-gold-primary) 22%, transparent);
+  --glass-blur: 16px;
+  --glass-shadow: var(--shadow-luxury);
+
   /* ── Motion ─────────────────────────────────────────────────── */
   --transition-smooth: 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   --transition-fast: 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -182,6 +219,13 @@
   --transition-editorial-fast: 550ms cubic-bezier(0.16, 1, 0.3, 1);
   --motion-image-scale: 1.035;
   --motion-reveal-distance: 1.5rem;
+  --duration-fast: 150ms;
+  --duration-base: 250ms;
+  --duration-slow: 400ms;
+  --duration-editorial: 900ms;
+  --ease-standard: ease;
+  --ease-emphasized: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --ease-editorial: cubic-bezier(0.16, 1, 0.3, 1);
 
   /* ── Z-Index ────────────────────────────────────────────────── */
   --z-dropdown: 100;
@@ -194,12 +238,19 @@
   --z-theater: 9201;
   --z-tooltip: 1100;
   --z-notification: 1200;
+  --z-header: var(--z-sticky);
+  --z-drawer-backdrop: 9000;
+  --z-drawer: 9001;
 
   /* ── Layout ─────────────────────────────────────────────────── */
   --container-max: 82.5rem;
-  --container-padding: 1.5rem;
-  --container-padding-sm: 0.75rem;
+  --container-padding: var(--gutter-page);
+  --container-padding-sm: var(--gutter-page-min);
   --touch-target: 2.75rem;
+  --control-height-sm: 2.5rem;
+  --control-height: 2.75rem;
+  --control-height-lg: 3.25rem;
+  --control-icon-size: 1.25rem;
 
   /* ── MDS parity (WordPress migration) ───────────────────────── */
   --mds-color-primary: var(--color-gold-primary);

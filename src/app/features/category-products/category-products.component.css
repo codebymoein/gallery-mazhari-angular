@@ -110,8 +110,6 @@
   text-decoration: none;
   color: inherit;
   -webkit-tap-highlight-color: transparent;
-  content-visibility: auto;
-  contain-intrinsic-size: auto 22rem;
 }
 
 .cat-products__media {
