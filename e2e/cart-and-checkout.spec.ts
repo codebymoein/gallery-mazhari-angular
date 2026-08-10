@@ -106,7 +106,7 @@ test("commerce journey stays visible and usable at narrow mobile widths", async 
     viewportWidth: document.documentElement.clientWidth,
     pageRect: (() => {
       const rect = document
-        .querySelector<HTMLElement>(".checkout")!
+        .querySelector<HTMLElement>(".checkout__layout")!
         .getBoundingClientRect();
       return { left: rect.left, right: rect.right };
     })(),
