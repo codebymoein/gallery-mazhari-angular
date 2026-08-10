@@ -1,10 +1,10 @@
 <main class="discounts" dir="rtl">
-  <header class="hero"><span>SALE COLLECTION</span><h1>محصولات دارای تخفیف</h1><p>فرصت‌های ویژه گالری مظهری؛ قیمت نهایی هر محصول در همین صفحه مشخص است.</p></header>
+  <header class="hero"><span lang="en" dir="ltr">SALE COLLECTION</span><h1>محصولات دارای تخفیف</h1><p>فرصت‌های ویژه گالری مظهری؛ قیمت نهایی هر محصول در همین صفحه مشخص است.</p></header>
   @if (categories.length) {
     <nav class="filters">
-      <button [class.active]="!selectedCategory" (click)="selectedCategory = ''">همه محصولات</button>
+      <button type="button" [class.active]="!selectedCategory" [attr.aria-pressed]="!selectedCategory" (click)="selectedCategory = ''">همه محصولات</button>
       @for (category of categories; track category) {
-        <button [class.active]="selectedCategory === category" (click)="selectedCategory = category">{{ category }}</button>
+        <button type="button" [class.active]="selectedCategory === category" [attr.aria-pressed]="selectedCategory === category" (click)="selectedCategory = category">{{ category }}</button>
       }
     </nav>
   }
@@ -16,7 +16,7 @@
   }
   @if (!loading) {
     <section class="grid">
-      @for (product of visible; track product) {
+      @for (product of visible; track product.id) {
         <a class="product" [routerLink]="['/product', product.id]">
           <div class="media"><img [src]="image(product)" [alt]="product.name" loading="lazy" /><b>{{ product.discountPercent }}٪</b></div>
           <div class="content"><small>{{ product.category }}</small><h2>{{ product.name }}</h2><span class="code">{{ product.code }}</span>
