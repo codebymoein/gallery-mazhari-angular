@@ -57,6 +57,7 @@ body.dream-canvas-modal-open {
 }
 
 body {
+  width: 100%;
   font-family: var(--font-persian);
   color: var(--color-text-main);
   background-color: var(--color-bg-cream);
