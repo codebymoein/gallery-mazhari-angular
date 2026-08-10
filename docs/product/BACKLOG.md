@@ -40,6 +40,7 @@ This file records requested work before implementation. A backlog entry is not i
 | GM-009 | EPIC-01 | Restore WCAG AA contrast for contact branch guidance text | L1 | P1 | DONE | Merged via PR #68; semantic muted-text token restores desktop/mobile WCAG AA axe evidence |
 | GM-010 | EPIC-01 | Editorial product-detail experience with image-led hierarchy and reliable commerce controls | L2 | P1 | ACCEPTANCE | Implementation and automated evidence complete in PR #70; V2 visual/product acceptance pending; cart, rental, customization, home-trial, consultation and SEO semantics preserved |
 | GM-011 | EPIC-01 | Cohesive editorial Home journey and warm ivory global Footer | L2 | P1 | ACCEPTANCE | Implementation and automated evidence complete in PR #71; V2 visual/product acceptance pending; appearance, promotion, appointment, lookbook, testimonial and contact paths preserved |
+| GM-012 | EPIC-01 | Editorial cart and checkout journey with calm mobile hierarchy and WebKit-safe controls | L2 | P1 | ACCEPTANCE | Implementation and local browser evidence complete; exact-head CI/merge pending; cart, order, payment, coupon and home-trial semantics unchanged |
 
 ## Intake format
 
