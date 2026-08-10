@@ -418,7 +418,7 @@
 .contact__maps--neshan>span { color:#fffffc; background:#656561; border:1px solid #9d7937; }
 .contact__branch-guide { padding:.7rem 0; border-bottom:1px solid #e8dfd1; }
 .contact__branch-guide:last-child { border-bottom:0; }
-.contact__branch-guide p { margin:.3rem 0 0; color:#6d6258; line-height:1.8; font-size:.8rem; }
+.contact__branch-guide p { margin:.3rem 0 0; color:var(--color-text-muted); line-height:1.8; font-size:.8rem; }
 .contact__socials { display:flex; gap:.6rem; margin-top:1rem; padding-top:.8rem; border-top:1px solid #e8dfd1; }
 .contact__social { display:grid; place-items:center; min-width:2.25rem; height:2.25rem; padding:0 .45rem; border-radius:.65rem; color:#9a7429; font-weight:800; text-decoration:none; box-shadow:0 4px 12px #6b4d1810; }
 .contact__social--wa,
