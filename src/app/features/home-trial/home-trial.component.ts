@@ -1,4 +1,13 @@
-import { AfterViewInit, Component, ElementRef, inject, OnDestroy, ViewChild } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  inject,
+  OnDestroy,
+  PLATFORM_ID,
+  ViewChild
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { CartService } from '@core/services/cart.service';
@@ -10,10 +19,10 @@ declare global { interface Window { L?: any; } }
 @Component({selector:'app-home-trial',standalone:true,imports:[FormsModule,RouterLink,JalaliDateInputComponent],templateUrl:'./home-trial.component.html',styleUrls:['./home-trial.component.css']})
 export class HomeTrialComponent implements AfterViewInit,OnDestroy{
  @ViewChild('map') mapEl!:ElementRef<HTMLElement>;
- readonly trial=inject(HomeTrialService);private api=inject(CustomRequestApiService);private cart=inject(CartService);private router=inject(Router);private map:any;private marker:any;
+ readonly trial=inject(HomeTrialService);private api=inject(CustomRequestApiService);private cart=inject(CartService);private router=inject(Router);private platformId=inject(PLATFORM_ID);private map:any;private marker:any;
  readonly deposit=10_000_000;readonly districts=Array.from({length:22},(_,i)=>i+1);readonly hours=Array.from({length:12},(_,i)=>String(i+9).padStart(2,'0'));readonly minDate=this.iso(new Date());
  model={fullName:'',phone:'',district:0,address:'',date:'',hour:'',minute:'00',lat:0,lng:0};error='';busy=false;
- ngAfterViewInit(){void this.loadMap()}ngOnDestroy(){this.map?.remove()}
+ ngAfterViewInit(){if(isPlatformBrowser(this.platformId))void this.loadMap()}ngOnDestroy(){this.map?.remove()}
  get availableMinutes(){return this.model.hour==='20'?['00']:['00','30']}
  hourChanged(){if(this.model.hour==='20')this.model.minute='00'}
  private async loadMap(){if(!document.querySelector('link[data-leaflet]')){const l=document.createElement('link');l.rel='stylesheet';l.href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';l.dataset['leaflet']='1';document.head.appendChild(l)}if(!window.L){await new Promise<void>((resolve,reject)=>{const s=document.createElement('script');s.src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';s.onload=()=>resolve();s.onerror=()=>reject();document.head.appendChild(s)})}const L=window.L;this.map=L.map(this.mapEl.nativeElement,{zoomControl:true,attributionControl:true}).setView([35.7219,51.3347],11);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(this.map);this.map.on('click',(e:any)=>this.setPoint(e.latlng.lat,e.latlng.lng));setTimeout(()=>this.map.invalidateSize(),0)}
