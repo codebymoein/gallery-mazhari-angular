@@ -108,6 +108,6 @@ Public storefront visitors on mobile and desktop, including iPhone/WebKit users.
 ## Delivery
 
 - Planned branch: `feat/gm-011-editorial-home-footer`
-- Planned PR: focused PR from verified `main` SHA `8c04b29be3a6a29a07af94a6649cc8b5978e3e54`
+- PR: #71 from verified `main` SHA `8c04b29be3a6a29a07af94a6649cc8b5978e3e54`
 - Documentation to update: this specification and `docs/product/BACKLOG.md`
 - Definition of Done: `docs/engineering/DEFINITION_OF_DONE.md`
