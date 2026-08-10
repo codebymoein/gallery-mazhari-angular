@@ -40,7 +40,7 @@ test.describe('GM-011 editorial Home and Footer', () => {
     await expect(page.getByRole('link', { name: 'رزرو مشاوره', exact: true })).toHaveAttribute('href', '/consultation');
 
     await page.evaluate(() => document.querySelector('.cat-showcase')?.scrollIntoView());
-    const categoryImage = page.locator('.cat-story__img').first();
+    const categoryImage = page.locator('.cat-story__img:visible, .cat-card__img:visible').first();
     await expect(categoryImage).toHaveAttribute('src', /assets\/images\/cat-bridal-clothing\.webp/);
     await expect
       .poll(() => categoryImage.evaluate(image => (image as HTMLImageElement).naturalWidth))
@@ -52,8 +52,9 @@ test.describe('GM-011 editorial Home and Footer', () => {
     await expect(footer).toHaveCSS('background-color', 'rgb(249, 240, 229)');
 
     const quickLinks = footer.getByRole('button', { name: 'دسترسی سریع' });
-    await quickLinks.click();
-    await expect(footer.getByRole('link', { name: 'فروشگاه اکسسوری' })).toBeVisible();
+    const accessoryLink = footer.getByRole('link', { name: 'فروشگاه اکسسوری' });
+    if (!(await accessoryLink.isVisible())) await quickLinks.click();
+    await expect(accessoryLink).toBeVisible();
     await expect(footer.getByRole('link', { name: 'ارتباط با ما' })).toHaveAttribute('href', '/contact');
 
     const width = await page.evaluate(() => ({
