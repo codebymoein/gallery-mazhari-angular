@@ -43,8 +43,11 @@ html,
 body {
   height: 100%;
   max-width: 100%;
-  overflow-x: clip;
   scroll-behavior: smooth;
+}
+
+html {
+  overflow-x: clip;
 }
 
 html.dream-canvas-modal-open,
@@ -57,6 +60,12 @@ body {
   font-family: var(--font-persian);
   color: var(--color-text-main);
   background-color: var(--color-bg-cream);
+}
+
+app-root {
+  display: block;
+  max-width: 100%;
+  overflow-x: clip;
 }
 
 main {

@@ -38,6 +38,7 @@ yarn-error.log
 /backend/coverage
 /test-results/
 /playwright-report/
+/playwright-report-rm13/
 /blob-report/
 /libpeerconnection.log
 testem.js
