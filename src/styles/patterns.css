@@ -72,97 +72,119 @@
   white-space: nowrap;
 }
 
-/* Primary gold CTA on dark sections */
-.ds-btn-gold {
+/* Shared storefront controls: reliable opaque fallback first. */
+.ds-button {
   min-height: var(--touch-target);
+  padding-inline: var(--space-control-inline);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.4rem;
-  color: var(--color-matte-black);
-  background: var(--color-champagne-gold);
-  border: 1px solid var(--color-champagne-gold);
-  border-radius: var(--mds-radius-round);
+  gap: 0.5rem;
+  color: var(--text-primary);
+  background: var(--surface-raised);
+  border: var(--border-default);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-subtle);
+  font: inherit;
   font-weight: var(--font-weight-semibold);
+  line-height: 1.4;
   text-decoration: none;
   cursor: pointer;
   touch-action: manipulation;
   transition:
-    background var(--mds-transition-base),
-    color var(--mds-transition-base),
-    transform var(--mds-transition-base),
-    box-shadow var(--mds-transition-base);
+    background-color var(--duration-base) var(--ease-editorial),
+    border-color var(--duration-base) var(--ease-editorial),
+    color var(--duration-base) var(--ease-editorial),
+    box-shadow var(--duration-base) var(--ease-editorial),
+    transform var(--duration-fast) var(--ease-standard);
 }
 
-.ds-btn-gold:hover {
-  background: transparent;
-  color: var(--color-champagne-gold);
+.ds-button:hover {
+  border-color: var(--accent-secondary);
+  box-shadow: var(--shadow-hover);
   transform: translateY(-1px);
 }
 
-.ds-btn-gold:active {
+.ds-button:active {
   transform: scale(0.98);
 }
 
-.ds-btn-gold:focus-visible {
-  outline: 2px solid var(--color-champagne-gold);
+.ds-button:focus-visible,
+.ds-icon-button:focus-visible {
+  outline: var(--border-focus);
   outline-offset: 3px;
 }
 
-/* Ghost gold button */
-.ds-btn-ghost {
-  min-height: var(--touch-target);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.45rem;
-  color: var(--color-champagne-gold);
-  background: var(--color-white-a04);
-  border: 1px solid var(--color-gold-a38);
-  border-radius: var(--mds-radius-round);
-  font-weight: var(--font-weight-semibold);
-  text-decoration: none;
+.ds-button--primary {
+  color: var(--text-inverse);
+  background: var(--accent-primary);
+  border-color: var(--accent-primary);
+  box-shadow: var(--shadow-gold);
+}
+
+.ds-button--primary:hover {
+  color: var(--text-inverse);
+  background: var(--color-gold-hover);
+  border-color: var(--color-gold-hover);
+}
+
+.ds-button--glass {
+  color: var(--text-primary);
+  background: color-mix(in srgb, var(--surface-raised) 92%, var(--color-white));
+  border-color: var(--glass-border);
+}
+
+.ds-button--quiet {
+  color: var(--accent-primary);
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+
+/* Square/circular icon control. Labels belong on the parent control. */
+.ds-icon-button {
+  position: relative;
+  width: var(--touch-target);
+  height: var(--touch-target);
+  padding: 0;
+  display: grid;
+  place-items: center;
+  color: var(--text-primary);
+  background: color-mix(in srgb, var(--surface-raised) 90%, transparent);
+  border: var(--border-subtle);
+  border-radius: var(--radius-pill);
+  box-shadow: none;
   cursor: pointer;
   touch-action: manipulation;
   transition:
-    background var(--mds-transition-base),
-    color var(--mds-transition-base),
-    border-color var(--mds-transition-base),
-    transform var(--mds-transition-base);
+    background-color var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard),
+    color var(--duration-fast) var(--ease-standard),
+    transform var(--duration-fast) var(--ease-standard);
 }
 
-.ds-btn-ghost:hover {
-  background: var(--color-gold-a12);
-  color: var(--color-text-cream);
-  border-color: var(--color-gold-a55);
-  transform: translateY(-1px);
+.ds-icon-button:hover {
+  color: var(--accent-primary);
+  background: var(--surface-raised);
+  border-color: var(--accent-secondary);
 }
 
-.ds-btn-ghost:focus-visible {
-  outline: 2px solid var(--color-champagne-gold);
-  outline-offset: 3px;
+.ds-icon-button:active {
+  transform: scale(0.96);
 }
 
-/* Icon circle control (nav / close) */
-.ds-icon-btn {
-  width: 2.35rem;
-  height: 2.35rem;
-  display: grid;
-  place-items: center;
-  color: var(--color-champagne-gold);
-  background: var(--color-white-a04);
-  border: 1px solid var(--color-gold-a32);
-  border-radius: 50%;
-  cursor: pointer;
-  touch-action: manipulation;
-  transition: background var(--mds-transition-fast), transform var(--mds-transition-fast);
+@supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+  .ds-button--glass,
+  .ds-icon-button {
+    background: var(--glass-surface-raised);
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    backdrop-filter: blur(var(--glass-blur));
+  }
 }
 
-.ds-icon-btn:hover {
-  background: var(--color-gold-a14);
-}
-
-.ds-icon-btn:focus-visible {
-  outline: 2px solid var(--color-champagne-gold);
-  outline-offset: 2px;
+@media (prefers-reduced-motion: reduce) {
+  .ds-button,
+  .ds-icon-button {
+    transition-duration: 0.01ms;
+  }
 }
