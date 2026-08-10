@@ -111,6 +111,6 @@ Public storefront visitors and authorized admins using the existing product edit
 ## Delivery
 
 - Planned branch: `feat/gm-010-editorial-product-detail`
-- Planned PR: focused PR from verified `main` SHA `bb223c4382d9e0a7f6bea9fb5ad3a4d2ed619df4`
+- PR: #70 from verified `main` SHA `bb223c4382d9e0a7f6bea9fb5ad3a4d2ed619df4`
 - Documentation to update: this specification and `docs/product/BACKLOG.md`
 - Definition of Done: `docs/engineering/DEFINITION_OF_DONE.md`
