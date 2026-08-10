@@ -5,7 +5,7 @@ const backendUrl = process.env['E2E_API_URL'] ?? 'http://127.0.0.1:3000';
 
 export default defineConfig({
   testDir: './e2e',
-  testMatch: /(browser-reliability|cart-and-checkout|account-orders-editorial|editorial-services|editorial-catalog|product-detail-editorial|home-footer-editorial)\.spec\.ts/,
+  testMatch: /(browser-reliability|cart-and-checkout|account-orders-editorial|editorial-services|editorial-inspiration|editorial-catalog|product-detail-editorial|home-footer-editorial)\.spec\.ts/,
   timeout: 90_000,
   fullyParallel: false,
   forbidOnly: Boolean(process.env['CI']),
