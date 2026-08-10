@@ -38,6 +38,7 @@ This file records requested work before implementation. A backlog entry is not i
 | GM-007 | EPIC-01 | WebKit-safe storefront hydration and centralized semantic foundation tokens | L2 | P1 | DONE | Merged via PR #66; WebKit reliability and semantic foundation delivered without page-by-page redesign or font download |
 | GM-008 | EPIC-01 | Unified storefront controls, line icons and editorial header/mobile navigation | L2 | P1 | ACCEPTANCE | Focused visible redesign slice on the GM-007 foundation; implementation and local evidence complete, exact-head CI/merge pending |
 | GM-009 | EPIC-01 | Restore WCAG AA contrast for contact branch guidance text | L1 | P1 | DONE | Merged via PR #68; semantic muted-text token restores desktop/mobile WCAG AA axe evidence |
+| GM-010 | EPIC-01 | Editorial product-detail experience with image-led hierarchy and reliable commerce controls | L2 | P1 | IN_PROGRESS | Focused branch `feat/gm-010-editorial-product-detail`; preserve cart, rental, customization, home-trial, consultation and SEO semantics |
 
 ## Intake format
 

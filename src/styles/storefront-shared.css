@@ -37,7 +37,6 @@ nav[aria-label="مسیر صفحه"] > * {
 }
 
 :is(
-  .bridal-product__price,
   .checkout__item-price,
   .checkout__shipping-price,
   .orders__item-price
@@ -112,8 +111,7 @@ nav[aria-label="مسیر صفحه"] > * {
   .collection-page__eyebrow,
   .generic-catalog__eyebrow,
   .bridal-catalog__eyebrow,
-  .search-catalog__eyebrow,
-  .bridal-product__eyebrow
+  .search-catalog__eyebrow
 ) {
   display: block;
   width: fit-content;
@@ -132,8 +130,7 @@ nav[aria-label="مسیر صفحه"] > * {
   .collection-page__title,
   .generic-catalog__title,
   .bridal-catalog__title,
-  .search-catalog__title,
-  .bridal-product__title
+  .search-catalog__title
 ) {
   display: block;
   width: fit-content;
@@ -163,8 +160,7 @@ nav[aria-label="مسیر صفحه"] > * {
     .collection-page__title,
     .generic-catalog__title,
     .bridal-catalog__title,
-    .search-catalog__title,
-    .bridal-product__title
+    .search-catalog__title
   ) {
     padding: .3rem .85rem;
     font-size: .88rem !important;

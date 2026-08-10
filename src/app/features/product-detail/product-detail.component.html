@@ -89,6 +89,7 @@
         }
       </div>
       <div class="bridal-product__info">
+        <span class="bridal-product__chapter">انتخاب از کالکشن مظهری</span>
         <p class="bridal-product__eyebrow" lang="en" dir="ltr">
           {{ isShoes ? 'BRIDAL SHOES' : isSneakers ? 'BRIDAL SNEAKERS' : isVeil ? 'BRIDAL VEIL' : 'BRIDAL GOWN' }}
         </p>
@@ -276,10 +277,10 @@
                     <div><small>ودیعه هنگام ثبت سفارش</small><strong>{{ priceLabel }}</strong></div>
                     <div><small>بهای نهایی اجاره برای شما</small><strong>{{ rentalFeeLabel }}</strong></div>
                   </div>
-                  <label class="bridal-product__rental-date">
+                  <div class="bridal-product__rental-date">
                     <span>تاریخ مراسم</span>
                     <app-jalali-date-input [(ngModel)]="ceremonyDate" [min]="rentalMinDate" [max]="rentalMaxCeremonyDate" (ngModelChange)="rentalError = ''" />
-                  </label>
+                  </div>
                   @if (ceremonyDate) {
                     <p class="bridal-product__return-date">مهلت بازگشت: تا ۷ روز پس از مراسم ({{ persianDate(rentalReturnDate()) }})</p>
                   }
@@ -296,7 +297,8 @@
           }
           <div class="bridal-product__commerce">
             <button class="bridal-product__cart-btn" type="button" (click)="addToCart()">
-              {{ rentalSelected ? 'ثبت اجاره و افزودن به سبد' : 'افزودن به سبد خرید' }}
+              <span>{{ rentalSelected ? 'ثبت اجاره و افزودن به سبد' : 'افزودن به سبد خرید' }}</span>
+              <app-line-icon name="bag" />
             </button>
             <button
               class="bridal-product__dream-btn"
@@ -304,7 +306,8 @@
               [class.bridal-product__dream-btn--active]="onDreamBoard"
               (click)="addToDreamBoard()"
               >
-              {{ onDreamBoard ? 'در بوم رویایی' : 'افزودن به بوم رویایی' }}
+              <span>{{ onDreamBoard ? 'در بوم رویایی' : 'افزودن به بوم رویایی' }}</span>
+              <app-line-icon name="heart" />
             </button>
           </div>
           @if (shopParent && shopParent.slug !== 'bridal-clothing') {
@@ -323,6 +326,11 @@
             >درخواست مشاوره حرفه‌ای</a>
           </div>
         }
+        <ul class="bridal-product__assurances" aria-label="خدمات همراه محصول">
+          <li><strong>انتخاب مطمئن</strong><span>راهنمایی تخصصی پیش از ثبت سفارش</span></li>
+          <li><strong>ارسال امن</strong><span>بسته‌بندی متناسب با کالای ظریف</span></li>
+          <li><strong>همراهی مظهری</strong><span>پیگیری تا رسیدن سفارش به شما</span></li>
+        </ul>
         @if (p.description) {
           <section class="bridal-product__additional bridal-product__description">
             <h2>توضیحات مختصر</h2>
@@ -354,25 +362,15 @@
           <p>از همین کالکشن ببینید</p>
         </header>
         <div class="bridal-product__related-grid">
-          @for (item of related; track item) {
-            <a
+          @for (item of related; track item.id) {
+            <app-storefront-product-card
               class="bridal-product__related-card"
-              [routerLink]="['/product', item.id]"
-              >
-              <span class="bridal-product__related-media">
-                <img
-                  [src]="item.image"
-                  [alt]="item.name"
-                  width="280"
-                  height="380"
-                  loading="lazy"
-                  decoding="async"
-                  (error)="hideBrokenImage($event)"
-                  />
-              </span>
-              <strong>{{ item.name }}</strong>
-              <small>{{ item.tag }}</small>
-            </a>
+              [productId]="item.id"
+              [name]="item.name"
+              [images]="cardImages(item)"
+              [tag]="item.tag"
+              [kicker]="'مدل مشابه'"
+            />
           }
         </div>
       </section>
@@ -384,25 +382,15 @@
           <p>انتخاب‌های مکمل برای کامل‌کردن استایل شما</p>
         </header>
         <div class="bridal-product__related-grid">
-          @for (item of suggested; track item) {
-            <a
+          @for (item of suggested; track item.id) {
+            <app-storefront-product-card
               class="bridal-product__related-card"
-              [routerLink]="['/product', item.id]"
-              >
-              <span class="bridal-product__related-media">
-                <img
-                  [src]="item.image"
-                  [alt]="item.name"
-                  width="280"
-                  height="380"
-                  loading="lazy"
-                  decoding="async"
-                  (error)="hideBrokenImage($event)"
-                  />
-              </span>
-              <strong>{{ item.name }}</strong>
-              <small>{{ item.tag }}</small>
-            </a>
+              [productId]="item.id"
+              [name]="item.name"
+              [images]="cardImages(item)"
+              [tag]="item.tag"
+              [kicker]="'پیشنهاد استایلیست'"
+            />
           }
         </div>
       </section>
