@@ -30,7 +30,7 @@ This file records requested work before implementation. A backlog entry is not i
 | ID | Epic | Request | Class | Priority | Status | Dependencies / notes |
 | --- | --- | --- | --- | --- | --- | --- |
 | GM-001 | EPIC-01 | Warm editorial visual foundation, typography hierarchy, motion tokens and Home opening redesign | L2 | P1 | DONE | Merged via PR #58; foundation for GM-002/003/004/005/006 |
-| GM-002 | EPIC-01 | First-visit heritage book experience with touch/page-turn storytelling and graceful skip/revisit behavior | L2 | P1 | DONE | Merged via PR #59; first-visit heritage journey available on Home |
+| GM-002 | EPIC-01 | First-visit heritage book experience with touch/page-turn storytelling and graceful skip/revisit behavior | L2 | P1 | REJECTED | Owner withdrew approval; the customer-facing implementation and local preference consumer are removed by the focused GM-002 corrective change. |
 | GM-003 | EPIC-05 | Wedding Planner with ceremony/date setup, complete checklist, progress and contextual catalog/consultation actions | L3 | P1 | ACCEPTANCE | Implementation and automated evidence complete in PR #60; manual V2 product/staging acceptance pending; PostgreSQL/NestJS authority; reuses existing customer auth |
 | GM-004 | EPIC-05 | Bespoke services journey for custom veil/dress consultation, photo-led request entry points and Tehran fitting-at-home discovery | L3 | P1 | INBOX | Reuse existing consultation/custom-request/home-trial domain paths before adding any new backend concept |
 | GM-005 | EPIC-01 | Editorial category chapters and fashion-led mobile discovery instead of conventional card-grid presentation | L2 | P1 | INBOX | Depends on GM-001; preserve catalog authority/filtering semantics and indexable routes |
