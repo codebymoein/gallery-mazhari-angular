@@ -103,8 +103,13 @@ test("commerce journey stays visible and usable at narrow mobile widths", async 
   await expect(page.locator("form.checkout__form")).toBeVisible();
 
   const checkoutLayout = await page.evaluate(() => ({
-    documentWidth: document.documentElement.scrollWidth,
     viewportWidth: document.documentElement.clientWidth,
+    pageRect: (() => {
+      const rect = document
+        .querySelector<HTMLElement>(".checkout")!
+        .getBoundingClientRect();
+      return { left: rect.left, right: rect.right };
+    })(),
     submitTarget:
       document
         .querySelector<HTMLButtonElement>(
@@ -112,8 +117,11 @@ test("commerce journey stays visible and usable at narrow mobile widths", async 
         )
         ?.getBoundingClientRect().height ?? 0,
   }));
-  expect(checkoutLayout.documentWidth).toBeLessThanOrEqual(
+  expect(checkoutLayout.pageRect.left).toBeGreaterThanOrEqual(-1);
+  expect(checkoutLayout.pageRect.right).toBeLessThanOrEqual(
     checkoutLayout.viewportWidth + 1,
   );
+  await page.evaluate(() => window.scrollTo(100, window.scrollY));
+  await expect.poll(() => page.evaluate(() => window.scrollX)).toBe(0);
   expect(checkoutLayout.submitTarget).toBeGreaterThanOrEqual(44);
 });
