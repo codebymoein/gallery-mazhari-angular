@@ -6,6 +6,7 @@ export type LineIconName =
   | 'bag'
   | 'chevron-down'
   | 'close'
+  | 'heart'
   | 'menu'
   | 'search';
 
@@ -40,6 +41,9 @@ export type LineIconName =
         }
         @case ('close') {
           <path d="m5 5 14 14M19 5 5 19" />
+        }
+        @case ('heart') {
+          <path d="M20.8 8.7c0 5-8.8 10.2-8.8 10.2S3.2 13.7 3.2 8.7A4.3 4.3 0 0 1 12 7.3a4.3 4.3 0 0 1 8.8 1.4Z" />
         }
         @case ('menu') {
           <path d="M4 7h16M4 12h16M4 17h16" />

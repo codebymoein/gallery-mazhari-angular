@@ -44,11 +44,21 @@ import { RecommendationWidgetComponent } from '@shared/components/recommendation
 import { ResponsiveProductImageDirective } from '@shared/directives/responsive-product-image.directive';
 import { JalaliDateInputComponent } from '@shared/components/jalali-date-input/jalali-date-input.component';
 import { HomeTrialService } from '@core/services/home-trial.service';
+import { LineIconComponent } from '@shared/components/line-icon/line-icon.component';
+import { StorefrontProductCardComponent } from '@shared/components/storefront-product-card/storefront-product-card.component';
 
 @Component({
   selector: 'app-product-detail',
   standalone: true,
-  imports: [FormsModule, RouterLink, RecommendationWidgetComponent, ResponsiveProductImageDirective, JalaliDateInputComponent],
+  imports: [
+    FormsModule,
+    JalaliDateInputComponent,
+    LineIconComponent,
+    RecommendationWidgetComponent,
+    ResponsiveProductImageDirective,
+    RouterLink,
+    StorefrontProductCardComponent,
+  ],
   templateUrl: './product-detail.component.html',
   styleUrls: ['./product-detail.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -373,6 +383,11 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
       ? this.product.gallery
       : [this.product.image];
     return images;
+  }
+
+  cardImages(product: BridalSampleProduct): string[] {
+    const images = product.gallery?.length ? product.gallery : [product.image];
+    return Array.from(new Set(images.filter(Boolean))).slice(0, 5);
   }
 
   selectImage(src: string): void {
