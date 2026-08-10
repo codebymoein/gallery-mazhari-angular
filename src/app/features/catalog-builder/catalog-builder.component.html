@@ -32,7 +32,7 @@
 
     <!-- Magazine grid: Dress · Crown · Shoes -->
     <div class="catalog-builder__grid" role="list">
-      @for (slot of slots; track slot) {
+      @for (slot of slots; track slot.category) {
         <article
           class="catalog-builder__slot"
           role="listitem"
@@ -83,7 +83,7 @@
     <!-- Extra selections -->
     @if (extraItems().length) {
       <ul class="catalog-builder__extras" aria-label="سایر انتخاب‌ها">
-        @for (item of extraItems(); track item) {
+        @for (item of extraItems(); track item.id) {
           <li class="catalog-builder__extra">
             <span class="catalog-builder__extra-name">{{ item.name }}</span>
             @if (item.subtitle) {
