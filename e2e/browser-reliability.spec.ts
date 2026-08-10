@@ -155,17 +155,67 @@ test('WebKit drawer lock preserves the page scroll position', async ({ page, bro
     route.fulfill({ status: 204, body: '' }),
   );
   await page.goto('/', { waitUntil: 'domcontentloaded' });
+  await page.locator('footer').scrollIntoViewIfNeeded();
   await page.evaluate(() => window.scrollTo(0, 600));
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(600);
   const before = await page.evaluate(() => window.scrollY);
 
-  await page.locator('.luxury-nav__menu-toggle').click();
-  await expect(page.getByRole('dialog', { name: /منوی گالری/ })).toBeVisible();
+  const menuToggle = page.getByRole('button', { name: 'باز کردن منوی اصلی' });
+  await menuToggle.click();
+  const drawer = page.getByRole('dialog', { name: 'منوی گالری' });
+  await expect(drawer).toBeVisible();
+  await expect(drawer.getByRole('button', { name: 'بستن منو' })).toBeFocused();
+  await page.keyboard.press('Shift+Tab');
+  await expect(drawer.getByRole('link', { name: /رزرو مشاوره/ }).last()).toBeFocused();
+  await page.keyboard.press('Tab');
+  await expect(drawer.getByRole('button', { name: 'بستن منو' })).toBeFocused();
   await expect(page.locator('body')).toHaveCSS('position', 'fixed');
 
-  await page.getByRole('button', { name: /بستن منو/ }).click();
-  await expect(page.getByRole('dialog', { name: /منوی گالری/ })).toBeHidden();
+  await drawer.getByRole('button', { name: 'بستن منو' }).click();
+  await expect(drawer).toBeHidden();
+  await expect(menuToggle).toBeFocused();
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(before);
   await expect(page.locator('body')).not.toHaveCSS('position', 'fixed');
+});
+
+test('storefront navigation stays visible and exposes the complete mobile hierarchy', async ({ page }) => {
+  await page.route('**/api/ops/web-vitals', route =>
+    route.fulfill({ status: 204, body: '' }),
+  );
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
+
+  const header = page.locator('.luxury-nav');
+  const menuToggle = page.getByRole('button', { name: 'باز کردن منوی اصلی' });
+  await expect(header).toBeVisible();
+  await expect(page.getByLabel('صفحه اصلی گالری مزهری')).toBeVisible();
+
+  if ((page.viewportSize()?.width ?? 0) >= 1024) {
+    const desktopNav = page.getByRole('navigation', { name: 'منوی اصلی' });
+    await expect(desktopNav).toBeVisible();
+    await desktopNav.locator('.luxury-nav__menu-group > summary').filter({ hasText: 'پوشاک عروس' }).click();
+    await expect(desktopNav.getByText('برای روزی که فقط یک‌بار روایت می‌شود')).toBeVisible();
+  } else {
+    await expect(menuToggle).toBeVisible();
+    await menuToggle.click();
+    const drawer = page.getByRole('dialog', { name: 'منوی گالری' });
+    await expect(drawer).toBeVisible();
+    await drawer.getByText('پوشاک عروس', { exact: true }).click();
+    await expect(drawer.getByText('مشاهده همه پوشاک عروس')).toBeVisible();
+    await drawer.getByText('اکسسوری عروس', { exact: true }).click();
+    await expect(drawer.locator('.luxury-nav__drawer-nested')).toHaveCount(8);
+  }
+
+  const metrics = await page.evaluate(() => ({
+    viewport: document.documentElement.clientWidth,
+    page: document.documentElement.scrollWidth,
+    menuTarget: document.querySelector('.luxury-nav__menu-toggle')?.getBoundingClientRect().height ?? 0,
+    drawerTarget: document.querySelector('.luxury-nav__drawer-group > summary')?.getBoundingClientRect().height ?? 0,
+  }));
+  expect(metrics.page).toBeLessThanOrEqual(metrics.viewport + 1);
+  if ((page.viewportSize()?.width ?? 0) < 1024) {
+    expect(metrics.menuTarget).toBeGreaterThanOrEqual(44);
+    expect(metrics.drawerTarget).toBeGreaterThanOrEqual(44);
+  }
 });
 
 for (const target of [

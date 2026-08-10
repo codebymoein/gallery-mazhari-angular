@@ -3,7 +3,7 @@ import {
   ChangeDetectionStrategy, inject,
   ViewChild, TemplateRef, ElementRef
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DOCUMENT } from '@angular/common';
 import { RouterLink, Router } from '@angular/router';
 import { NavigationEnd, NavigationStart } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -16,11 +16,12 @@ import {
   findCategoryForSubSlug
 } from '@shared/data/catalog-categories';
 import { Observable, Subscription, filter } from 'rxjs';
+import { LineIconComponent } from '@shared/components/line-icon/line-icon.component';
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [CommonModule, RouterLink, FormsModule],
+  imports: [CommonModule, RouterLink, FormsModule, LineIconComponent],
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -28,6 +29,7 @@ import { Observable, Subscription, filter } from 'rxjs';
 export class HeaderComponent implements OnDestroy {
   private router = inject(Router);
   private host = inject(ElementRef<HTMLElement>);
+  private document = inject(DOCUMENT);
   private readonly collectionSlugs = new Set([
     'bridal-clothing',
     'arabic-bridal-dresses',
@@ -44,6 +46,7 @@ export class HeaderComponent implements OnDestroy {
   private readonly routerEventsSubscription: Subscription;
 
   @ViewChild('drawerTpl') drawerTpl!: TemplateRef<unknown>;
+  @ViewChild('menuToggle', { read: ElementRef }) menuToggle?: ElementRef<HTMLButtonElement>;
 
   /** Desktop mega-menu + mobile: bridal clothing with full subcategories. */
   bridalCategory: CatalogCategory = BRIDAL_CLOTHING_CATEGORY;
@@ -65,7 +68,7 @@ export class HeaderComponent implements OnDestroy {
 
   toggleSearch(): void {
     this.isSearchOpen = !this.isSearchOpen;
-    if (this.drawer.isOpen()) this.drawer.close();
+    if (this.drawer.isOpen()) this.closeDrawer(false);
     if (this.isSearchOpen) {
       window.setTimeout(() => {
         const input = this.host.nativeElement.querySelector('#nav-search-input') as HTMLInputElement | null;
@@ -78,12 +81,47 @@ export class HeaderComponent implements OnDestroy {
     const q = this.searchQuery.trim();
     this.router.navigate(['/catalog'], { queryParams: q ? { s: q } : {} });
     this.isSearchOpen = false;
+    this.closeDrawer(false);
+  }
+
+  toggleDrawer(): void {
+    if (this.drawer.isOpen()) {
+      this.closeDrawer();
+      return;
+    }
+
+    this.isSearchOpen = false;
+    this.drawer.open();
+    window.setTimeout(() => {
+      this.document
+        .querySelector<HTMLButtonElement>('.luxury-nav__drawer-close')
+        ?.focus();
+    });
+  }
+
+  closeDrawer(restoreFocus = true): void {
+    const wasOpen = this.drawer.isOpen();
     this.drawer.close();
+    if (wasOpen && restoreFocus) {
+      window.setTimeout(() => this.menuToggle?.nativeElement.focus());
+    }
+  }
+
+  focusFirstDrawerControl(): void {
+    this.document
+      .querySelector<HTMLButtonElement>('.luxury-nav__drawer-close')
+      ?.focus();
+  }
+
+  focusLastDrawerControl(): void {
+    this.document
+      .querySelector<HTMLAnchorElement>('.luxury-nav__drawer-footer .ds-button')
+      ?.focus();
   }
 
   closeMenus(): void {
     this.isSearchOpen = false;
-    this.drawer.close();
+    this.closeDrawer(false);
     this.closeOpenDetails();
   }
 
@@ -176,7 +214,10 @@ export class HeaderComponent implements OnDestroy {
 
   @HostListener('document:keydown.escape')
   onEscape(): void {
-    this.closeMenus();
+    const shouldRestoreDrawerFocus = this.drawer.isOpen();
+    this.isSearchOpen = false;
+    this.closeOpenDetails();
+    this.closeDrawer(shouldRestoreDrawerFocus);
   }
 
   @HostListener('window:popstate')
