@@ -1,5 +1,41 @@
 import { expect, test } from '@playwright/test';
 
+function publishedCatalogFixture() {
+  const now = new Date().toISOString();
+  return {
+    revision: 'gm-005-editorial-catalog',
+    generatedAt: now,
+    ttlSeconds: 600,
+    products: Array.from({ length: 6 }, (_, index) => ({
+      id: `gm-005-tiara-${index}`,
+      code: `GM-005-${index}`,
+      name: `تاج عروس ادیتوری ${index + 1}`,
+      category: 'تاج عروس',
+      parentCategory: 'اکسسوری مو عروس',
+      parentCategorySlug: 'bridal-hair-accessories',
+      categorySlug: 'bridal-tiaras',
+      stock: 1,
+      price: 10_000_000 + index,
+      isNewImport: false,
+      status: 'published',
+      photos: [],
+      updatedAt: now,
+      publishedAt: now,
+      variations: [],
+    })),
+  };
+}
+
+test.beforeEach(async ({ page }) => {
+  await page.route('**/api/products/published', request =>
+    request.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(publishedCatalogFixture()),
+    }),
+  );
+});
+
 const routes = [
   {
     name: 'collection',
