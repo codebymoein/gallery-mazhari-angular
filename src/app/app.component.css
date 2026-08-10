@@ -23,6 +23,13 @@
   background: #f4f2ee;
 }
 
+@supports (min-height: 100dvh) {
+  .app-layout,
+  .app-main--admin {
+    min-height: 100dvh;
+  }
+}
+
 
 /* ── Skip Link (accessibility) ── */
 .skip-link {

@@ -1,6 +1,8 @@
 # Gallery Mazhari — Design System
-> Version 1.0 | Angular 18 | Last updated: July 2026
+> Version 1.1 | Angular 21 | Last updated: August 2026
 > **Every component built in this project MUST reference and comply with this document.**
+
+> Runtime authority: `src/styles/tokens.css` and `docs/design/DESIGN_TOKEN_CONTRACT.md`. The semantic GM-007 families cover colors/surfaces, typography, spacing/gutters, radii/borders, shadows/glass, motion/easing, controls and z-index. Feature CSS must consume those roles rather than create page-local token systems.
 
 ---
 
@@ -27,18 +29,18 @@ All colors are defined as CSS custom properties in `src/styles/tokens.css`.
 
 | Token | Value | Usage |
 |-------|-------|-------|
-| `--color-matte-black` | `#0A0A0A` | Luxury dark section backgrounds |
-| `--color-dark-charcoal` | `#1A1A1A` | Deep matte black — UI chrome / headings |
-| `--color-champagne-gold` | `#D4AF37` | Champagne gold — accents on dark |
-| `--color-gold-primary` | `#B8973E` | Primary CTA, borders, accents |
+| `--color-matte-black` | `#2b211d` | Warm espresso section backgrounds |
+| `--color-dark-charcoal` | `#3a2a24` | Warm heading/chrome dark |
+| `--color-champagne-gold` | `#b78b62` | Restrained champagne accent |
+| `--color-gold-primary` | `#8f4050` | Primary burgundy action/brand accent |
 | `--color-gold-light` | alias → champagne | Hover states, highlights |
 | `--color-gold-hover` | `#9F7E38` | Active/pressed gold |
 | `--color-gold-subtle` | `#EEE5D1` | Gold tints on light bg |
-| `--color-bg-cream` | `#F9F8F6` | Main page background (champagne cream) |
-| `--color-surface` | `#FFFFFF` | Cards, panels |
-| `--color-text-main` | `#333333` | Body text |
-| `--color-text-muted` | `#7A7A7A` | Secondary text, captions |
-| `--color-border` | `#E4DFD6` | Dividers, input borders |
+| `--color-bg-cream` | `#f5eadc` | Warm ivory page background |
+| `--color-surface` | `#fff6ec` | Warm raised surface |
+| `--color-text-main` | `#3a2a24` | Primary warm text |
+| `--color-text-muted` | `#6d554c` | Secondary warm text |
+| `--color-border` | `#d9c0b1` | Warm dividers and input borders |
 
 **Single source of truth:** `src/styles/tokens.css`  
 **Shared patterns:** `src/styles/patterns.css` (`.ds-*` utilities)  
@@ -87,8 +89,8 @@ Changing `--color-champagne-gold` or `--color-matte-black` updates lookbook, VIP
 
 | Role | Font | Fallback | Token |
 |------|------|----------|-------|
-| Persian body & UI | Vazirmatn | YekanBakh, Tahoma | `--font-persian` |
-| Display / headings | Vazirmatn (heavy) | Tahoma | `--font-display` |
+| Persian body & UI | IRANSansX | YekanBakh, Tahoma | `--font-persian` |
+| Display / headings | YekanBakh | IRANSansX, Tahoma | `--font-display` |
 | English UI | Inter | Arial | `--font-english` |
 | English serif accent | Georgia | Times New Roman | `--font-serif-en` |
 
@@ -107,6 +109,7 @@ Changing `--color-champagne-gold` or `--color-matte-black` updates lookbook, VIP
 | `--mds-font-size-hero` | `clamp(2.75rem, 7vw, 6.25rem)` | Hero h1 |
 
 ### Rules
+- YekanBakh is the approved display preference, but no licensed local binary currently exists. Do not download or commit an unlicensed font; the runtime-safe stack must fall back predictably until an approved asset is supplied.
 - Headings: `letter-spacing: -0.025em` to `-0.035em` (tight, luxury feel)
 - English eyebrows / labels: `letter-spacing: 0.15em` to `0.22em` (wide, editorial)
 - Line height body: `1.9` — generous for Persian readability

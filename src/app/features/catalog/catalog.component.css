@@ -269,8 +269,6 @@
   border: 1px solid color-mix(in srgb, var(--color-gold-primary) 16%, transparent);
   box-shadow: var(--shadow-luxury);
   scroll-snap-align: start;
-  content-visibility: auto;
-  contain-intrinsic-size: auto 24rem;
 }
 .bridal-catalog__rail-gallery,
 .generic-catalog__gallery {

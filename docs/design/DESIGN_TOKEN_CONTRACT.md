@@ -24,6 +24,20 @@ GM-001 establishes the approved post-remediation storefront direction: **warm / 
 
 Additional editorial semantic tokens include rose, burgundy, espresso, butter, peach and ivory roles. Supporting state, alpha, surface, gradient and MDS compatibility tokens remain defined in `src/styles/tokens.css`.
 
+## Semantic foundation families
+
+GM-007 makes the existing runtime authority explicit without introducing a parallel theme layer:
+
+- colors and surfaces: `--surface-*`, `--text-*` and `--accent-*` alias the approved warm core palette;
+- typography: `--font-*`, `--font-weight-*`, `--type-leading-*` and `--type-tracking-*`;
+- spacing and responsive gutters: `--space-*` plus `--gutter-page-*`;
+- radii and borders: `--radius-*`, `--border-width-*` and semantic `--border-*` composites;
+- shadows and glass: `--shadow-*`, `--glass-surface*`, `--glass-border`, `--glass-blur` and `--glass-shadow`;
+- motion and easing: `--duration-*`, `--ease-*`, existing `--transition-*` and motion-distance/scale tokens;
+- controls and layers: `--control-*` and `--z-*`.
+
+These families are additive semantic aliases over the canonical values. Feature CSS MUST consume them when the role applies and MUST NOT create a second token file or page-local theme authority.
+
 ### Palette rules
 
 - Cool grey MUST NOT be reintroduced as the dominant storefront brand/background language without a separately approved visual decision.
@@ -39,6 +53,7 @@ Additional editorial semantic tokens include rose, burgundy, espresso, butter, p
 - English UI stack: `--font-english: 'Inter', Arial, sans-serif`.
 - English serif accent: `--font-serif-en: 'Playfair Display', Georgia, 'Times New Roman', serif`.
 - The repository does not implicitly gain permission to add font binaries because a family appears in a stack. Self-hosting requires license/provenance and performance review.
+- No licensed/provenance-approved Yekan binary is present in the repository as of GM-007. The approved Yekan family names remain in the fallback stacks, but the application MUST NOT claim a self-hosted Yekan delivery until an owner-approved licensed asset is supplied and reviewed.
 - Editorial hierarchy SHOULD be created first through scale, line-height, weight, spacing and composition rather than unreviewed font downloads.
 
 ## Typography and responsive rules
@@ -54,6 +69,15 @@ Large display type SHOULD use restrained weights and generous spacing rather tha
 - Scroll hijacking, mandatory long intro sequences and gratuitous continuous motion are not part of the approved language.
 - Every material motion surface MUST provide an effective `prefers-reduced-motion: reduce` path.
 - New animation dependencies require the normal dependency/security/bundle review; GM-001 adds none.
+- Core content MUST remain visible without waiting for IntersectionObserver, scroll events or JavaScript reveal state. Motion enhances already-visible content rather than becoming its visibility gate.
+
+## WebKit reliability contract
+
+- Mobile viewport shells use a `100vh` fallback followed by dynamic viewport enhancement where needed.
+- Full-screen mobile controls account for safe-area insets when `viewport-fit=cover` is enabled.
+- Translucent surfaces retain an opaque warm fallback; `-webkit-backdrop-filter` and standard `backdrop-filter` are progressive enhancements.
+- Body scroll locking MUST preserve and restore the previous inline body state and scroll position.
+- Public catalog completeness MUST NOT depend on `content-visibility` geometry. Delayed authoritative snapshot refreshes invalidate and recompute client projections without requiring a reload.
 
 ## Accessibility and performance
 

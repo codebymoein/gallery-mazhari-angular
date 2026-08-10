@@ -1,5 +1,5 @@
 import { DOCUMENT, isPlatformBrowser } from '@angular/common';
-import { Component, HostListener, OnDestroy, OnInit, PLATFORM_ID, inject } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit, PLATFORM_ID, effect, inject } from '@angular/core';
 
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
@@ -8,6 +8,7 @@ import {
 } from '@core/services/search.service';
 import { ShoppingContextService } from '@core/services/shopping-context.service';
 import { SeoService } from '@core/services/seo.service';
+import { PublishedCatalogSyncService } from '@core/services/published-catalog-sync.service';
 import {
   BridalSampleProduct,
   getSizeOptionsForProduct,
@@ -35,6 +36,7 @@ export class CategoryProductsComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly shoppingContext = inject(ShoppingContextService);
   private readonly seo = inject(SeoService);
+  private readonly publishedSync = inject(PublishedCatalogSyncService);
   private readonly document = inject(DOCUMENT);
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   private sub?: Subscription;
@@ -48,6 +50,13 @@ export class CategoryProductsComponent implements OnInit, OnDestroy {
   availableSizes: string[] = [];
   selectedSize = '';
   visibleCount = 20;
+
+  constructor() {
+    effect(() => {
+      if (!this.publishedSync.version()) return;
+      this.refreshProducts();
+    });
+  }
 
   ngOnInit(): void {
     this.sub = this.route.paramMap.subscribe(params => {
@@ -66,19 +75,8 @@ export class CategoryProductsComponent implements OnInit, OnDestroy {
 
       this.category = cat;
       this.subcategory = sub;
-      this.allProducts = productsForCategory(subSlug);
-      this.products = this.allProducts;
-      this.availableSizes = isFootwearCategory(subSlug)
-        ? Array.from(new Set(
-            this.allProducts.flatMap(product =>
-              getSizeOptionsForProduct(product)
-                .filter(option => option.available && option.stock > 0)
-                .map(option => option.size)
-            )
-          )).sort((a, b) => a.localeCompare(b, 'fa', { numeric: true }))
-        : [];
       this.selectedSize = '';
-      this.resetVisibleProducts();
+      this.refreshProducts();
       this.applyCategorySeo(cat, sub);
       this.shoppingContext.rememberPath(['/shop', slug, subSlug]);
       this.scrollToTop();
@@ -151,6 +149,28 @@ export class CategoryProductsComponent implements OnInit, OnDestroy {
 
   private resetVisibleProducts(): void {
     this.visibleCount = Math.min(this.products.length, this.rowsPerBatch());
+  }
+
+  private refreshProducts(): void {
+    if (!this.subcategory || !this.subSlug) return;
+    this.allProducts = productsForCategory(this.subSlug);
+    this.availableSizes = isFootwearCategory(this.subSlug)
+      ? Array.from(new Set(
+          this.allProducts.flatMap(product =>
+            getSizeOptionsForProduct(product)
+              .filter(option => option.available && option.stock > 0)
+              .map(option => option.size)
+          )
+        )).sort((a, b) => a.localeCompare(b, 'fa', { numeric: true }))
+      : [];
+    this.products = this.selectedSize
+      ? this.allProducts.filter(product =>
+          getSizeOptionsForProduct(product).some(
+            option => option.size === this.selectedSize && option.available && option.stock > 0
+          )
+        )
+      : this.allProducts;
+    this.resetVisibleProducts();
   }
 
   private rowsPerBatch(): number {
