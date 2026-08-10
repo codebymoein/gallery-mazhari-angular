@@ -12,11 +12,12 @@ import {
   BridalSampleProduct,
   productsForCategory
 } from '@shared/data/bridal-collection-categories';
+import { StorefrontProductCardComponent } from '@shared/components/storefront-product-card/storefront-product-card.component';
 
 @Component({
   selector: 'app-collection-page',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, StorefrontProductCardComponent],
   templateUrl: './collection-page.component.html',
   styleUrls: ['./collection-page.component.css']
 })
@@ -56,8 +57,6 @@ export class CollectionPageComponent implements OnInit, OnDestroy {
   }
 
   isActive(slug: string): boolean { return this.activeCollection.slug === slug; }
-  hideBrokenImage(event: Event): void { (event.currentTarget as HTMLImageElement).hidden = true; }
-
   get visibleProducts(): BridalSampleProduct[] { return this.products.slice(0, this.visibleCount); }
 
   galleryImages(product: BridalSampleProduct): string[] {

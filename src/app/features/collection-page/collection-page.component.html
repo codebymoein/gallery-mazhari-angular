@@ -1,12 +1,20 @@
 <section class="collection-page" dir="rtl">
-  <header class="collection-page__intro">
-    <p class="collection-page__eyebrow" lang="en" dir="ltr">COLLECTION</p>
-    <h1 class="collection-page__title">{{ activeCollection.title }}</h1>
-    <p class="collection-page__subtitle" lang="en" dir="ltr">{{ activeCollection.subtitle }}</p>
+  <header class="collection-page__chapter-hero">
+    <span class="collection-page__chapter-media" aria-hidden="true">
+      <img [src]="activeCollection.image" alt="" width="480" height="640" />
+    </span>
+    <span class="collection-page__chapter-copy">
+      <span class="collection-page__chapter">دفتر لباس عروس</span>
+      <p class="collection-page__chapter-eyebrow" lang="en" dir="ltr">COLLECTION</p>
+      <h1 class="collection-page__chapter-title">{{ activeCollection.title }}</h1>
+      <p class="collection-page__subtitle" lang="en" dir="ltr">{{ activeCollection.subtitle }}</p>
+      <p class="collection-page__lead">فرم، پارچه و جزئیاتی که برای روایت شخصی شما کنار هم نشسته‌اند.</p>
+      <span class="collection-page__count">{{ products.length }} مدل منتخب</span>
+    </span>
   </header>
 
   <nav class="collection-page__tabs" aria-label="کالکشن‌ها">
-    @for (collection of collections; track collection) {
+    @for (collection of collections; track collection.slug) {
       <a
         class="collection-page__tab"
         [class.collection-page__tab--active]="isActive(collection.slug)"
@@ -23,34 +31,14 @@
     >
     <div class="collection-page__rail collection-page__rail--grid">
       @for (product of visibleProducts; track trackByProductId($index, product)) {
-        <article class="collection-page__card">
-          <a class="collection-page__link" [routerLink]="['/product', product.id]">
-            <div class="collection-page__media">
-              <span class="collection-page__gallery">
-                @for (image of galleryImages(product); track image; let first = $first) {
-                  <img
-                    class="collection-page__img"
-                    [src]="image"
-                    [alt]="first ? product.name : ''"
-                    loading="lazy"
-                    decoding="async"
-                    width="320"
-                    height="430"
-                    (error)="hideBrokenImage($event)"
-                    />
-                }
-              </span>
-              <span class="collection-page__tag">{{ product.tag }}</span>
-              @if (galleryImages(product).length > 1) {
-                <span class="collection-page__gallery-hint" aria-hidden="true">‹ ›</span>
-              }
-            </div>
-            <div class="collection-page__body">
-              <h3 class="collection-page__name">{{ product.name }}</h3>
-              <span class="collection-page__cta">مشاهده جزئیات</span>
-            </div>
-          </a>
-        </article>
+        <app-storefront-product-card
+          class="collection-page__card"
+          [productId]="product.id"
+          [name]="product.name"
+          [images]="galleryImages(product)"
+          [tag]="product.tag"
+          [kicker]="activeCollection.subtitle"
+        />
       }
     </div>
     @if (visibleCount < products.length) {

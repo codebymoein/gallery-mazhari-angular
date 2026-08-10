@@ -7,9 +7,17 @@
       <span class="cat-products__crumb-sep" aria-hidden="true">←</span>
       <span class="cat-products__crumb-current" aria-current="page">{{ sub.label }}</span>
     </nav>
-    <header class="cat-products__intro">
-      <p class="cat-products__eyebrow" lang="en" dir="ltr">{{ category.subtitle }}</p>
-      <h1 class="cat-products__title">{{ sub.label }}</h1>
+    <header class="cat-products__chapter-hero">
+      <span class="cat-products__chapter-media" aria-hidden="true">
+        <img [src]="sub.image || category.image" alt="" width="420" height="560" />
+      </span>
+      <span class="cat-products__chapter-copy">
+        <span class="cat-products__chapter">فصل {{ category.title }}</span>
+        <p class="cat-products__chapter-eyebrow" lang="en" dir="ltr">{{ category.subtitle }}</p>
+        <h1 class="cat-products__chapter-title">{{ sub.label }}</h1>
+        <p class="cat-products__lead">انتخابی سنجیده برای ساختن استایلی ماندگار در روزهای به‌یادماندنی.</p>
+        <span class="cat-products__count">{{ products.length }} انتخاب</span>
+      </span>
     </header>
     @if (availableSizes.length) {
       <details class="cat-products__size-filter">
@@ -30,39 +38,15 @@
     @if (products.length) {
       <div class="cat-products__grid" role="list" aria-label="محصولات">
         @for (product of visibleProducts; track trackByProductId($index, product)) {
-          <a
+          <app-storefront-product-card
             class="cat-products__card"
             role="listitem"
-            [routerLink]="['/product', product.id]"
-            [attr.aria-label]="product.name"
-            >
-            <span class="cat-products__media">
-              <span class="cat-products__gallery">
-                @for (image of galleryImages(product); track image; let first = $first) {
-                  <img
-                    class="cat-products__img"
-                    [src]="image"
-                    [appResponsiveProductImage]="image"
-                    [alt]="first ? product.name : ''"
-                    loading="lazy"
-                    decoding="async"
-                    width="320"
-                    height="420"
-                    (error)="hideBrokenImage($event)"
-                    />
-                }
-              </span>
-              @if (galleryImages(product).length > 1) {
-                <span class="cat-products__gallery-hint" aria-hidden="true">‹ ›</span>
-              }
-            </span>
-            <span class="cat-products__body">
-              <strong class="cat-products__name">{{ product.name }}</strong>
-              @if (showCommerce(product)) {
-                <small class="cat-products__price">{{ priceLabel(product) }}</small>
-              }
-            </span>
-          </a>
+            [productId]="product.id"
+            [name]="product.name"
+            [images]="galleryImages(product)"
+            [kicker]="sub.label"
+            [price]="showCommerce(product) ? priceLabel(product) : ''"
+          />
         }
       </div>
       @if (visibleCount < products.length) {

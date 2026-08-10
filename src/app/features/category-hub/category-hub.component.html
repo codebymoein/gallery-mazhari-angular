@@ -5,9 +5,26 @@
       <span class="cat-hub__crumb-sep" aria-hidden="true">←</span>
       <span class="cat-hub__crumb-current" aria-current="page">{{ cat.title }}</span>
     </nav>
-    <header class="cat-hub__heading">
-      <p class="cat-hub__eyebrow" lang="en" dir="ltr">{{ cat.subtitle }}</p>
-      <h1 class="cat-hub__title">{{ cat.title }}</h1>
+    <header class="cat-hub__chapter-hero">
+      <span class="cat-hub__hero-media">
+        <img
+          class="cat-hub__hero-img"
+          [src]="cat.image"
+          [alt]="cat.title"
+          loading="eager"
+          decoding="async"
+          width="960"
+          height="720"
+          (error)="onImgError($event)"
+        />
+      </span>
+      <span class="cat-hub__hero-copy">
+        <span class="cat-hub__chapter">راهنمای انتخاب</span>
+        <p class="cat-hub__chapter-eyebrow" lang="en" dir="ltr">{{ cat.subtitle }}</p>
+        <h1 class="cat-hub__chapter-title">{{ cat.title }}</h1>
+        <p class="cat-hub__hero-lead">هر مجموعه، فصلی مستقل برای پیدا کردن جزئیاتی هماهنگ با استایل شماست.</p>
+        <span class="cat-hub__chapter-count">{{ cat.subcategories.length }} مجموعه</span>
+      </span>
     </header>
     @if (customRequestType; as requestType) {
       <a class="cat-hub__custom" [routerLink]="['/custom-request', requestType]">
@@ -16,27 +33,10 @@
         <b>ثبت درخواست</b>
       </a>
     }
-    @if (false) {
-      <header class="cat-hub__hero">
-        <div class="cat-hub__hero-media">
-          <img
-            class="cat-hub__hero-img"
-            [src]="cat!.image"
-            [alt]="cat!.title"
-            loading="eager"
-            decoding="async"
-            width="960"
-            height="420"
-            (error)="onImgError($event)"
-            />
-          <div class="cat-hub__hero-copy">
-            <p class="cat-hub__eyebrow" lang="en" dir="ltr">{{ cat!.subtitle }}</p>
-            <h1 class="cat-hub__title">{{ cat!.title }}</h1>
-            <p class="cat-hub__lead">مجموعه‌ها را انتخاب کنید</p>
-          </div>
-        </div>
-      </header>
-    }
+    <div class="cat-hub__section-heading">
+      <span>فصل‌های این مجموعه</span>
+      <span aria-hidden="true"></span>
+    </div>
     @if (cat.subcategories.length) {
       <div class="cat-hub__mosaic" role="list" aria-label="زیردسته‌ها">
         @for (sub of cat.subcategories; track trackSub(i, sub); let i = $index) {
@@ -61,7 +61,7 @@
               <span class="cat-hub__card-fallback" aria-hidden="true"></span>
             </span>
             <span class="cat-hub__card-body">
-              <span class="cat-hub__card-icon" aria-hidden="true">✦</span>
+              <span class="cat-hub__card-index" aria-hidden="true">{{ (i + 1).toString().padStart(2, '0') }}</span>
               <strong class="cat-hub__card-label">{{ sub.label }}</strong>
             </span>
           </a>
