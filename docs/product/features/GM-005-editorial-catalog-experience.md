@@ -111,6 +111,6 @@ All public storefront visitors. No admin or privileged workflow changes.
 ## Delivery
 
 - Planned branch: `feat/gm-005-editorial-catalog`
-- Planned PR: focused GM-005 PR from verified `main` SHA `bb8d5ac8a1724877b0b335b9c24e8fe04f4914c1`
+- Planned PR: #69, from verified `main` SHA `bb8d5ac8a1724877b0b335b9c24e8fe04f4914c1`
 - Documentation to update: this specification and `docs/product/BACKLOG.md`
 - Definition of Done: `docs/engineering/DEFINITION_OF_DONE.md`
