@@ -37,7 +37,7 @@ test.describe('GM-011 editorial Home and Footer', () => {
     await expect(page.locator('#home-hero-title')).toBeVisible();
     await expect(heroCopy).toHaveCSS('animation-name', 'none');
     await expect(page.getByRole('link', { name: /مشاهده کالکشن/ })).toHaveAttribute('href', '/catalog');
-    await expect(page.getByRole('link', { name: 'رزرو مشاوره' })).toHaveAttribute('href', '/consultation');
+    await expect(page.getByRole('link', { name: 'رزرو مشاوره', exact: true })).toHaveAttribute('href', '/consultation');
 
     await page.evaluate(() => document.querySelector('.cat-showcase')?.scrollIntoView());
     const categoryImage = page.locator('.cat-story__img').first();
