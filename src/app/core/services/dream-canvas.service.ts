@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { Injectable, PLATFORM_ID, inject } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { environment } from '@env/environment';
@@ -20,6 +21,7 @@ interface StoredCanvas {
 
 @Injectable({ providedIn: 'root' })
 export class DreamCanvasService {
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   readonly maxItems = 60;
   private readonly storageKey = environment.storageKeys.dreamCanvas;
   private readonly storageDays = 180;
@@ -105,6 +107,10 @@ export class DreamCanvasService {
   private persist(items: DreamCanvasItem[]): void {
     this.itemsSubject.next(items);
 
+    if (!this.isBrowser) {
+      return;
+    }
+
     try {
       const payload: StoredCanvas = {
         ids: items.map((item) => item.productId),
@@ -120,6 +126,10 @@ export class DreamCanvasService {
   }
 
   private readStorage(): DreamCanvasItem[] {
+    if (!this.isBrowser) {
+      return [];
+    }
+
     try {
       const raw = localStorage.getItem(this.storageKey);
       if (!raw) {

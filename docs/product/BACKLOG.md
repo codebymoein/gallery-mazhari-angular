@@ -43,6 +43,7 @@ This file records requested work before implementation. A backlog entry is not i
 | GM-012 | EPIC-01 | Editorial cart and checkout journey with calm mobile hierarchy and WebKit-safe controls | L2 | P1 | ACCEPTANCE | Merged via PR #72 with exact-head CI; V2 visual/product acceptance pending; cart, order, payment, coupon and home-trial semantics unchanged |
 | GM-013 | EPIC-01 | Editorial customer account and order-history experience with accessible mobile detail disclosure | L2 | P1 | ACCEPTANCE | Implementation and local browser evidence complete; exact-head CI/merge pending; order status, repayment and customer-data behavior preserved; referral remains out of scope |
 | GM-014 | EPIC-01 | Editorial promotion and bridal-inspiration journey across discounts, lookbook and look detail | L2 | P1 | ACCEPTANCE | Implementation and local Chromium/WebKit evidence complete; exact-head CI/merge and V2 visual acceptance pending; discount/style APIs, product projection and hotspot navigation remain unchanged |
+| GM-015 | EPIC-05 | Warm editorial personal-styling chapter for Dream Profile and Catalog Builder | L2 | P1 | ACCEPTANCE | Implementation and local Chromium/WebKit evidence complete; exact-head CI/merge and V2 acceptance pending; consultation tags/payload, lookbook actions, share and AR semantics remain unchanged |
 
 ## Intake format
 
