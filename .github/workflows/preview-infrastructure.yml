@@ -1,0 +1,47 @@
+name: Preview Infrastructure
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/pr-preview.yml'
+      - '.github/workflows/preview-infrastructure.yml'
+      - 'deploy/preview-auto-deploy.sh'
+      - 'deploy/install-preview-auto-deploy.sh'
+      - 'deploy/gallery-mazhari-preview-auto-deploy.service.example'
+      - 'deploy/gallery-mazhari-preview-auto-deploy.timer.example'
+      - 'deploy/nginx-preview.conf.example'
+      - 'docs/PREVIEW_ENVIRONMENT.md'
+      - 'docs/product/features/GM-033-PR-PREVIEW-ENVIRONMENT.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-preview-tooling:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate shell syntax
+        run: |
+          bash -n deploy/preview-auto-deploy.sh deploy/install-preview-auto-deploy.sh
+      - name: ShellCheck preview scripts
+        run: |
+          shellcheck deploy/preview-auto-deploy.sh deploy/install-preview-auto-deploy.sh
+      - name: Validate systemd unit syntax
+        run: |
+          set -euo pipefail
+          unit_dir="$(mktemp -d)"
+          cp deploy/gallery-mazhari-preview-auto-deploy.service.example "${unit_dir}/gallery-mazhari-preview-auto-deploy.service"
+          cp deploy/gallery-mazhari-preview-auto-deploy.timer.example "${unit_dir}/gallery-mazhari-preview-auto-deploy.timer"
+          sed -i 's|^ExecStart=.*|ExecStart=/bin/true|' "${unit_dir}/gallery-mazhari-preview-auto-deploy.service"
+          systemd-analyze verify \
+            "${unit_dir}/gallery-mazhari-preview-auto-deploy.service" \
+            "${unit_dir}/gallery-mazhari-preview-auto-deploy.timer"
+      - name: Validate Nginx example shape
+        run: |
+          set -euo pipefail
+          grep -F 'server_name preview.gallerymazhari.com;' deploy/nginx-preview.conf.example
+          grep -F 'root /var/www/gallery-mazhari-preview/browser;' deploy/nginx-preview.conf.example
+          grep -F 'proxy_pass https://v2.gallerymazhari.com;' deploy/nginx-preview.conf.example
