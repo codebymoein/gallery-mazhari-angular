@@ -99,7 +99,7 @@ test.describe('storefront smoke tests', () => {
     expect(transitionProperty).toContain('transform');
 
     const bridalGroup = drawer.locator('.luxury-nav__drawer-group').first();
-    await bridalGroup.locator('summary').click();
+    await bridalGroup.locator(':scope > summary').click();
     const bridalSubmenu = bridalGroup.locator('.luxury-nav__drawer-submenu');
     await expect(bridalSubmenu).toBeVisible();
     expect(await bridalSubmenu.evaluate((element) => getComputedStyle(element).animationName)).toContain(
@@ -107,9 +107,9 @@ test.describe('storefront smoke tests', () => {
     );
 
     const accessoryGroup = drawer.locator('.luxury-nav__drawer-group').nth(1);
-    await accessoryGroup.locator('summary').click();
+    await accessoryGroup.locator(':scope > summary').click();
     const nestedGroup = accessoryGroup.locator('.luxury-nav__drawer-nested').first();
-    await nestedGroup.locator('summary').click();
+    await nestedGroup.locator(':scope > summary').click();
     const nestedLinks = nestedGroup.locator('.luxury-nav__drawer-submenu-links');
     await expect(nestedLinks).toBeVisible();
     expect(await nestedLinks.evaluate((element) => getComputedStyle(element).animationName)).toContain(
