@@ -1,0 +1,18 @@
+[Unit]
+Description=Gallery Mazhari PR preview auto-deploy
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+ExecStart=/usr/local/sbin/gallery-mazhari-preview-auto-deploy
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/www/gallery-mazhari-preview /var/cache/gallery-mazhari/preview /srv/gallery-mazhari-preview
+
+[Install]
+WantedBy=multi-user.target
