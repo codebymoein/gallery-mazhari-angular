@@ -75,8 +75,8 @@
       </div>
 
       <div class="two-col">
-        <label>تاریخ شروع (شمسی)<app-jalali-date-input name="startsAt" [(ngModel)]="form.startsAt" /></label>
-        <label>تاریخ پایان (شمسی)<app-jalali-date-input name="endsAt" [(ngModel)]="form.endsAt" /></label>
+        <label for="startsAt">تاریخ شروع (شمسی)<app-jalali-date-input id="startsAt" name="startsAt" [(ngModel)]="form.startsAt" /></label>
+        <label for="endsAt">تاریخ پایان (شمسی)<app-jalali-date-input id="endsAt" name="endsAt" [(ngModel)]="form.endsAt" /></label>
       </div>
 
       <label>متن نشان روی محصول<input name="badgeText" [(ngModel)]="form.badgeText" placeholder="فروش ویژه" /></label>

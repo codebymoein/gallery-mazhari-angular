@@ -44,6 +44,7 @@ This file records requested work before implementation. A backlog entry is not i
 | GM-013 | EPIC-01 | Editorial customer account and order-history experience with accessible mobile detail disclosure | L2 | P1 | ACCEPTANCE | Implementation and local browser evidence complete; exact-head CI/merge pending; order status, repayment and customer-data behavior preserved; referral remains out of scope |
 | GM-014 | EPIC-01 | Editorial promotion and bridal-inspiration journey across discounts, lookbook and look detail | L2 | P1 | ACCEPTANCE | Implementation and local Chromium/WebKit evidence complete; exact-head CI/merge and V2 visual acceptance pending; discount/style APIs, product projection and hotspot navigation remain unchanged |
 | GM-015 | EPIC-05 | Warm editorial personal-styling chapter for Dream Profile and Catalog Builder | L2 | P1 | ACCEPTANCE | Implementation and local Chromium/WebKit evidence complete; exact-head CI/merge and V2 acceptance pending; consultation tags/payload, lookbook actions, share and AR semantics remain unchanged |
+| GM-016 | EPIC-01 | Clear the pre-existing frontend ESLint error baseline without changing business behavior | L1 | P1 | IN_PROGRESS | Focused lint-only correctness cleanup; exact-head CI and merge pending; existing warning debt remains out of scope |
 
 ## Intake format
 
