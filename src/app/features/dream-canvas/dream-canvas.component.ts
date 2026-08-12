@@ -22,7 +22,14 @@ export class DreamCanvasComponent {
   profile: BridalPreferenceProfile = { bodyShape: '', faceShape: '', styles: [], ceremony: '', priorities: [], brideHeight: undefined, groomHeight: undefined };
   readonly styles = [{id:'european',label:'اروپایی و مینیمال'},{id:'arabic',label:'عربی و پرکار'},{id:'classic',label:'کلاسیک'},{id:'modern',label:'مدرن'},{id:'romantic',label:'رمانتیک'},{id:'royal',label:'سلطنتی'}];
 
-  toggle(list: string[], value: string): void { const i=list.indexOf(value); i<0 ? list.push(value) : list.splice(i,1); }
+  toggle(list: string[], value: string): void {
+    const i = list.indexOf(value);
+    if (i < 0) {
+      list.push(value);
+    } else {
+      list.splice(i, 1);
+    }
+  }
   selected(list: string[], value: string): boolean { return list.includes(value); }
   submit(): void {
     if (!/^09\d{9}$/.test(this.phone.replace(/\D/g,''))) { this.error='شماره موبایل را به‌صورت 09xxxxxxxxx وارد کنید.'; return; }
