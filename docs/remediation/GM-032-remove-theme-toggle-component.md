@@ -13,6 +13,8 @@ Files removed:
 
 The calibrated Knip baseline on `main@bdc5c4c11709193847dbeabdd9ce5e8c233ae916` reports `theme-toggle.component.ts` as unused. Repository search found no references to `ThemeToggleComponent` or selector `app-theme-toggle`. The component imported `ThemeService`, which was independently proven unused and removed in GM-031, confirming this folder is an orphaned UI island rather than an active application path.
 
+The first Quality Gates run exposed only a PR-governance metadata mismatch: the required `Governance documents actually read:` label had been extended with extra wording. The PR body was corrected to the canonical field label; no runtime or cleanup scope changed. This documentation commit intentionally triggers fresh exact-head CI evidence against the corrected governance contract.
+
 ## Non-scope
 
 No active component, template, route, CSS system, backend/API/database/data/media/SEO/deployment behavior is changed.
