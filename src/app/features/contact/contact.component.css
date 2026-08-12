@@ -203,6 +203,7 @@
 .contact__maps {
   display: inline-flex;
   align-items: center;
+  gap: 0.4rem;
   min-block-size: var(--touch-target);
   padding-inline: 0.85rem;
   border: 1px solid color-mix(in srgb, var(--color-gold-primary) 35%, transparent);
@@ -412,7 +413,6 @@
   text-align:center;
 }
 .contact__branch-hours::-webkit-scrollbar { display:none; }
-.contact__maps { gap:.4rem; }
 .contact__maps>span { display:grid; place-items:center; width:1.35rem; height:1.35rem; border-radius:50%; color:#fff; font-weight:900; }
 .contact__maps--google>span,
 .contact__maps--neshan>span { color:#fffffc; background:#656561; border:1px solid #9d7937; }
