@@ -18,7 +18,7 @@ export interface CuratedLook {
   featured_image_url?: string;
   meta: CuratedLookMeta;
   menu_order: number;
-  acf?: any; // If using Advanced Custom Fields
+  acf?: Record<string, unknown>; // If using Advanced Custom Fields
 }
 
 export interface CuratedLookMeta {
