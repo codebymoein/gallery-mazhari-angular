@@ -88,6 +88,6 @@
   color: #6a5420;
 }
 
-:host ::ng-deep .stg-row--new {
+.stg-row--new {
   background: #fffdf7 !important;
 }
