@@ -127,7 +127,6 @@ export class StagingQueueService {
       counts.set(key, current);
     }
 
-    // وضعیت‌های عملیاتی در انتهای نوار: انتظار موجودی، سپس زباله‌دان.
     counts.set('awaiting-stock', {
       label: 'کالاهای در انتظار موجودی',
       slug: 'awaiting-stock',
@@ -139,7 +138,6 @@ export class StagingQueueService {
       count: this.rejected().length
     });
 
-    // همه دسته‌های اصلی سایت + وضعیت‌های عملیاتی انتهای نوار
     return [...counts.values()];
   });
 
@@ -217,16 +215,12 @@ export class StagingQueueService {
     };
   });
 
-  /** بارگیری مجدد صف از سرور (در صورت وجود نشست ادمین با توکن) */
   async refreshFromServer(): Promise<boolean> {
     if (!this.hasServerSession()) {
       return false;
     }
     try {
       const queue = await firstValueFrom(this.api.getQueue());
-      // While authenticated, the server is authoritative even when its queue
-      // is empty. Never resurrect a deliberately cleared server catalog from
-      // stale browser localStorage.
       this.itemsSignal.set(collapseDuplicateProducts(
         queue.map((p) => withPrimaryPhoto(backendProductToStaging(p)))
       ));
@@ -240,10 +234,6 @@ export class StagingQueueService {
     }
   }
 
-  /**
-   * اعمال نتیجه اکسل: افزودن موجودی‌دارها + حذف کامل ناموجودها از چرخه.
-   * اول روی سرور؛ اگر سرور نبود، محلی.
-   */
   async applyExcelImport(
     products: StagingProduct[],
     removedOutOfStock: string[],
@@ -325,7 +315,6 @@ export class StagingQueueService {
     return this.attachPhotosLocal(id, newPhotos, processedBy);
   }
 
-  /** سازگاری با کد قبلی تک‌عکسی */
   async attachPhoto(
     id: string,
     photoUrl: string,
@@ -451,10 +440,6 @@ export class StagingQueueService {
     );
   }
 
-  // ------------------------------------------------------------------
-  // منطق محلی (fallback بدون سرور) — همان رفتار قبلی localStorage
-  // ------------------------------------------------------------------
-
   private applyExcelImportLocal(
     products: StagingProduct[],
     removedOutOfStock: string[],
@@ -468,7 +453,7 @@ export class StagingQueueService {
         .map((c) => c.toUpperCase())
         .filter((code) => !positiveCodes.has(code))
     );
-    let removed = 0;
+    const removed = 0;
     let added = 0;
 
     this.itemsSignal.update((list) => {
@@ -661,20 +646,14 @@ export class StagingQueueService {
     return !!updated;
   }
 
-  // ------------------------------------------------------------------
-  // کمکی‌ها
-  // ------------------------------------------------------------------
-
   private hasServerSession(): boolean {
     return this.auth.isAuthenticated() && !!this.auth.user()?.accessToken;
   }
 
-  /** فقط رکوردهایی که واقعاً از سرور آمده‌اند (id از نوع UUID) */
   private canUseServerFor(id: string): boolean {
     return this.hasServerSession() && UUID_PATTERN.test(id);
   }
 
-  /** خطاهای اعتبارسنجی سرور (400/404) نباید باعث fallback محلی شوند */
   private asServerRejection(err: unknown): string | null {
     const shaped = err as {
       status?: number;
@@ -756,7 +735,6 @@ export class StagingQueueService {
       if (!Array.isArray(parsed)) {
         return [];
       }
-      // مهاجرت داده‌های قدیمی بدون photos / parentCategory
       return collapseDuplicateProducts(parsed.map((item) => {
         const photos =
           item.photos?.length
@@ -800,7 +778,6 @@ export class StagingQueueService {
     try {
       localStorage.setItem(this.storageKey, JSON.stringify(items));
     } catch (err) {
-      // سهمیه localStorage پر شده — بدون این هشدار، عکس‌ها بی‌صدا از دست می‌روند.
       console.warn('StagingQueue: persist failed (localStorage quota?)', err);
     }
   }
