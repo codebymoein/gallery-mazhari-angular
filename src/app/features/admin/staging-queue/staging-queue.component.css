@@ -216,10 +216,10 @@
 }
 
 @media (max-width: 900px) {
-  :host ::ng-deep .adm-table th:nth-child(4),
-  :host ::ng-deep .adm-table td:nth-child(4),
-  :host ::ng-deep .adm-table th:nth-child(5),
-  :host ::ng-deep .adm-table td:nth-child(5) {
+  .adm-table th:nth-child(4),
+  .adm-table td:nth-child(4),
+  .adm-table th:nth-child(5),
+  .adm-table td:nth-child(5) {
     display: none;
   }
 }
@@ -329,29 +329,29 @@
   .stg-toolbar .adm-chips{flex-wrap:nowrap;overflow-x:auto;padding-bottom:.2rem;scrollbar-width:none}
   .stg-toolbar .adm-chip{flex:0 0 auto}
   .stg-cats{margin-inline:-1px;padding:.55rem}
-  :host ::ng-deep .adm-table-wrap{overflow:visible;padding:.5rem;background:#f5f4f2}
-  :host ::ng-deep .adm-table{display:block;min-width:0}
-  :host ::ng-deep .adm-table thead{display:none}
-  :host ::ng-deep .adm-table tbody{display:block}
-  :host ::ng-deep .adm-table tr:not(.stg-expand){
+  .adm-table-wrap{overflow:visible;padding:.5rem;background:#f5f4f2}
+  .adm-table{display:block;min-width:0}
+  .adm-table thead{display:none}
+  .adm-table tbody{display:block}
+  .adm-table tr:not(.stg-expand){
     display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.45rem .65rem;
     margin-bottom:.65rem;padding:.7rem;border:1px solid #ddd6cc;border-radius:.7rem;
     background:#fff;box-shadow:0 2px 8px rgba(28,25,23,.04)
   }
-  :host ::ng-deep .adm-table tr:not(.stg-expand)>td{
+  .adm-table tr:not(.stg-expand)>td{
     display:grid!important;gap:.15rem;min-width:0;padding:0!important;border:0;font-size:.72rem
   }
-  :host ::ng-deep .adm-table tr:not(.stg-expand)>td::before{color:#8a817a;font-size:.6rem;font-weight:700}
-  :host ::ng-deep .adm-table tr:not(.stg-expand)>td:nth-child(1)::before{content:'کد'}
-  :host ::ng-deep .adm-table tr:not(.stg-expand)>td:nth-child(2)::before{content:'نام'}
-  :host ::ng-deep .adm-table tr:not(.stg-expand)>td:nth-child(3)::before{content:'دسته اصلی'}
-  :host ::ng-deep .adm-table tr:not(.stg-expand)>td:nth-child(4)::before{content:'زیردسته'}
-  :host ::ng-deep .adm-table tr:not(.stg-expand)>td:nth-child(5)::before{content:'موجودی'}
-  :host ::ng-deep .adm-table tr:not(.stg-expand)>td:nth-child(6)::before{content:'وضعیت'}
-  :host ::ng-deep .adm-table tr:not(.stg-expand)>td:nth-child(7),
-  :host ::ng-deep .adm-table tr:not(.stg-expand)>td:nth-child(8){grid-column:1/-1}
-  :host ::ng-deep .adm-table tr:not(.stg-expand)>td:nth-child(7)::before{content:'عکس‌ها'}
-  :host ::ng-deep .adm-table tr:not(.stg-expand)>td:nth-child(8)::before{content:'مدیریت محصول'}
+  .adm-table tr:not(.stg-expand)>td::before{color:#8a817a;font-size:.6rem;font-weight:700}
+  .adm-table tr:not(.stg-expand)>td:nth-child(1)::before{content:'کد'}
+  .adm-table tr:not(.stg-expand)>td:nth-child(2)::before{content:'نام'}
+  .adm-table tr:not(.stg-expand)>td:nth-child(3)::before{content:'دسته اصلی'}
+  .adm-table tr:not(.stg-expand)>td:nth-child(4)::before{content:'زیردسته'}
+  .adm-table tr:not(.stg-expand)>td:nth-child(5)::before{content:'موجودی'}
+  .adm-table tr:not(.stg-expand)>td:nth-child(6)::before{content:'وضعیت'}
+  .adm-table tr:not(.stg-expand)>td:nth-child(7),
+  .adm-table tr:not(.stg-expand)>td:nth-child(8){grid-column:1/-1}
+  .adm-table tr:not(.stg-expand)>td:nth-child(7)::before{content:'عکس‌ها'}
+  .adm-table tr:not(.stg-expand)>td:nth-child(8)::before{content:'مدیریت محصول'}
   .stg-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
   .stg-actions .adm-btn{width:100%;min-width:0;padding:.45rem;font-size:.65rem;line-height:1.5}
   .stg-catalog-editor{display:grid;gap:.5rem;margin-top:.65rem}
