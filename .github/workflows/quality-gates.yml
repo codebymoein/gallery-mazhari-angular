@@ -354,11 +354,62 @@ jobs:
         continue-on-error: true
         run: npx --yes stylelint@16.23.1 "src/**/*.css" --config .stylelintrc.json > reports/stylelint.txt 2>&1
       - name: Architecture dependency report
-        continue-on-error: true
-        run: npx --yes dependency-cruiser@17.3.1 --validate .dependency-cruiser.cjs src backend/src > reports/dependency-cruiser.txt 2>&1
+        shell: bash
+        run: |
+          set -euo pipefail
+          set +e
+          npx --yes dependency-cruiser@17.3.1 \
+            --validate .dependency-cruiser.cjs \
+            --output-type json \
+            "src/**/*.ts" "backend/src/**/*.ts" \
+            > reports/dependency-cruiser.json \
+            2> reports/dependency-cruiser.stderr.txt
+          cruise_exit=$?
+          set -e
+          CRUISE_EXIT="$cruise_exit" python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          path = Path('reports/dependency-cruiser.json')
+          if not path.exists() or not path.read_text().strip():
+              raise SystemExit('dependency-cruiser produced no JSON evidence')
+          report = json.loads(path.read_text())
+          modules = report.get('modules', [])
+          if not modules:
+              raise SystemExit('dependency-cruiser evidence is invalid: zero modules analyzed')
+          summary = report.get('summary', {})
+          print(
+              'dependency-cruiser evidence: '
+              f'modules={len(modules)}, '
+              f'dependencies={summary.get("totalDependenciesCruised", "unknown")}, '
+              f'ruleErrors={summary.get("error", "unknown")}, '
+              f'cliExit={os.environ.get("CRUISE_EXIT", "unknown")}'
+          )
+          PY
       - name: Dead-code report
-        continue-on-error: true
-        run: npx --yes knip@5.62.0 > reports/knip.txt 2>&1
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx --yes knip@6.29.0 \
+            --reporter json \
+            --no-progress \
+            --no-exit-code \
+            > reports/knip.json \
+            2> reports/knip.stderr.txt
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          path = Path('reports/knip.json')
+          if not path.exists() or not path.read_text().strip():
+              raise SystemExit('knip produced no JSON evidence')
+          report = json.loads(path.read_text())
+          issues = report.get('issues')
+          if not isinstance(issues, list):
+              raise SystemExit('knip evidence is invalid: missing issues array')
+          print(f'knip produced structured evidence for {len(issues)} files with findings')
+          PY
       - uses: actions/upload-artifact@v4
         if: always()
         with:
