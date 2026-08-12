@@ -3,6 +3,9 @@
 ## Outcome
 Clear the final repository Stylelint finding without changing Header runtime CSS or mobile-drawer behavior.
 
+## Governance classification
+GM-023 is post-remediation engineering cleanup, not a Master Remediation Roadmap slice. It does not authorize adjacent RM/finding work.
+
 ## Evidence
 The remaining finding is `declaration-block-no-duplicate-properties` in `src/app/layout/header/header.component.css`, where the drawer intentionally declares `height: 100vh` followed immediately by `height: 100dvh`.
 
