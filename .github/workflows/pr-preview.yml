@@ -1,0 +1,64 @@
+name: PR Preview Artifact
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: write
+  pull-requests: read
+
+concurrency:
+  group: pr-preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  build-preview:
+    name: Build PR preview
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - run: npm ci
+      - name: Build production browser bundle
+        run: npm run build:prod
+      - name: Package immutable preview bundle
+        env:
+          PREVIEW_SHA: ${{ github.event.pull_request.head.sha }}
+          PREVIEW_PR: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          browser_dir="dist/gallery-mazhari-angular/browser"
+          test -d "$browser_dir"
+          printf '{"revision":"%s","pull_request":%s,"source":"github-pr-preview"}\n' \
+            "$PREVIEW_SHA" "$PREVIEW_PR" > "${browser_dir}/PREVIEW.json"
+          if [ ! -f "${browser_dir}/index.html" ] && [ -f "${browser_dir}/index.csr.html" ]; then
+            cp "${browser_dir}/index.csr.html" "${browser_dir}/index.html"
+          fi
+          test -f "${browser_dir}/index.html"
+          artifact="gallery-mazhari-preview-${PREVIEW_SHA}.tar.gz"
+          tar -czf "$artifact" -C "$browser_dir" .
+          sha256sum "$artifact" > "${artifact}.sha256"
+      - name: Publish preview prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PREVIEW_SHA: ${{ github.event.pull_request.head.sha }}
+          PREVIEW_PR: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          tag="preview-pr-${PREVIEW_PR}-${PREVIEW_SHA}"
+          artifact="gallery-mazhari-preview-${PREVIEW_SHA}.tar.gz"
+          checksum="${artifact}.sha256"
+          gh release create "$tag" "$artifact" "$checksum" \
+            --target "$PREVIEW_SHA" \
+            --title "Preview PR #${PREVIEW_PR} ${PREVIEW_SHA}" \
+            --notes "Immutable browser preview for PR #${PREVIEW_PR} at ${PREVIEW_SHA}. This is not a production release." \
+            --prerelease
