@@ -61,15 +61,29 @@
   text-decoration: none;
 }
 
-.luxury-nav__brand img {
+.luxury-nav__brand-logo,
+.luxury-nav__brand-caption {
+  display: none;
+}
+
+.luxury-nav__brand-logo {
   width: auto;
   height: 2.15rem;
   max-width: 7.25rem;
-  display: block;
   object-fit: contain;
 }
 
-.luxury-nav__brand span {
+.luxury-nav__brand-mobile-wordmark {
+  color: var(--color-matte-black);
+  font-family: var(--font-serif-en);
+  font-size: clamp(1.05rem, 5vw, 1.35rem);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.025em;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.luxury-nav__brand-caption {
   margin-block-start: -0.2rem;
   color: var(--accent-primary);
   font-family: var(--font-english);
@@ -182,15 +196,21 @@
   position: fixed;
   inset: 0;
   z-index: var(--z-drawer-backdrop);
-  display: none;
+  display: block;
+  visibility: hidden;
   background: var(--color-overlay-a65);
   opacity: 0;
-  transition: opacity var(--duration-base) var(--ease-editorial);
+  pointer-events: none;
+  transition:
+    opacity var(--duration-base) var(--ease-editorial),
+    visibility 0s linear var(--duration-base);
 }
 
 .luxury-nav__drawer-backdrop--open {
-  display: block;
+  visibility: visible;
   opacity: 1;
+  pointer-events: auto;
+  transition-delay: 0s;
 }
 
 .luxury-nav__drawer {
@@ -203,20 +223,26 @@
   /* stylelint-disable-next-line declaration-block-no-duplicate-properties -- 100vh is the legacy fallback for browsers without dynamic viewport units. */
   height: 100dvh;
   padding-block: env(safe-area-inset-top, 0px) env(safe-area-inset-bottom, 0px);
-  display: none;
+  display: grid;
   grid-template-rows: auto auto minmax(0, 1fr) auto;
+  visibility: hidden;
   color: var(--text-primary);
   background: var(--surface-page);
   border-inline-end: var(--border-subtle);
   box-shadow: var(--shadow-panel);
   overflow: hidden;
+  pointer-events: none;
   transform: translateX(102%);
-  transition: transform var(--duration-slow) var(--ease-editorial);
+  transition:
+    transform var(--duration-slow) var(--ease-editorial),
+    visibility 0s linear var(--duration-slow);
 }
 
 .luxury-nav__drawer--open {
-  display: grid;
+  visibility: visible;
+  pointer-events: auto;
   transform: translateX(0);
+  transition-delay: 0s;
 }
 
 .luxury-nav__focus-guard {
@@ -308,6 +334,24 @@
   gap: 0.25rem;
 }
 
+.luxury-nav__drawer-group[open] > .luxury-nav__drawer-submenu,
+.luxury-nav__drawer-nested[open] > .luxury-nav__drawer-submenu-links {
+  animation: luxury-nav-submenu-reveal var(--duration-base) var(--ease-editorial) both;
+  transform-origin: top center;
+}
+
+@keyframes luxury-nav-submenu-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(-0.35rem) scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 .luxury-nav__drawer-feature {
   min-height: 5.25rem;
   margin-block: 0.25rem 0.5rem;
@@ -393,6 +437,32 @@
   }
 }
 
+@media (max-width: 47.99rem) {
+  .luxury-nav__menu-toggle,
+  .luxury-nav__search-toggle,
+  .luxury-nav__cart {
+    --icon-size: 1.4rem;
+
+    width: var(--touch-target);
+    height: var(--touch-target);
+    color: var(--color-matte-black);
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  .luxury-nav__menu-toggle:hover,
+  .luxury-nav__search-toggle:hover,
+  .luxury-nav__cart:hover {
+    color: var(--accent-primary);
+    background: transparent;
+    border-color: transparent;
+  }
+}
+
 @media (min-width: 48rem) {
   .luxury-nav__note {
     display: flex;
@@ -402,12 +472,18 @@
     min-height: 4.75rem;
   }
 
-  .luxury-nav__brand img {
+  .luxury-nav__brand-logo {
     height: 2.55rem;
     max-width: 8.5rem;
+    display: block;
   }
 
-  .luxury-nav__brand span {
+  .luxury-nav__brand-mobile-wordmark {
+    display: none;
+  }
+
+  .luxury-nav__brand-caption {
+    display: block;
     font-size: 0.48rem;
   }
 
@@ -606,12 +682,12 @@
     text-decoration: none;
   }
 
-  .luxury-nav__brand img {
+  .luxury-nav__brand-logo {
     height: 2.9rem;
     max-width: 9.75rem;
   }
 
-  .luxury-nav__brand span {
+  .luxury-nav__brand-caption {
     font-size: 0.52rem;
   }
 }
@@ -625,8 +701,8 @@
     gap: 0;
   }
 
-  .luxury-nav__brand img {
-    max-width: 6rem;
+  .luxury-nav__brand-mobile-wordmark {
+    font-size: 1rem;
   }
 }
 
@@ -639,5 +715,10 @@
   .luxury-nav__menu-group > summary::after,
   .luxury-nav__primary-link::after {
     transition-duration: 0.01ms;
+  }
+
+  .luxury-nav__drawer-group[open] > .luxury-nav__drawer-submenu,
+  .luxury-nav__drawer-nested[open] > .luxury-nav__drawer-submenu-links {
+    animation-duration: 0.01ms;
   }
 }
