@@ -14,7 +14,7 @@ export interface ApiResponse<T> {
 export interface ApiError {
   code: string;
   message: string;
-  details?: any;
+  details?: unknown;
   status?: number;
 }
 
@@ -44,7 +44,7 @@ export interface ApiErrorResponse {
   message: string;
   data?: {
     status: number;
-    params?: any;
+    params?: unknown;
   };
 }
 
@@ -52,7 +52,7 @@ export class ApiException extends Error {
   constructor(
     public code: string,
     public status: number,
-    public details?: any
+    public details?: unknown
   ) {
     super(code);
     this.name = 'ApiException';
