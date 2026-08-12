@@ -200,6 +200,7 @@
   z-index: var(--z-drawer);
   width: min(91vw, 25rem);
   height: 100vh;
+  /* stylelint-disable-next-line declaration-block-no-duplicate-properties -- 100vh is the legacy fallback for browsers without dynamic viewport units. */
   height: 100dvh;
   padding-block: env(safe-area-inset-top, 0px) env(safe-area-inset-bottom, 0px);
   display: none;

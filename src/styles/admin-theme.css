@@ -448,8 +448,6 @@
   overflow-x: auto;
   overscroll-behavior-inline: contain;
   -webkit-overflow-scrolling: touch;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
 }
 
 @media (max-width: 720px) {
