@@ -45,6 +45,7 @@ This file records requested work before implementation. A backlog entry is not i
 | GM-014 | EPIC-01 | Editorial promotion and bridal-inspiration journey across discounts, lookbook and look detail | L2 | P1 | ACCEPTANCE | Merged via PR #75 with exact-head Quality Gates, browser/CWV, SSR, static-analysis and release-smoke evidence; V2 visual/product acceptance pending; discount/style APIs, product projection and hotspot navigation unchanged |
 | GM-015 | EPIC-05 | Warm editorial personal-styling chapter for Dream Profile and Catalog Builder | L2 | P1 | ACCEPTANCE | Merged via PR #76 with exact-head Quality Gates, browser/CWV, SSR, static-analysis and release-smoke evidence; V2 visual/product acceptance pending; consultation tags/payload, lookbook actions, share and AR semantics unchanged |
 | GM-016 | EPIC-01 | Clear the pre-existing frontend ESLint error baseline without changing business behavior | L1 | P1 | DONE | Merged via PR #77 after exact-head Quality Gates, SSR, browser/CWV, static-analysis and RM-17 release-certification evidence passed; frontend lint errors cleared and the existing warning debt remains separately visible |
+| GM-032 | EPIC-01 | Refine the mobile header wordmark, icon controls, drawer transition and submenu reveal motion | L2 | P1 | IN_PROGRESS | Owner-requested mobile-only polish; extends GM-008 without changing navigation semantics, routes, catalog authority or desktop composition |
 
 ## Intake format
 
