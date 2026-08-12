@@ -1,0 +1,27 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "workspaces": {
+    ".": {
+      "entry": [
+        "src/main.ts",
+        "src/main.server.ts",
+        "src/server.ts"
+      ],
+      "project": [
+        "src/**/*.ts",
+        "e2e/**/*.ts",
+        "playwright.config.ts"
+      ]
+    },
+    "backend": {
+      "entry": [
+        "src/main.ts",
+        "src/database/data-source.ts"
+      ],
+      "project": [
+        "src/**/*.ts",
+        "test/**/*.ts"
+      ]
+    }
+  }
+}
