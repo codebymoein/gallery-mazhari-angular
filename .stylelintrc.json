@@ -13,6 +13,17 @@
       "rules": {
         "no-duplicate-selectors": null
       }
+    },
+    {
+      "files": ["src/app/layout/header/header.component.css"],
+      "rules": {
+        "declaration-block-no-duplicate-properties": [
+          true,
+          {
+            "ignore": ["consecutive-duplicates-with-different-values"]
+          }
+        ]
+      }
     }
   ]
 }
