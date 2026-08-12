@@ -16,21 +16,29 @@ import { Observable, throwError } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 import { environment } from '@env/environment';
 
+interface ApiInterceptorError {
+  code: string;
+  message: string;
+  status: number;
+  details: unknown;
+  timestamp: string;
+}
+
 @Injectable()
 export class ApiInterceptor implements HttpInterceptor {
   /**
    * Intercept HTTP requests and responses
    */
   intercept(
-    req: HttpRequest<any>,
+    req: HttpRequest<unknown>,
     next: HttpHandler
-  ): Observable<HttpEvent<any>> {
+  ): Observable<HttpEvent<unknown>> {
     // Clone request and add headers
     const clonedReq = this.addHeaders(req);
 
     return next.handle(clonedReq).pipe(
       // Log responses in development only
-      tap((event: HttpEvent<any>) => {
+      tap((event: HttpEvent<unknown>) => {
         if (environment.debug.api && event instanceof HttpResponse) {
           console.debug('[ApiInterceptor] Response:', {
             url: event.url,
@@ -60,7 +68,7 @@ export class ApiInterceptor implements HttpInterceptor {
   /**
    * Add headers to requests
    */
-  private addHeaders(req: HttpRequest<any>): HttpRequest<any> {
+  private addHeaders(req: HttpRequest<unknown>): HttpRequest<unknown> {
     let headers = req.headers;
 
     // Never set Content-Type for FormData. The browser must generate the
@@ -94,7 +102,7 @@ export class ApiInterceptor implements HttpInterceptor {
   /**
    * Handle errors globally
    */
-  private handleError(error: HttpErrorResponse): any {
+  private handleError(error: HttpErrorResponse): ApiInterceptorError {
     let errorMessage = 'An error occurred';
     let errorCode = 'UNKNOWN_ERROR';
 

@@ -96,8 +96,15 @@ export class UserManagerComponent implements OnInit {
   }
   private emptyForm(): ManagedUserInput { return { fullName: '', email: '', role: 'customer', permissions: ['catalog.view', 'profile.edit'], isActive: true }; }
   private clearMessages() { this.error = ''; this.notice = ''; }
-  private errorMessage(error: any, fallback: string): string {
-    const detail = error?.error?.message || error?.details?.message || error?.message;
-    return Array.isArray(detail) ? detail.join('، ') : (detail || fallback);
+  private errorMessage(error: unknown, fallback: string): string {
+    const root = this.asRecord(error);
+    const errorBody = this.asRecord(root?.['error']);
+    const details = this.asRecord(root?.['details']);
+    const detail = errorBody?.['message'] ?? details?.['message'] ?? root?.['message'];
+    if (Array.isArray(detail)) return detail.map(String).join('، ');
+    return typeof detail === 'string' && detail ? detail : fallback;
+  }
+  private asRecord(value: unknown): Record<string, unknown> | null {
+    return typeof value === 'object' && value !== null ? value as Record<string, unknown> : null;
   }
 }

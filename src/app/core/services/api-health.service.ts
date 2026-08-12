@@ -18,16 +18,42 @@ export interface HealthCheckResult {
   timestamp: string;
 }
 
+export interface ApiTestResult {
+  success: boolean;
+  status: number;
+  message: string;
+  responseTime: number;
+}
+
 export interface ApiTest {
   name: string;
   endpoint: string;
   method: 'GET' | 'POST';
   description: string;
-  result?: {
-    success: boolean;
-    status: number;
-    message: string;
-    responseTime: number;
+  result?: ApiTestResult;
+}
+
+interface DataTestResult {
+  success: boolean;
+  count: number;
+  data: unknown[];
+  message: string;
+}
+
+interface DiagnosticsReport {
+  timestamp: string;
+  environment: 'production' | 'development';
+  apiUrl: string;
+  tests: {
+    health: HealthCheckResult;
+    endpoints: ApiTest[];
+    products: DataTestResult;
+    categories: DataTestResult;
+  };
+  summary: {
+    total: number;
+    passed: number;
+    failed: number;
   };
 }
 
@@ -45,7 +71,7 @@ export class ApiHealthService {
   checkHealth(): Observable<HealthCheckResult> {
     const startTime = performance.now();
 
-    return this.http.get<any>(`${this.apiUrl}/wp/v2/block-types`).pipe(
+    return this.http.get<unknown>(`${this.apiUrl}/wp/v2/block-types`).pipe(
       timeout(environment.apiTimeout),
       map(() => {
         const responseTime = performance.now() - startTime;
@@ -63,10 +89,10 @@ export class ApiHealthService {
         const responseTime = performance.now() - startTime;
         const result: HealthCheckResult = {
           success: false,
-          message: error.message || 'API is unreachable',
+          message: error?.message || 'API is unreachable',
           apiUrl: this.apiUrl,
           responseTime,
-          status: error.name === 'TimeoutError' ? 'timeout' : 'unhealthy',
+          status: error?.name === 'TimeoutError' ? 'timeout' : 'unhealthy',
           timestamp: new Date().toISOString()
         };
         return of(result);
@@ -125,11 +151,11 @@ export class ApiHealthService {
   /**
    * Test single endpoint
    */
-  private testEndpoint(test: ApiTest): Observable<any> {
+  private testEndpoint(test: ApiTest): Observable<ApiTestResult> {
     const startTime = performance.now();
     const fullUrl = `${this.apiUrl}${test.endpoint}`;
 
-    return this.http.get<any>(fullUrl).pipe(
+    return this.http.get<unknown>(fullUrl).pipe(
       timeout(10000),
       map(() => {
         const responseTime = performance.now() - startTime;
@@ -144,8 +170,8 @@ export class ApiHealthService {
         const responseTime = performance.now() - startTime;
         return of({
           success: false,
-          status: error.status || 0,
-          message: error.error?.message || error.message || 'Endpoint unreachable',
+          status: error?.status || 0,
+          message: error?.error?.message || error?.message || 'Endpoint unreachable',
           responseTime
         });
       })
@@ -155,8 +181,8 @@ export class ApiHealthService {
   /**
    * Test product data retrieval
    */
-  testProductData(): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/wc/v3/products?per_page=3`).pipe(
+  testProductData(): Observable<DataTestResult> {
+    return this.http.get<unknown>(`${this.apiUrl}/wc/v3/products?per_page=3`).pipe(
       map((products) => ({
         success: true,
         count: Array.isArray(products) ? products.length : 0,
@@ -168,7 +194,7 @@ export class ApiHealthService {
           success: false,
           count: 0,
           data: [],
-          message: error.error?.message || 'Failed to retrieve products'
+          message: error?.error?.message || 'Failed to retrieve products'
         });
       })
     );
@@ -177,8 +203,8 @@ export class ApiHealthService {
   /**
    * Test category data retrieval
    */
-  testCategoryData(): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/wc/v3/product_categories?per_page=5`).pipe(
+  testCategoryData(): Observable<DataTestResult> {
+    return this.http.get<unknown>(`${this.apiUrl}/wc/v3/product_categories?per_page=5`).pipe(
       map((categories) => ({
         success: true,
         count: Array.isArray(categories) ? categories.length : 0,
@@ -190,7 +216,7 @@ export class ApiHealthService {
           success: false,
           count: 0,
           data: [],
-          message: error.error?.message || 'Failed to retrieve categories'
+          message: error?.error?.message || 'Failed to retrieve categories'
         });
       })
     );
@@ -199,13 +225,25 @@ export class ApiHealthService {
   /**
    * Comprehensive API test suite
    */
-  runFullDiagnostics(): Observable<any> {
+  runFullDiagnostics(): Observable<DiagnosticsReport> {
     return new Observable(observer => {
-      const diagnostics = {
+      const diagnostics: DiagnosticsReport = {
         timestamp: new Date().toISOString(),
         environment: environment.production ? 'production' : 'development',
         apiUrl: this.apiUrl,
-        tests: {} as any,
+        tests: {
+          health: {
+            success: false,
+            message: '',
+            apiUrl: this.apiUrl,
+            responseTime: 0,
+            status: 'unhealthy',
+            timestamp: ''
+          },
+          endpoints: [],
+          products: { success: false, count: 0, data: [], message: '' },
+          categories: { success: false, count: 0, data: [], message: '' }
+        },
         summary: {
           total: 0,
           passed: 0,
@@ -243,7 +281,6 @@ export class ApiHealthService {
               if (categories.success) diagnostics.summary.passed++;
               else diagnostics.summary.failed++;
 
-              // Complete
               observer.next(diagnostics);
               observer.complete();
             });
@@ -256,13 +293,13 @@ export class ApiHealthService {
   /**
    * Log diagnostics to console
    */
-  logDiagnostics(diagnostics: any): void {
+  logDiagnostics(diagnostics: DiagnosticsReport): void {
     console.group('🏥 Gallery Mazhari - API Diagnostics');
     console.log('Timestamp:', diagnostics.timestamp);
     console.log('Environment:', diagnostics.environment);
     console.log('API URL:', diagnostics.apiUrl);
     console.log('');
-    
+
     console.group('Health Status');
     const health = diagnostics.tests.health;
     console.log(`Status: ${health.status.toUpperCase()}`);

@@ -228,14 +228,14 @@ export class CartService {
   /**
    * Get cart summary
    */
-  getCartSummary(): Observable<any> {
+  getCartSummary() {
     return this.cartSummary$;
   }
 
   /**
    * Calculate cart statistics
    */
-  getCartStats(): Observable<any> {
+  getCartStats() {
     return this.store.select(CartSelectors.selectCartStats);
   }
 
@@ -256,7 +256,7 @@ export class CartService {
   /**
    * Export cart data for checkout
    */
-  exportCartData(): Observable<any> {
+  exportCartData() {
     return this.cartSummary$.pipe(
       map(summary => ({
         items: summary.items,
