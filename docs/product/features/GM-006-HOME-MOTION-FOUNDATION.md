@@ -1,5 +1,7 @@
 # GM-006 — Home Motion Foundation
 
+Status: **CI candidate**
+
 ## Identity
 - Feature ID: `GM-006`
 - Slice: Home motion foundation
