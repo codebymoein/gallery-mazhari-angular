@@ -1,0 +1,42 @@
+.luxury-nav__bar .luxury-nav__actions > .ds-icon-button,
+.luxury-nav__bar > .luxury-nav__menu-toggle {
+  --icon-size: 1.4rem;
+
+  width: var(--touch-target);
+  height: var(--touch-target);
+  margin: 0;
+  flex: 0 0 var(--touch-target);
+  align-self: center;
+  color: var(--color-matte-black);
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+.luxury-nav__bar .luxury-nav__actions > .ds-icon-button:hover,
+.luxury-nav__bar > .luxury-nav__menu-toggle:hover {
+  color: var(--accent-primary);
+  background: transparent;
+  border-color: transparent;
+}
+
+.luxury-nav__bar .luxury-nav__cart-count {
+  inset-block-start: auto;
+  inset-block-end: 0.12rem;
+  inset-inline-start: 50%;
+  inset-inline-end: auto;
+  min-width: 0;
+  height: auto;
+  padding: 0;
+  display: block;
+  color: var(--accent-primary);
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  font-size: 0.54rem;
+  line-height: 1;
+  transform: translateX(-50%);
+}
