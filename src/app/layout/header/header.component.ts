@@ -23,7 +23,7 @@ import { LineIconComponent } from '@shared/components/line-icon/line-icon.compon
   standalone: true,
   imports: [CommonModule, RouterLink, FormsModule, LineIconComponent],
   templateUrl: './header.component.html',
-  styleUrls: ['./header.component.css'],
+  styleUrls: ['./header.component.css', './header-actions.css', './header-motion.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class HeaderComponent implements OnDestroy {
