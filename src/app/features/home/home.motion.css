@@ -1,0 +1,76 @@
+/* GM-006 home motion foundation. */
+
+.editorial-hero__media {
+  animation: gm-hero-image-settle var(--transition-editorial) both;
+}
+
+.editorial-hero__copy > * {
+  animation: gm-editorial-rise var(--transition-editorial) both;
+}
+
+.editorial-hero__copy > :nth-child(1) { animation-delay: 60ms; }
+.editorial-hero__copy > :nth-child(2) { animation-delay: 120ms; }
+.editorial-hero__copy > :nth-child(3) { animation-delay: 180ms; }
+.editorial-hero__copy > :nth-child(4) { animation-delay: 240ms; }
+
+.editorial-hero__chapter {
+  animation: gm-chapter-arrive var(--transition-editorial) 280ms both;
+}
+
+.heritage-note__year,
+.heritage-note__body,
+.heritage-note__link {
+  animation: gm-editorial-rise var(--transition-editorial) both;
+}
+
+.heritage-note__body { animation-delay: 70ms; }
+.heritage-note__link { animation-delay: 140ms; }
+
+.editorial-link:active,
+.editorial-hero__chapter:active,
+.heritage-note__link:active {
+  transform: scale(0.985);
+}
+
+@keyframes gm-hero-image-settle {
+  from { transform: scale(1.035) translate3d(0, -0.35%, 0); }
+  to { transform: scale(1.01) translate3d(0, 0, 0); }
+}
+
+@keyframes gm-editorial-rise {
+  from { transform: translate3d(0, var(--motion-reveal-distance), 0); }
+  to { transform: translate3d(0, 0, 0); }
+}
+
+@keyframes gm-chapter-arrive {
+  from { transform: translate3d(-0.7rem, 0.7rem, 0) scale(0.985); }
+  to { transform: translate3d(0, 0, 0) scale(1); }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .heritage-note__year {
+    transition: transform var(--transition-editorial-fast);
+  }
+
+  .heritage-note:hover .heritage-note__year {
+    transform: translateX(0.18em);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .editorial-hero__media,
+  .editorial-hero__copy > *,
+  .editorial-hero__chapter,
+  .heritage-note__year,
+  .heritage-note__body,
+  .heritage-note__link {
+    animation: none;
+  }
+
+  .editorial-link:active,
+  .editorial-hero__chapter:active,
+  .heritage-note__link:active,
+  .heritage-note:hover .heritage-note__year {
+    transform: none;
+  }
+}

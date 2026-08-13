@@ -28,7 +28,7 @@ import { assetUrl } from '@shared/utils/asset-url';
     SubcategoryCarouselComponent
   ],
   templateUrl: './home.component.html',
-  styleUrls: ['./home.component.css']
+  styleUrls: ['./home.component.css', './home.motion.css']
 })
 export class HomeComponent {
   private readonly appearanceApi = inject(AppearanceApiService);
