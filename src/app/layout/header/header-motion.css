@@ -1,0 +1,143 @@
+.luxury-nav__drawer-backdrop {
+  -webkit-backdrop-filter: blur(0);
+  backdrop-filter: blur(0);
+  transition:
+    opacity var(--duration-base) var(--ease-editorial),
+    -webkit-backdrop-filter var(--duration-base) var(--ease-editorial),
+    backdrop-filter var(--duration-base) var(--ease-editorial),
+    visibility 0s linear var(--duration-base);
+}
+
+.luxury-nav__drawer-backdrop--open {
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+}
+
+.luxury-nav__drawer {
+  opacity: 0.72;
+  transform: translateX(104%) scale(0.988);
+  transform-origin: top right;
+  transition:
+    transform var(--duration-slow) var(--ease-editorial),
+    opacity var(--duration-base) var(--ease-editorial),
+    visibility 0s linear var(--duration-slow);
+  will-change: transform, opacity;
+}
+
+.luxury-nav__drawer--open {
+  opacity: 1;
+  transform: translateX(0) scale(1);
+}
+
+.luxury-nav__drawer-header,
+.luxury-nav__drawer-search,
+.luxury-nav__drawer-nav,
+.luxury-nav__drawer-footer {
+  opacity: 0;
+  transform: translateY(0.55rem);
+  transition:
+    opacity var(--duration-base) var(--ease-editorial),
+    transform var(--duration-base) var(--ease-editorial);
+}
+
+.luxury-nav__drawer--open .luxury-nav__drawer-header,
+.luxury-nav__drawer--open .luxury-nav__drawer-search,
+.luxury-nav__drawer--open .luxury-nav__drawer-nav,
+.luxury-nav__drawer--open .luxury-nav__drawer-footer {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.luxury-nav__drawer--open .luxury-nav__drawer-header {
+  transition-delay: 45ms;
+}
+
+.luxury-nav__drawer--open .luxury-nav__drawer-search {
+  transition-delay: 85ms;
+}
+
+.luxury-nav__drawer--open .luxury-nav__drawer-nav {
+  transition-delay: 125ms;
+}
+
+.luxury-nav__drawer--open .luxury-nav__drawer-footer {
+  transition-delay: 165ms;
+}
+
+.luxury-nav__drawer-group[open] > .luxury-nav__drawer-submenu,
+.luxury-nav__drawer-nested[open] > .luxury-nav__drawer-submenu-links {
+  animation: luxury-nav-submenu-editorial-reveal var(--duration-slow) var(--ease-editorial) both;
+  transform-origin: top center;
+}
+
+.luxury-nav__drawer-group[open] > summary,
+.luxury-nav__drawer-nested[open] > summary {
+  color: var(--accent-primary);
+}
+
+.luxury-nav__drawer-group[open] > .luxury-nav__drawer-submenu > *,
+.luxury-nav__drawer-nested[open] > .luxury-nav__drawer-submenu-links > * {
+  animation: luxury-nav-submenu-item-reveal var(--duration-base) var(--ease-editorial) both;
+}
+
+.luxury-nav__drawer-group[open] > .luxury-nav__drawer-submenu > :nth-child(1),
+.luxury-nav__drawer-nested[open] > .luxury-nav__drawer-submenu-links > :nth-child(1) {
+  animation-delay: 35ms;
+}
+
+.luxury-nav__drawer-group[open] > .luxury-nav__drawer-submenu > :nth-child(2),
+.luxury-nav__drawer-nested[open] > .luxury-nav__drawer-submenu-links > :nth-child(2) {
+  animation-delay: 65ms;
+}
+
+.luxury-nav__drawer-group[open] > .luxury-nav__drawer-submenu > :nth-child(3),
+.luxury-nav__drawer-nested[open] > .luxury-nav__drawer-submenu-links > :nth-child(3) {
+  animation-delay: 95ms;
+}
+
+.luxury-nav__drawer-group[open] > .luxury-nav__drawer-submenu > :nth-child(n + 4),
+.luxury-nav__drawer-nested[open] > .luxury-nav__drawer-submenu-links > :nth-child(n + 4) {
+  animation-delay: 125ms;
+}
+
+@keyframes luxury-nav-submenu-editorial-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(-0.55rem) scaleY(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scaleY(1);
+  }
+}
+
+@keyframes luxury-nav-submenu-item-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(-0.35rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .luxury-nav__drawer-backdrop,
+  .luxury-nav__drawer,
+  .luxury-nav__drawer-header,
+  .luxury-nav__drawer-search,
+  .luxury-nav__drawer-nav,
+  .luxury-nav__drawer-footer,
+  .luxury-nav__drawer-nav summary app-line-icon,
+  .luxury-nav__drawer-group[open] > .luxury-nav__drawer-submenu,
+  .luxury-nav__drawer-nested[open] > .luxury-nav__drawer-submenu-links,
+  .luxury-nav__drawer-group[open] > .luxury-nav__drawer-submenu > *,
+  .luxury-nav__drawer-nested[open] > .luxury-nav__drawer-submenu-links > * {
+    animation: none !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+  }
+}
