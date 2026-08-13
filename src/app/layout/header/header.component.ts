@@ -23,7 +23,7 @@ import { LineIconComponent } from '@shared/components/line-icon/line-icon.compon
   standalone: true,
   imports: [CommonModule, RouterLink, FormsModule, LineIconComponent],
   templateUrl: './header.component.html',
-  styleUrls: ['./header.component.css'],
+  styleUrls: ['./header.component.css', './header-actions.css', './header-motion.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class HeaderComponent implements OnDestroy {
@@ -92,11 +92,7 @@ export class HeaderComponent implements OnDestroy {
 
     this.isSearchOpen = false;
     this.drawer.open();
-    window.setTimeout(() => {
-      this.document
-        .querySelector<HTMLButtonElement>('.luxury-nav__drawer-close')
-        ?.focus();
-    });
+    this.focusDrawerCloseWhenReady();
   }
 
   closeDrawer(restoreFocus = true): void {
@@ -108,9 +104,7 @@ export class HeaderComponent implements OnDestroy {
   }
 
   focusFirstDrawerControl(): void {
-    this.document
-      .querySelector<HTMLButtonElement>('.luxury-nav__drawer-close')
-      ?.focus();
+    this.focusDrawerCloseWhenReady();
   }
 
   focusLastDrawerControl(): void {
@@ -223,6 +217,26 @@ export class HeaderComponent implements OnDestroy {
   @HostListener('window:popstate')
   onBrowserHistoryChange(): void {
     this.closeMenus();
+  }
+
+  private focusDrawerCloseWhenReady(attempt = 0): void {
+    if (!this.drawer.isOpen()) return;
+
+    const closeButton = this.document
+      .querySelector<HTMLButtonElement>('.luxury-nav__drawer-close');
+    const drawerElement = closeButton
+      ?.closest<HTMLElement>('.luxury-nav__drawer');
+
+    if (closeButton && drawerElement && !drawerElement.hasAttribute('inert')) {
+      closeButton.focus({ preventScroll: true });
+      if (this.document.activeElement === closeButton) return;
+    }
+
+    if (attempt < 60) {
+      this.document.defaultView?.requestAnimationFrame(() => {
+        this.focusDrawerCloseWhenReady(attempt + 1);
+      });
+    }
   }
 
   private hasOpenDetails(): boolean {
