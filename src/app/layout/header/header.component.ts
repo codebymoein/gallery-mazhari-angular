@@ -229,10 +229,10 @@ export class HeaderComponent implements OnDestroy {
 
     if (closeButton && drawerElement && !drawerElement.hasAttribute('inert')) {
       closeButton.focus({ preventScroll: true });
-      return;
+      if (this.document.activeElement === closeButton) return;
     }
 
-    if (attempt < 4) {
+    if (attempt < 60) {
       this.document.defaultView?.requestAnimationFrame(() => {
         this.focusDrawerCloseWhenReady(attempt + 1);
       });
