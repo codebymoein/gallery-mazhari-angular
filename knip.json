@@ -16,7 +16,8 @@
     "backend": {
       "entry": [
         "src/main.ts",
-        "src/database/data-source.ts"
+        "src/database/data-source.ts",
+        "test/**/*.e2e-spec.ts"
       ],
       "project": [
         "src/**/*.ts",
