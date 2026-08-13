@@ -92,11 +92,7 @@ export class HeaderComponent implements OnDestroy {
 
     this.isSearchOpen = false;
     this.drawer.open();
-    window.setTimeout(() => {
-      this.document
-        .querySelector<HTMLButtonElement>('.luxury-nav__drawer-close')
-        ?.focus();
-    });
+    this.focusDrawerCloseWhenReady();
   }
 
   closeDrawer(restoreFocus = true): void {
@@ -108,9 +104,7 @@ export class HeaderComponent implements OnDestroy {
   }
 
   focusFirstDrawerControl(): void {
-    this.document
-      .querySelector<HTMLButtonElement>('.luxury-nav__drawer-close')
-      ?.focus();
+    this.focusDrawerCloseWhenReady();
   }
 
   focusLastDrawerControl(): void {
@@ -223,6 +217,26 @@ export class HeaderComponent implements OnDestroy {
   @HostListener('window:popstate')
   onBrowserHistoryChange(): void {
     this.closeMenus();
+  }
+
+  private focusDrawerCloseWhenReady(attempt = 0): void {
+    if (!this.drawer.isOpen()) return;
+
+    const closeButton = this.document
+      .querySelector<HTMLButtonElement>('.luxury-nav__drawer-close');
+    const drawerElement = closeButton
+      ?.closest<HTMLElement>('.luxury-nav__drawer');
+
+    if (closeButton && drawerElement && !drawerElement.hasAttribute('inert')) {
+      closeButton.focus({ preventScroll: true });
+      return;
+    }
+
+    if (attempt < 4) {
+      this.document.defaultView?.requestAnimationFrame(() => {
+        this.focusDrawerCloseWhenReady(attempt + 1);
+      });
+    }
   }
 
   private hasOpenDetails(): boolean {
