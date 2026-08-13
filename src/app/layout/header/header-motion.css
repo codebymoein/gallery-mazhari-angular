@@ -66,7 +66,7 @@
 
 .luxury-nav__drawer-group[open] > .luxury-nav__drawer-submenu,
 .luxury-nav__drawer-nested[open] > .luxury-nav__drawer-submenu-links {
-  animation: luxury-nav-submenu-editorial-reveal var(--duration-slow) var(--ease-editorial) both;
+  animation: luxury-nav-submenu-reveal-editorial var(--duration-slow) var(--ease-editorial) both;
   transform-origin: top center;
 }
 
@@ -100,7 +100,7 @@
   animation-delay: 125ms;
 }
 
-@keyframes luxury-nav-submenu-editorial-reveal {
+@keyframes luxury-nav-submenu-reveal-editorial {
   from {
     opacity: 0;
     transform: translateY(-0.55rem) scaleY(0.97);
