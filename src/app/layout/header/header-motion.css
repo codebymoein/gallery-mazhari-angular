@@ -1,19 +1,27 @@
 .luxury-nav__drawer-backdrop,
 .luxury-nav__drawer {
   --luxury-nav-drawer-duration: calc(
-    var(--duration-slow) + var(--duration-slow) + var(--duration-slow) + var(--duration-slow)
+    var(--duration-slow) + var(--duration-slow) + var(--duration-slow) + var(--duration-slow) +
+    var(--duration-slow) + var(--duration-slow) + var(--duration-slow) + var(--duration-slow) +
+    var(--duration-slow) + var(--duration-slow)
   );
   --luxury-nav-content-duration: calc(
-    var(--duration-base) + var(--duration-base) + var(--duration-base) + var(--duration-base)
+    var(--duration-base) + var(--duration-base) + var(--duration-base) + var(--duration-base) +
+    var(--duration-base) + var(--duration-base) + var(--duration-base) + var(--duration-base) +
+    var(--duration-base) + var(--duration-base)
   );
 }
 
 .luxury-nav__drawer {
   --luxury-nav-accordion-duration: calc(
-    var(--duration-slow) + var(--duration-slow) + var(--duration-slow) + var(--duration-slow)
+    var(--duration-slow) + var(--duration-slow) + var(--duration-slow) + var(--duration-slow) +
+    var(--duration-slow) + var(--duration-slow) + var(--duration-slow) + var(--duration-slow) +
+    var(--duration-slow) + var(--duration-slow)
   );
   --luxury-nav-row-duration: calc(
-    var(--duration-base) + var(--duration-base) + var(--duration-base) + var(--duration-base)
+    var(--duration-base) + var(--duration-base) + var(--duration-base) + var(--duration-base) +
+    var(--duration-base) + var(--duration-base) + var(--duration-base) + var(--duration-base) +
+    var(--duration-base) + var(--duration-base)
   );
 }
 
