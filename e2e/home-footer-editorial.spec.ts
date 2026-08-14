@@ -33,8 +33,9 @@ test.describe('GM-011 editorial Home and Footer', () => {
 
     const hero = page.locator('.editorial-hero');
     const heroImage = page.locator('.editorial-hero__media');
-    const bridalEntry = page.getByRole('link', { name: 'پوشاک عروس', exact: true });
-    const accessoryEntry = page.getByRole('link', { name: 'فروشگاه اکسسوری', exact: true });
+    const storeEntries = page.getByRole('navigation', { name: 'مسیرهای اصلی فروشگاه' });
+    const bridalEntry = storeEntries.getByRole('link', { name: 'پوشاک عروس', exact: true });
+    const accessoryEntry = storeEntries.getByRole('link', { name: 'فروشگاه اکسسوری', exact: true });
 
     await expect(hero).toBeVisible();
     await expect(heroImage).toBeVisible();
