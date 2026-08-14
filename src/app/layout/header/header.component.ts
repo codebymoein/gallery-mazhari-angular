@@ -23,7 +23,7 @@ import { LineIconComponent } from '@shared/components/line-icon/line-icon.compon
   standalone: true,
   imports: [CommonModule, RouterLink, FormsModule, LineIconComponent],
   templateUrl: './header.component.html',
-  styleUrls: ['./header.component.css', './header-actions.css', './header-motion.css'],
+  styleUrls: ['./header.component.css', './header-actions.css', './header-drawer-brand.css', './header-motion.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class HeaderComponent implements OnDestroy {
@@ -91,6 +91,7 @@ export class HeaderComponent implements OnDestroy {
     }
 
     this.isSearchOpen = false;
+    this.resetDrawerState();
     this.drawer.open();
     this.focusDrawerCloseWhenReady();
   }
@@ -247,5 +248,18 @@ export class HeaderComponent implements OnDestroy {
     this.host.nativeElement
       .querySelectorAll('details[open]')
       .forEach((el: Element) => el.removeAttribute('open'));
+    this.resetDrawerState();
+  }
+
+  private resetDrawerState(): void {
+    const drawerElement = this.document.getElementById('storefront-drawer');
+    if (!drawerElement) return;
+
+    drawerElement
+      .querySelectorAll('details[open]')
+      .forEach((el: Element) => el.removeAttribute('open'));
+    drawerElement
+      .querySelector<HTMLElement>('.luxury-nav__drawer-nav')
+      ?.scrollTo({ top: 0, behavior: 'auto' });
   }
 }
