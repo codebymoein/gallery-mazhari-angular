@@ -1,14 +1,11 @@
 .luxury-nav__drawer-backdrop,
 .luxury-nav__drawer {
   --luxury-nav-drawer-duration: calc(
-    var(--duration-slow) + var(--duration-slow) + var(--duration-slow) + var(--duration-slow) +
-    var(--duration-slow) + var(--duration-slow) + var(--duration-slow) + var(--duration-slow) +
-    var(--duration-slow) + var(--duration-slow)
+    var(--duration-slow) + var(--duration-slow) + var(--duration-slow) +
+    var(--duration-slow) + var(--duration-slow) + var(--duration-slow)
   );
   --luxury-nav-content-duration: calc(
-    var(--duration-base) + var(--duration-base) + var(--duration-base) + var(--duration-base) +
-    var(--duration-base) + var(--duration-base) + var(--duration-base) + var(--duration-base) +
-    var(--duration-base) + var(--duration-base)
+    var(--duration-base) + var(--duration-base) + var(--duration-base) + var(--duration-base)
   );
   --luxury-nav-drawer-ease: var(--ease-emphasized);
   --luxury-nav-content-ease: var(--ease-standard);
@@ -16,48 +13,44 @@
 
 .luxury-nav__drawer {
   --luxury-nav-accordion-duration: calc(
-    var(--duration-slow) + var(--duration-slow) + var(--duration-slow) + var(--duration-slow) +
-    var(--duration-slow) + var(--duration-slow) + var(--duration-slow) + var(--duration-slow) +
+    var(--duration-slow) + var(--duration-slow) + var(--duration-slow) +
     var(--duration-slow) + var(--duration-slow)
   );
   --luxury-nav-row-duration: calc(
-    var(--duration-base) + var(--duration-base) + var(--duration-base) + var(--duration-base) +
-    var(--duration-base) + var(--duration-base) + var(--duration-base) + var(--duration-base) +
-    var(--duration-base) + var(--duration-base)
+    var(--duration-base) + var(--duration-base) + var(--duration-base) + var(--duration-base)
   );
 }
 
+/* Closed drawer state is intentionally transition-free so dismissal is immediate. */
 .luxury-nav__drawer-backdrop {
   -webkit-backdrop-filter: blur(0);
   backdrop-filter: blur(0);
-  transition:
-    opacity var(--luxury-nav-content-duration) var(--luxury-nav-content-ease),
-    -webkit-backdrop-filter var(--luxury-nav-content-duration) var(--luxury-nav-content-ease),
-    backdrop-filter var(--luxury-nav-content-duration) var(--luxury-nav-content-ease),
-    visibility 0s linear var(--luxury-nav-drawer-duration);
+  transition: none;
 }
 
 .luxury-nav__drawer-backdrop--open {
   -webkit-backdrop-filter: blur(1px);
   backdrop-filter: blur(1px);
-  transition-delay: 0s;
+  transition:
+    opacity var(--luxury-nav-content-duration) var(--luxury-nav-content-ease),
+    -webkit-backdrop-filter var(--luxury-nav-content-duration) var(--luxury-nav-content-ease),
+    backdrop-filter var(--luxury-nav-content-duration) var(--luxury-nav-content-ease);
 }
 
 .luxury-nav__drawer {
   opacity: 0.96;
   transform: translate3d(-108%, 0, 0);
   transform-origin: top left;
-  transition:
-    transform var(--luxury-nav-drawer-duration) var(--luxury-nav-drawer-ease),
-    opacity var(--luxury-nav-content-duration) var(--luxury-nav-content-ease),
-    visibility 0s linear var(--luxury-nav-drawer-duration);
+  transition: none;
   will-change: transform;
 }
 
 .luxury-nav__drawer--open {
   opacity: 1;
   transform: translate3d(0, 0, 0);
-  transition-delay: 0s;
+  transition:
+    transform var(--luxury-nav-drawer-duration) var(--luxury-nav-drawer-ease),
+    opacity var(--luxury-nav-content-duration) var(--luxury-nav-content-ease);
 }
 
 .luxury-nav__drawer-header,
@@ -65,9 +58,7 @@
 .luxury-nav__drawer-footer {
   opacity: 0;
   transform: translateX(-0.85rem);
-  transition:
-    opacity var(--luxury-nav-content-duration) var(--luxury-nav-content-ease),
-    transform var(--luxury-nav-content-duration) var(--luxury-nav-content-ease);
+  transition: none;
 }
 
 .luxury-nav__drawer--open .luxury-nav__drawer-header,
@@ -75,20 +66,21 @@
 .luxury-nav__drawer--open .luxury-nav__drawer-footer {
   opacity: 1;
   transform: translateX(0);
+  transition:
+    opacity var(--luxury-nav-content-duration) var(--luxury-nav-content-ease),
+    transform var(--luxury-nav-content-duration) var(--luxury-nav-content-ease);
 }
 
 .luxury-nav__drawer--open .luxury-nav__drawer-header {
-  transition-delay: calc(var(--duration-slow) + var(--duration-slow));
+  transition-delay: var(--duration-slow);
 }
 
 .luxury-nav__drawer--open .luxury-nav__drawer-nav {
-  transition-delay: calc(var(--duration-slow) + var(--duration-slow) + var(--duration-fast));
+  transition-delay: calc(var(--duration-slow) + var(--duration-fast));
 }
 
 .luxury-nav__drawer--open .luxury-nav__drawer-footer {
-  transition-delay: calc(
-    var(--duration-slow) + var(--duration-slow) + var(--duration-fast) + var(--duration-fast)
-  );
+  transition-delay: calc(var(--duration-slow) + var(--duration-fast) + var(--duration-fast));
 }
 
 .luxury-nav__drawer-nav summary app-line-icon {
@@ -185,12 +177,42 @@
   }
 }
 
+/* Respect the OS accessibility preference without making the drawer feel broken.
+   Reduced-motion users get a brief opacity cue only; spatial movement is removed. */
 @media (prefers-reduced-motion: reduce) {
   .luxury-nav__drawer-backdrop,
   .luxury-nav__drawer,
   .luxury-nav__drawer-header,
   .luxury-nav__drawer-nav,
-  .luxury-nav__drawer-footer,
+  .luxury-nav__drawer-footer {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .luxury-nav__drawer {
+    opacity: 0;
+    transform: none;
+  }
+
+  .luxury-nav__drawer--open {
+    opacity: 1;
+    transform: none;
+    transition: opacity var(--duration-fast) var(--ease-standard) !important;
+  }
+
+  .luxury-nav__drawer-backdrop--open {
+    transition: opacity var(--duration-fast) var(--ease-standard) !important;
+  }
+
+  .luxury-nav__drawer--open .luxury-nav__drawer-header,
+  .luxury-nav__drawer--open .luxury-nav__drawer-nav,
+  .luxury-nav__drawer--open .luxury-nav__drawer-footer {
+    opacity: 1;
+    transform: none;
+    transition: opacity var(--duration-fast) var(--ease-standard) !important;
+    transition-delay: 0ms !important;
+  }
+
   .luxury-nav__drawer-nav summary app-line-icon,
   .luxury-nav__drawer-group > .luxury-nav__drawer-submenu,
   .luxury-nav__drawer-nested > .luxury-nav__drawer-submenu-links,
