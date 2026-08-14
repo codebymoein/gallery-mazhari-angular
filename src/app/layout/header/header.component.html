@@ -159,13 +159,18 @@
         <app-line-icon name="close" />
       </button>
       <a
-        class="luxury-nav__drawer-wordmark"
+        class="luxury-nav__drawer-brand"
         routerLink="/"
-        lang="en"
-        dir="ltr"
+        aria-label="بازگشت به صفحه اصلی"
         (click)="closeMenus()"
       >
-        Gallery Mazhari
+        <img
+          class="luxury-nav__drawer-brand-logo"
+          src="assets/images/gallery-mazhari-logo.png"
+          alt=""
+          width="1297"
+          height="804"
+        />
       </a>
     </div>
 
@@ -176,10 +181,6 @@
           <app-line-icon name="chevron-down" />
         </summary>
         <div class="luxury-nav__drawer-submenu">
-          <a class="luxury-nav__drawer-all-link" [routerLink]="['/shop', bridalCategory.slug]" (click)="closeMenus()">
-            مشاهده همه پوشاک عروس
-          </a>
-
           <details class="luxury-nav__drawer-nested luxury-nav__drawer-nested--bridal-dresses">
             <summary>
               <span>لباس عروس</span>
