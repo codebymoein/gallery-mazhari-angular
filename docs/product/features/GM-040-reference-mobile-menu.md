@@ -121,6 +121,6 @@ Public storefront visitors using mobile/tablet drawer navigation.
 ## Delivery
 
 - Planned branch: `feat/gm-040-reference-mobile-menu`
-- Planned PR: GM-040 reference-led mobile menu
+- Pull request: #109 — GM-040 reference-led mobile menu
 - Documentation to update: this specification and `docs/product/BACKLOG.md`
 - Definition of Done: `docs/engineering/DEFINITION_OF_DONE.md`
