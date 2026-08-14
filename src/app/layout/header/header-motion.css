@@ -5,117 +5,136 @@
     opacity var(--duration-base) var(--ease-editorial),
     -webkit-backdrop-filter var(--duration-base) var(--ease-editorial),
     backdrop-filter var(--duration-base) var(--ease-editorial),
-    visibility 0s linear var(--duration-base);
+    visibility 0s linear var(--duration-slow);
 }
 
 .luxury-nav__drawer-backdrop--open {
-  -webkit-backdrop-filter: blur(2px);
-  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(1px);
+  backdrop-filter: blur(1px);
+  transition-delay: 0s;
 }
 
 .luxury-nav__drawer {
-  opacity: 0.72;
-  transform: translateX(104%) scale(0.988);
-  transform-origin: top right;
+  opacity: 0.98;
+  transform: translateX(-104%);
+  transform-origin: top left;
   transition:
     transform var(--duration-slow) var(--ease-editorial),
     opacity var(--duration-base) var(--ease-editorial),
     visibility 0s linear var(--duration-slow);
-  will-change: transform, opacity;
+  will-change: transform;
 }
 
 .luxury-nav__drawer--open {
   opacity: 1;
-  transform: translateX(0) scale(1);
+  transform: translateX(0);
+  transition-delay: 0s;
 }
 
 .luxury-nav__drawer-header,
-.luxury-nav__drawer-search,
 .luxury-nav__drawer-nav,
 .luxury-nav__drawer-footer {
   opacity: 0;
-  transform: translateY(0.55rem);
+  transform: translateX(-0.45rem);
   transition:
     opacity var(--duration-base) var(--ease-editorial),
     transform var(--duration-base) var(--ease-editorial);
 }
 
 .luxury-nav__drawer--open .luxury-nav__drawer-header,
-.luxury-nav__drawer--open .luxury-nav__drawer-search,
 .luxury-nav__drawer--open .luxury-nav__drawer-nav,
 .luxury-nav__drawer--open .luxury-nav__drawer-footer {
   opacity: 1;
-  transform: translateY(0);
+  transform: translateX(0);
 }
 
 .luxury-nav__drawer--open .luxury-nav__drawer-header {
   transition-delay: 45ms;
 }
 
-.luxury-nav__drawer--open .luxury-nav__drawer-search {
+.luxury-nav__drawer--open .luxury-nav__drawer-nav {
   transition-delay: 85ms;
 }
 
-.luxury-nav__drawer--open .luxury-nav__drawer-nav {
+.luxury-nav__drawer--open .luxury-nav__drawer-footer {
   transition-delay: 125ms;
 }
 
-.luxury-nav__drawer--open .luxury-nav__drawer-footer {
-  transition-delay: 165ms;
+.luxury-nav__drawer-nav summary app-line-icon {
+  transition: transform var(--duration-base) var(--ease-editorial);
 }
 
-.luxury-nav__drawer-group[open] > .luxury-nav__drawer-submenu,
+.luxury-nav__drawer-nav details[open] > summary app-line-icon {
+  transform: rotate(180deg);
+}
+
+.luxury-nav__drawer-group > .luxury-nav__drawer-submenu,
+.luxury-nav__drawer-nested > .luxury-nav__drawer-submenu-links {
+  display: grid;
+  max-height: 0;
+  padding-block: 0;
+  visibility: hidden;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-0.25rem);
+  transition:
+    max-height var(--duration-slow) var(--ease-editorial),
+    padding-block var(--duration-slow) var(--ease-editorial),
+    opacity var(--duration-base) var(--ease-editorial),
+    transform var(--duration-base) var(--ease-editorial),
+    visibility 0s linear var(--duration-slow);
+}
+
+.luxury-nav__drawer-group[open] > .luxury-nav__drawer-submenu {
+  max-height: 70rem;
+  padding-block: 0.35rem 0.75rem;
+  visibility: visible;
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+  transition-delay: 0s;
+}
+
 .luxury-nav__drawer-nested[open] > .luxury-nav__drawer-submenu-links {
-  animation: luxury-nav-submenu-reveal-editorial var(--duration-slow) var(--ease-editorial) both;
-  transform-origin: top center;
-}
-
-.luxury-nav__drawer-group[open] > summary,
-.luxury-nav__drawer-nested[open] > summary {
-  color: var(--accent-primary);
+  max-height: 40rem;
+  padding-block: 0 0.5rem;
+  visibility: visible;
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+  transition-delay: 0s;
 }
 
 .luxury-nav__drawer-group[open] > .luxury-nav__drawer-submenu > *,
 .luxury-nav__drawer-nested[open] > .luxury-nav__drawer-submenu-links > * {
-  animation: luxury-nav-submenu-item-reveal var(--duration-base) var(--ease-editorial) both;
+  animation: luxury-nav-row-reveal var(--duration-base) var(--ease-editorial) both;
 }
 
 .luxury-nav__drawer-group[open] > .luxury-nav__drawer-submenu > :nth-child(1),
 .luxury-nav__drawer-nested[open] > .luxury-nav__drawer-submenu-links > :nth-child(1) {
-  animation-delay: 35ms;
+  animation-delay: 30ms;
 }
 
 .luxury-nav__drawer-group[open] > .luxury-nav__drawer-submenu > :nth-child(2),
 .luxury-nav__drawer-nested[open] > .luxury-nav__drawer-submenu-links > :nth-child(2) {
-  animation-delay: 65ms;
+  animation-delay: 55ms;
 }
 
 .luxury-nav__drawer-group[open] > .luxury-nav__drawer-submenu > :nth-child(3),
 .luxury-nav__drawer-nested[open] > .luxury-nav__drawer-submenu-links > :nth-child(3) {
-  animation-delay: 95ms;
+  animation-delay: 80ms;
 }
 
 .luxury-nav__drawer-group[open] > .luxury-nav__drawer-submenu > :nth-child(n + 4),
 .luxury-nav__drawer-nested[open] > .luxury-nav__drawer-submenu-links > :nth-child(n + 4) {
-  animation-delay: 125ms;
+  animation-delay: 105ms;
 }
 
-@keyframes luxury-nav-submenu-reveal-editorial {
+@keyframes luxury-nav-row-reveal {
   from {
     opacity: 0;
-    transform: translateY(-0.55rem) scaleY(0.97);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0) scaleY(1);
-  }
-}
-
-@keyframes luxury-nav-submenu-item-reveal {
-  from {
-    opacity: 0;
-    transform: translateY(-0.35rem);
+    transform: translateY(-0.2rem);
   }
 
   to {
@@ -128,12 +147,11 @@
   .luxury-nav__drawer-backdrop,
   .luxury-nav__drawer,
   .luxury-nav__drawer-header,
-  .luxury-nav__drawer-search,
   .luxury-nav__drawer-nav,
   .luxury-nav__drawer-footer,
   .luxury-nav__drawer-nav summary app-line-icon,
-  .luxury-nav__drawer-group[open] > .luxury-nav__drawer-submenu,
-  .luxury-nav__drawer-nested[open] > .luxury-nav__drawer-submenu-links,
+  .luxury-nav__drawer-group > .luxury-nav__drawer-submenu,
+  .luxury-nav__drawer-nested > .luxury-nav__drawer-submenu-links,
   .luxury-nav__drawer-group[open] > .luxury-nav__drawer-submenu > *,
   .luxury-nav__drawer-nested[open] > .luxury-nav__drawer-submenu-links > * {
     animation: none !important;
