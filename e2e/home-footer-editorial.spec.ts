@@ -32,12 +32,17 @@ test.describe('GM-011 editorial Home and Footer', () => {
     await appearanceLoaded;
 
     const hero = page.locator('.editorial-hero');
-    const heroCopy = page.locator('.editorial-hero__copy');
+    const heroImage = page.locator('.editorial-hero__media');
+    const storeEntries = page.getByRole('navigation', { name: 'مسیرهای اصلی فروشگاه' });
+    const bridalEntry = storeEntries.getByRole('link', { name: 'پوشاک عروس', exact: true });
+    const accessoryEntry = storeEntries.getByRole('link', { name: 'فروشگاه اکسسوری', exact: true });
+
     await expect(hero).toBeVisible();
-    await expect(page.locator('#home-hero-title')).toBeVisible();
-    await expect(heroCopy).toHaveCSS('animation-name', 'none');
-    await expect(page.getByRole('link', { name: /مشاهده کالکشن/ })).toHaveAttribute('href', '/catalog');
-    await expect(page.getByRole('link', { name: 'رزرو مشاوره', exact: true })).toHaveAttribute('href', '/consultation');
+    await expect(heroImage).toBeVisible();
+    await expect(page.locator('h1.sr-only')).toContainText('گالری مظهری');
+    await expect(page.locator('.editorial-hero__copy')).toHaveCount(0);
+    await expect(bridalEntry).toHaveAttribute('href', '/catalog');
+    await expect(accessoryEntry).toHaveAttribute('href', '/accessories');
 
     await page.evaluate(() => document.querySelector('.cat-showcase')?.scrollIntoView());
     const categoryImage = page.locator('.cat-story__img:visible, .cat-card__img:visible').first();
@@ -68,7 +73,8 @@ test.describe('GM-011 editorial Home and Footer', () => {
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.goto('/', { waitUntil: 'domcontentloaded' });
 
-    await expect(page.locator('#home-hero-title')).toBeVisible();
+    await expect(page.locator('h1.sr-only')).toContainText('گالری مظهری');
+    await expect(page.locator('.editorial-entry-action').first()).toHaveCSS('animation-name', 'none');
     await page.locator('.luxury-footer').scrollIntoViewIfNeeded();
     await expect(page.locator('.luxury-footer__brand-name h2')).toBeVisible();
     const transitionSeconds = await page.locator('.luxury-footer__top').evaluate(element =>

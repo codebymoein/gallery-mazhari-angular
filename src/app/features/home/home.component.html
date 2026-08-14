@@ -1,5 +1,7 @@
 <main class="home-editorial" dir="rtl">
   <section class="editorial-hero" aria-labelledby="home-hero-title">
+    <h1 id="home-hero-title" class="sr-only">گالری مظهری؛ پوشاک و اکسسوری عروس</h1>
+
     <div class="editorial-hero__media-shell" aria-hidden="true">
       <img
         class="editorial-hero__media"
@@ -12,58 +14,12 @@
         decoding="async"
       />
     </div>
-
-    <div class="editorial-hero__veil" aria-hidden="true"></div>
-
-    <div class="editorial-hero__copy">
-      <p class="editorial-kicker" lang="en" dir="ltr">GALLERY MAZHARI · SINCE 1337</p>
-      <h1 id="home-hero-title" class="editorial-hero__title">
-        لباسی برای<br />
-        <em>داستان شما</em>
-      </h1>
-      <p class="editorial-hero__lede">
-        انتخاب، مشاوره و پرو لباس عروس در تجربه‌ای شخصی‌تر؛ برای روزی که فقط یک‌بار اتفاق می‌افتد.
-      </p>
-
-      <nav class="editorial-hero__actions" aria-label="دسترسی سریع لباس عروس">
-        <a class="editorial-link editorial-link--filled" routerLink="/catalog">
-          مشاهده کالکشن
-          <span aria-hidden="true">←</span>
-        </a>
-        <a class="editorial-link editorial-link--quiet" routerLink="/consultation">
-          رزرو مشاوره
-        </a>
-      </nav>
-    </div>
-
-    <a
-      class="editorial-hero__chapter"
-      routerLink="/accessories"
-      aria-label="ورود به دنیای اکسسوری عروس"
-    >
-      <span class="editorial-hero__chapter-media" aria-hidden="true">
-        <img
-          [src]="accessoryImage()"
-          alt=""
-          width="1000"
-          height="1250"
-          loading="lazy"
-          fetchpriority="low"
-          decoding="async"
-        />
-      </span>
-      <span class="editorial-hero__chapter-copy">
-        <small lang="en" dir="ltr">THE DETAILS</small>
-        <strong>اکسسوری عروس</strong>
-        <span>کشف جزئیات استایل</span>
-      </span>
-    </a>
-
-    <span class="editorial-hero__scroll" aria-hidden="true">
-      <span></span>
-      SCROLL
-    </span>
   </section>
+
+  <nav class="editorial-entry-actions" aria-label="مسیرهای اصلی فروشگاه">
+    <a class="editorial-entry-action" routerLink="/catalog">پوشاک عروس</a>
+    <a class="editorial-entry-action" routerLink="/accessories">فروشگاه اکسسوری</a>
+  </nav>
 
   <section class="heritage-note" aria-labelledby="heritage-note-title">
     <p class="heritage-note__year" lang="en" dir="ltr">EST. 1958</p>

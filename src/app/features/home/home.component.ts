@@ -37,9 +37,6 @@ export class HomeComponent {
   readonly bridalImage = computed(() =>
     this.appearanceApi.appearance()?.bridalHeroImage || assetUrl('assets/images/home-hero-bride.webp')
   );
-  readonly accessoryImage = computed(() =>
-    this.appearanceApi.appearance()?.accessoryHeroImage || assetUrl('assets/images/bridal-hair-accessories.webp')
-  );
 
   constructor() {
     // Appearance customization is decorative and has deterministic fallback assets.
