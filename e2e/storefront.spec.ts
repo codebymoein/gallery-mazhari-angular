@@ -102,8 +102,8 @@ test.describe('storefront smoke tests', () => {
     await bridalGroup.locator(':scope > summary').click();
     const bridalSubmenu = bridalGroup.locator('.luxury-nav__drawer-submenu');
     await expect(bridalSubmenu).toBeVisible();
-    expect(await bridalSubmenu.evaluate((element) => getComputedStyle(element).animationName)).toContain(
-      'luxury-nav-submenu-reveal',
+    expect(await bridalSubmenu.evaluate((element) => getComputedStyle(element).transitionProperty)).toContain(
+      'max-height',
     );
 
     const accessoryGroup = drawer.locator('.luxury-nav__drawer-group').nth(1);
@@ -112,8 +112,8 @@ test.describe('storefront smoke tests', () => {
     await nestedGroup.locator(':scope > summary').click();
     const nestedLinks = nestedGroup.locator('.luxury-nav__drawer-submenu-links');
     await expect(nestedLinks).toBeVisible();
-    expect(await nestedLinks.evaluate((element) => getComputedStyle(element).animationName)).toContain(
-      'luxury-nav-submenu-reveal',
+    expect(await nestedLinks.evaluate((element) => getComputedStyle(element).transitionProperty)).toContain(
+      'max-height',
     );
 
     await drawer.getByRole('button', { name: 'بستن منو' }).click();
