@@ -62,7 +62,7 @@
   justify-content: center;
   padding-inline: var(--space-xs);
   background: color-mix(in srgb, var(--color-rose-soft) 64%, var(--color-matte-black));
-  color: var(--color-white);
+  color: var(--color-text-main);
   border: 0;
   border-radius: 0;
   font-size: clamp(0.72rem, 3.15vw, 0.9rem);
