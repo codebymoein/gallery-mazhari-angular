@@ -44,11 +44,22 @@ test.describe('header cart and reference-led mobile drawer', () => {
     const brandLogo = brand.locator('.luxury-nav__drawer-brand-logo');
     await expect(brand).toHaveAttribute('href', '/');
     await expect(brandLogo).toHaveAttribute('src', 'assets/images/gallery-mazhari-drawer-logo.png');
+    await expect(brandLogo).toHaveCSS('display', 'none');
     await expect(drawer.locator('.luxury-nav__drawer-wordmark')).toHaveCount(0);
     const brandBox = await brand.boundingBox();
     if (box && brandBox) {
       expect(Math.abs(brandBox.x + brandBox.width / 2 - (box.x + box.width / 2))).toBeLessThanOrEqual(1);
+      expect(brandBox.width).toBeLessThanOrEqual(130);
     }
+    const brandVisual = await brand.evaluate((element) => {
+      const styles = getComputedStyle(element, '::before');
+      return {
+        backgroundColor: styles.backgroundColor,
+        maskImage: styles.getPropertyValue('mask-image') || styles.getPropertyValue('-webkit-mask-image'),
+      };
+    });
+    expect(brandVisual.maskImage).toContain('gallery-mazhari-drawer-logo.png');
+    expect(brandVisual.backgroundColor).not.toBe('rgb(0, 0, 0)');
 
     await expect(drawer.locator('#drawer-search')).toHaveCount(0);
     await expect(drawer.locator('.luxury-nav__drawer-feature')).toHaveCount(0);
@@ -63,6 +74,7 @@ test.describe('header cart and reference-led mobile drawer', () => {
     ).toHaveCount(0);
 
     const bridalDressGroup = bridalGroup.locator('.luxury-nav__drawer-nested--bridal-dresses');
+    await expect(bridalDressGroup).toHaveCSS('border-top-width', '0px');
     await expect(bridalDressGroup.locator(':scope > summary')).toContainText('لباس عروس');
     const nestedChevron = bridalDressGroup.locator(':scope > summary app-line-icon');
     await expect(nestedChevron).toHaveCSS('border-top-width', '1px');
@@ -104,6 +116,7 @@ test.describe('header cart and reference-led mobile drawer', () => {
   });
 
   test('drawer and accordion motion use the requested tenfold component scale', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'no-preference' });
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/');
     await page.getByRole('button', { name: 'باز کردن منوی اصلی' }).click();
@@ -112,6 +125,11 @@ test.describe('header cart and reference-led mobile drawer', () => {
     const drawerDuration = await drawer.evaluate((element) => getComputedStyle(element).transitionDuration);
     expect(Number.parseFloat(drawerDuration)).toBeGreaterThanOrEqual(3.9);
 
+    await page.waitForTimeout(500);
+    const earlyTransform = await drawer.evaluate((element) => getComputedStyle(element).transform);
+    expect(earlyTransform).not.toBe('matrix(1, 0, 0, 1, 0, 0)');
+
+    await expect(drawer).toHaveCSS('transform', 'matrix(1, 0, 0, 1, 0, 0)', { timeout: 9000 });
     const bridalGroup = drawer.locator('.luxury-nav__drawer-group').first();
     await bridalGroup.locator(':scope > summary').click();
     const submenu = bridalGroup.locator('.luxury-nav__drawer-submenu');
