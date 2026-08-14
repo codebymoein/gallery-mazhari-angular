@@ -43,7 +43,7 @@ test.describe('header cart and reference-led mobile drawer', () => {
     const brand = drawer.locator('.luxury-nav__drawer-brand');
     const brandLogo = brand.locator('.luxury-nav__drawer-brand-logo');
     await expect(brand).toHaveAttribute('href', '/');
-    await expect(brandLogo).toHaveAttribute('src', 'assets/images/gallery-mazhari-logo.png');
+    await expect(brandLogo).toHaveAttribute('src', 'assets/images/gallery-mazhari-drawer-logo.png');
     await expect(drawer.locator('.luxury-nav__drawer-wordmark')).toHaveCount(0);
     const brandBox = await brand.boundingBox();
     if (box && brandBox) {
