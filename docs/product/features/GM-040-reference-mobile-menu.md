@@ -13,10 +13,10 @@
 ## Problem / outcome
 
 ### Current problem
-The mobile header is functionally complete, but the drawer still needs the final owner-requested hierarchy, branding, state-reset and motion refinement: dress collections are visually flat under bridal clothing, nested groups are not sufficiently distinguishable from top-level groups, the drawer header still uses a text wordmark instead of the owner-supplied Gallery Mazhari logo, reopening can preserve expanded disclosures, and the approved drawer/accordion animation is still faster than the intended deliberate fashion-editorial pacing.
+The mobile header is functionally complete, but the drawer still needs the final owner-requested hierarchy, branding, state-reset and motion refinement: dress collections are visually flat under bridal clothing, nested groups are not sufficiently distinguishable from top-level groups, the drawer header still uses a text wordmark instead of the owner-supplied Gallery Mazhari logo, reopening can preserve expanded disclosures, and the drawer entrance needs a deliberate but not overlong fashion-editorial pace.
 
 ### Desired outcome
-The mobile drawer should feel like the supplied fashion reference: a light, minimal panel entering from the physical left, occupying almost the full viewport while leaving a narrow strip of the page visible; quiet hairline row dividers; deliberately slow finite motion; the owner-supplied Gallery Mazhari logo centered in the drawer header; a clean collapsed state every time the drawer is reopened; and a flat dusty taupe consultation action. Under `پوشاک عروس`, the existing European, Arabic and mermaid bridal-dress destinations are grouped under a single navigational `لباس عروس` disclosure, while `لباس نامزدی`, `کت‌وشلوار عقد`, `روبدوشامبر عروس` and the remaining bridal destinations stay alongside it. Nested disclosure chevrons use a simple current-color circular outline so they are visibly distinct from top-level chevrons without introducing a new icon language. The redundant `مشاهده همه پوشاک عروس` mobile-row is removed without changing canonical routes or taxonomy.
+The mobile drawer should feel like the supplied fashion reference: a light, minimal panel entering from the physical left, occupying almost the full viewport while leaving a narrow strip of the page visible; quiet hairline row dividers; a clearly visible but finite entry motion; the owner-supplied Gallery Mazhari logo centered in the drawer header; a clean collapsed state every time the drawer is reopened; and a flat dusty taupe consultation action. Under `پوشاک عروس`, the existing European, Arabic and mermaid bridal-dress destinations are grouped under a single navigational `لباس عروس` disclosure, while `لباس نامزدی`, `کت‌وشلوار عقد`, `روبدوشامبر عروس` and the remaining bridal destinations stay alongside it. Nested disclosure chevrons use a simple current-color circular outline so they are visibly distinct from top-level chevrons without introducing a new icon language. The redundant `مشاهده همه پوشاک عروس` mobile-row is removed without changing canonical routes or taxonomy.
 
 ### Users / roles affected
 Public storefront visitors using mobile/tablet drawer navigation.
@@ -27,7 +27,7 @@ Public storefront visitors using mobile/tablet drawer navigation.
 2. The drawer uses the same light fashion-editorial surface and dusty taupe visual language as the approved GM-039 Home opening, without a dark feature card or heavy rounded search/card treatment.
 3. The drawer header is minimal, uses the owner-supplied Gallery Mazhari logo centered within the drawer header instead of a text wordmark, retains a separate close control, and keeps the existing dialog/focus semantics.
 4. Top-level and nested menu rows are separated by subtle hairline dividers. Top-level chevrons remain plain; nested disclosure chevrons are enclosed by a simple one-pixel `currentColor` circle.
-5. Drawer entry and accordion reveals use a component-local tenfold scale derived from the canonical shared motion tokens. `prefers-reduced-motion: reduce` disables decorative motion while preserving visibility and interaction.
+5. Normal drawer entry is approximately 1.6 seconds, derived from shared motion tokens; submenu/accordion reveal remains approximately 2 seconds. Drawer dismissal is immediate with no closing animation. When `prefers-reduced-motion: reduce` is active, the long full-width slide is replaced by a short, clearly visible low-displacement opacity/translate cue of roughly 450ms; submenu motion remains effectively instant.
 6. Under `پوشاک عروس`, `لباس عروس` is a nested navigation group containing exactly the existing `لباس عروس اروپایی`, `لباس عروس عربی` and `لباس عروس مدل ماهی` destinations. The remaining bridal items stay at the surrounding bridal submenu level and retain their existing order/routes.
 7. The mobile-only `مشاهده همه پوشاک عروس` row is absent. Existing canonical bridal collection/subcategory links remain available through the grouped and surrounding menu rows; desktop navigation remains unchanged.
 8. Every drawer opening starts from the initial collapsed hierarchy with the drawer navigation returned to its top position, regardless of which disclosures were expanded before the previous close.
@@ -48,7 +48,7 @@ Public storefront visitors using mobile/tablet drawer navigation.
 - A menu-only bridal-dress grouping that composes the three existing canonical bridal-dress destinations without changing their product classification or route identity.
 - Removal of the mobile `مشاهده همه پوشاک عروس` row while preserving the canonical bridal destinations represented elsewhere in the hierarchy.
 - A current-color circular affordance around nested disclosure chevrons only.
-- Tenfold component-local drawer/submenu motion and reduced-motion treatment.
+- Component-local drawer and submenu motion derived from shared tokens, with a shorter normal drawer entry, unchanged slower submenu reveal, immediate dismissal, and a reduced-motion-specific low-displacement entry cue.
 - Resetting nested/top-level drawer disclosures and drawer scroll position before each opening.
 - Removal of redundant drawer-only search block and dark drawer feature card while retaining their destinations through existing controls/links.
 - Focused Playwright regression evidence and product traceability.
@@ -77,8 +77,8 @@ Public storefront visitors using mobile/tablet drawer navigation.
 | Protected business workflows | No | Navigation presentation only. |
 | Media/storage | Static asset only | One owner-supplied logo derivative is added under `src/assets/images`; no upload/media pipeline, object storage or backend media behavior changes. |
 | SEO | No semantic route change | Crawlable links remain real anchors/router links with their existing canonical destinations. |
-| Accessibility | Yes | Dialog/focus/keyboard/touch/reduced-motion must remain valid. |
-| Performance | Low | CSS/markup/local state plus one optimized ~9 KB static logo asset; no dependency added. |
+| Accessibility | Yes | Dialog/focus/keyboard/touch/reduced-motion behavior remains explicitly covered. |
+| Performance | Low | CSS/markup/local state plus one optimized static logo asset; no dependency added. |
 | Deployment/config/monitoring | No | Standard frontend artifact only. |
 | Documentation | Yes | Feature spec and Backlog traceability. |
 
@@ -103,13 +103,13 @@ Public storefront visitors using mobile/tablet drawer navigation.
 
 ## UX / visual decision
 
-- Approved intended state/interaction: physical-left near-full-width drawer modeled on the supplied fashion reference, with a warm near-white surface, centered owner-supplied Gallery Mazhari logo, fine separators, minimal rows, deliberately slow accordions and a flat dusty taupe CTA.
-- Motion scaling: component-local duration aliases are composed from the canonical `--duration-base` and `--duration-slow` tokens rather than hardcoding a second motion system; main drawer and accordion durations are ten times the canonical slow duration and content/row reveals are ten times the canonical base duration.
+- Approved intended state/interaction: physical-left near-full-width drawer modeled on the supplied fashion reference, with a warm near-white surface, centered owner-supplied Gallery Mazhari logo, fine separators, minimal rows, deliberate drawer entry, slower accordions and a flat dusty taupe CTA.
+- Motion scaling: normal drawer entry is four canonical `--duration-slow` intervals (~1.6s); content entry uses three `--duration-base` intervals (~750ms); accordion reveal remains five `--duration-slow` intervals (~2s). Closing has no transition. Reduced-motion mode keeps only a short three-`--duration-fast` (~450ms) low-displacement opacity/translate cue for the drawer while submenu motion is effectively disabled.
 - Branding: the mobile drawer replaces the text `Gallery Mazhari` wordmark with the owner-supplied logo derivative at `src/assets/images/gallery-mazhari-drawer-logo.png` and centers it independently of the close control. The image is decorative within a separately named home link, avoiding duplicate accessible branding text.
 - Drawer reset: the drawer hierarchy and its scroll container are normalized before every open so no disclosure remains expanded from a prior session.
 - Nested hierarchy marker: nested `details` chevrons use the existing line icon plus a one-pixel `currentColor` circle; top-level chevrons remain plain.
-- Reused design-system primitives/tokens: `--touch-target`, semantic text/surface/border tokens, editorial motion tokens, and the GM-039 taupe `color-mix` treatment built from existing canonical palette tokens.
-- Mobile/RTL/accessibility: physical drawer edge is intentionally left while content remains RTL; 320px and 390px overflow checks; focus-visible, Escape, backdrop close, focus restoration and reduced motion are mandatory.
+- Reused design-system primitives/tokens: `--touch-target`, semantic text/surface/border tokens, shared motion tokens, and the GM-039 taupe `color-mix` treatment built from existing canonical palette tokens.
+- Mobile/RTL/accessibility: physical drawer edge is intentionally left while content remains RTL; 320px and 390px overflow checks; focus-visible, Escape, backdrop close, focus restoration and reduced-motion behavior are mandatory.
 
 ## Implementation plan
 
@@ -118,8 +118,8 @@ Public storefront visitors using mobile/tablet drawer navigation.
 3. Replace the drawer text wordmark with an optimized derivative of the owner-supplied Gallery Mazhari logo and center it independently from the close control.
 4. Reset drawer disclosure and scroll UI state before every open.
 5. Style nested disclosure chevrons with a subtle circular outline while preserving the plain top-level chevron language.
-6. Scale drawer, content and accordion motion to tenfold component-local aliases built from canonical duration tokens; preserve the instant reduced-motion path.
-7. Extend Playwright evidence for grouping, removed redundant mobile row, exact preserved routes, centered supplied logo, reset-on-reopen, nested-chevron distinction, deliberate motion duration, left-edge geometry, focus behavior, mobile overflow and reduced motion.
+6. Keep submenu reveal at the approved slower pace, shorten only the main drawer entry, keep dismissal instant, and provide a visible low-displacement reduced-motion entry cue using the same existing CSS motion layer.
+7. Extend Playwright evidence for grouping, removed redundant mobile row, exact preserved routes, centered supplied logo, reset-on-reopen, nested-chevron distinction, normal/reduced motion durations, immediate dismissal, left-edge geometry, focus behavior and mobile overflow.
 8. Run exact-head repository gates and inspect the final PR diff/file list before handoff.
 
 ## Verification plan
@@ -127,7 +127,7 @@ Public storefront visitors using mobile/tablet drawer navigation.
 - Unit tests: no isolated new domain logic expected; existing frontend unit suite remains required.
 - Backend/integration tests: no backend behavior changes; repository gates and backend canonical-taxonomy tests remain authoritative.
 - PostgreSQL/migration verification: no migration; permanent repository gate must remain green.
-- Browser/E2E tests: 320px/390px mobile drawer geometry, exact bridal-dress grouping/routes, absence of mobile `مشاهده همه پوشاک عروس`, centered owner-supplied logo, reset-on-reopen hierarchy/scroll state, nested chevron circle, tenfold animation durations, focus restoration, Escape/backdrop close and overflow; existing cross-browser RM-13 matrix.
+- Browser/E2E tests: 320px/390px mobile drawer geometry, exact bridal-dress grouping/routes, absence of mobile `مشاهده همه پوشاک عروس`, centered owner-supplied logo, reset-on-reopen hierarchy/scroll state, nested chevron circle, ~1.6s normal drawer entry, ~2s accordion reveal, ~450ms reduced-motion low-displacement cue, immediate dismissal, focus restoration, Escape/backdrop close and overflow; existing cross-browser RM-13 matrix.
 - SSR/SEO/accessibility/performance evidence: production build/SSR gates, accessibility, Design System Contract, RM-12/RM-13 and reduced-motion coverage.
 - Manual/staging acceptance: owner review of the exact candidate on mobile after automated gates.
 
