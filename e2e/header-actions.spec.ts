@@ -30,6 +30,7 @@ test.describe('header cart and reference-led mobile drawer', () => {
 
     const drawer = page.locator('#storefront-drawer');
     await expect(drawer).toBeVisible();
+    await expect(drawer).toHaveCSS('transform', 'matrix(1, 0, 0, 1, 0, 0)', { timeout: 7000 });
     const box = await drawer.boundingBox();
     expect(box).not.toBeNull();
     if (box) {
@@ -55,11 +56,36 @@ test.describe('header cart and reference-led mobile drawer', () => {
       bridalGroup.getByRole('link', { name: 'مشاهده همه پوشاک عروس', exact: true }),
     ).toHaveAttribute('href', '/shop/bridal-clothing');
 
+    const bridalDressGroup = bridalGroup.locator('.luxury-nav__drawer-nested--bridal-dresses');
+    await expect(bridalDressGroup.locator(':scope > summary')).toContainText('لباس عروس');
+    const nestedChevron = bridalDressGroup.locator(':scope > summary app-line-icon');
+    await expect(nestedChevron).toHaveCSS('border-top-width', '1px');
+    await expect(nestedChevron).not.toHaveCSS('border-radius', '0px');
+
+    await bridalDressGroup.locator(':scope > summary').click();
+    await expect(
+      bridalDressGroup.getByRole('link', { name: 'لباس عروس اروپایی', exact: true }),
+    ).toHaveAttribute('href', '/collections/european-bridal-dresses');
+    await expect(
+      bridalDressGroup.getByRole('link', { name: 'لباس عروس عربی', exact: true }),
+    ).toHaveAttribute('href', '/collections/arabic-bridal-dresses');
+    await expect(
+      bridalDressGroup.getByRole('link', { name: 'لباس عروس مدل ماهی', exact: true }),
+    ).toHaveAttribute('href', '/collections/mermaid-bridal-dresses');
+    await expect(
+      bridalGroup.getByRole('link', { name: 'لباس نامزدی', exact: true }),
+    ).toHaveAttribute('href', '/collections/engagement-dresses');
+    await expect(
+      bridalGroup.getByRole('link', { name: 'کت‌وشلوار عقد', exact: true }),
+    ).toHaveAttribute('href', '/shop/bridal-clothing/ceremony-suits');
+
     const accessoryGroup = drawer.locator('.luxury-nav__drawer-group').nth(1);
     await accessoryGroup.locator(':scope > summary').click();
     await expect(
       accessoryGroup.getByRole('link', { name: 'مشاهده همه اکسسوری‌ها', exact: true }),
     ).toHaveAttribute('href', '/accessories');
+    const accessoryNestedChevron = accessoryGroup.locator('.luxury-nav__drawer-nested > summary app-line-icon').first();
+    await expect(accessoryNestedChevron).toHaveCSS('border-top-width', '1px');
 
     await expect(drawer.getByRole('link', { name: 'ارتباط با ما', exact: true })).toHaveAttribute('href', '/contact');
     await expect(drawer.getByRole('link', { name: 'حساب کاربری من', exact: true })).toHaveAttribute('href', '/account');
@@ -69,6 +95,22 @@ test.describe('header cart and reference-led mobile drawer', () => {
     const cta = drawer.locator('.luxury-nav__drawer-cta');
     await expect(cta).toHaveCSS('border-radius', '0px');
     await expect(cta).not.toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+  });
+
+  test('drawer and accordion motion are intentionally several times slower than the base tokens', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/');
+    await page.getByRole('button', { name: 'باز کردن منوی اصلی' }).click();
+
+    const drawer = page.locator('#storefront-drawer');
+    const drawerDuration = await drawer.evaluate((element) => getComputedStyle(element).transitionDuration);
+    expect(Number.parseFloat(drawerDuration)).toBeGreaterThanOrEqual(1.5);
+
+    const bridalGroup = drawer.locator('.luxury-nav__drawer-group').first();
+    await bridalGroup.locator(':scope > summary').click();
+    const submenu = bridalGroup.locator('.luxury-nav__drawer-submenu');
+    const submenuDuration = await submenu.evaluate((element) => getComputedStyle(element).transitionDuration);
+    expect(Number.parseFloat(submenuDuration)).toBeGreaterThanOrEqual(1.5);
   });
 
   test('drawer focus, escape restoration and 320px overflow remain safe', async ({ page }) => {
