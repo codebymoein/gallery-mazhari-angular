@@ -179,10 +179,37 @@
           <a class="luxury-nav__drawer-all-link" [routerLink]="['/shop', bridalCategory.slug]" (click)="closeMenus()">
             مشاهده همه پوشاک عروس
           </a>
+
+          <details class="luxury-nav__drawer-nested luxury-nav__drawer-nested--bridal-dresses">
+            <summary>
+              <span>لباس عروس</span>
+              <app-line-icon name="chevron-down" />
+            </summary>
+            <div class="luxury-nav__drawer-submenu-links">
+              @for (item of bridalCategory.subcategories; track item.slug) {
+                @if (
+                  item.slug === 'european-bridal-dresses' ||
+                  item.slug === 'arabic-bridal-dresses' ||
+                  item.slug === 'mermaid-bridal-dresses'
+                ) {
+                  <a class="luxury-nav__drawer-submenu-link" [routerLink]="bridalItemLink(item.slug)" (click)="closeMenus()">
+                    {{ item.label }}
+                  </a>
+                }
+              }
+            </div>
+          </details>
+
           @for (item of bridalCategory.subcategories; track item.slug) {
-            <a class="luxury-nav__drawer-submenu-link" [routerLink]="bridalItemLink(item.slug)" (click)="closeMenus()">
-              {{ item.label }}
-            </a>
+            @if (
+              item.slug !== 'european-bridal-dresses' &&
+              item.slug !== 'arabic-bridal-dresses' &&
+              item.slug !== 'mermaid-bridal-dresses'
+            ) {
+              <a class="luxury-nav__drawer-submenu-link" [routerLink]="bridalItemLink(item.slug)" (click)="closeMenus()">
+                {{ item.label }}
+              </a>
+            }
           }
         </div>
       </details>
