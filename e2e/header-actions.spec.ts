@@ -30,7 +30,7 @@ test.describe('header cart and reference-led mobile drawer', () => {
 
     const drawer = page.locator('#storefront-drawer');
     await expect(drawer).toBeVisible();
-    await expect(drawer).toHaveCSS('transform', 'matrix(1, 0, 0, 1, 0, 0)', { timeout: 7000 });
+    await expect(drawer).toHaveCSS('transform', 'matrix(1, 0, 0, 1, 0, 0)', { timeout: 5000 });
     const box = await drawer.boundingBox();
     expect(box).not.toBeNull();
     if (box) {
@@ -126,14 +126,14 @@ test.describe('header cart and reference-led mobile drawer', () => {
 
     const drawerDuration = await drawer.evaluate((element) => getComputedStyle(element).transitionDuration);
     const openingSeconds = Number.parseFloat(drawerDuration);
-    expect(openingSeconds).toBeGreaterThanOrEqual(2.3);
-    expect(openingSeconds).toBeLessThanOrEqual(2.5);
+    expect(openingSeconds).toBeGreaterThanOrEqual(1.5);
+    expect(openingSeconds).toBeLessThanOrEqual(1.7);
 
-    await page.waitForTimeout(350);
+    await page.waitForTimeout(250);
     const earlyTransform = await drawer.evaluate((element) => getComputedStyle(element).transform);
     expect(earlyTransform).not.toBe('matrix(1, 0, 0, 1, 0, 0)');
 
-    await expect(drawer).toHaveCSS('transform', 'matrix(1, 0, 0, 1, 0, 0)', { timeout: 7000 });
+    await expect(drawer).toHaveCSS('transform', 'matrix(1, 0, 0, 1, 0, 0)', { timeout: 5000 });
     await drawer.getByRole('button', { name: 'بستن منو' }).click();
     await expect(drawer).toHaveAttribute('aria-hidden', 'true');
     const closedDuration = await drawer.evaluate((element) => getComputedStyle(element).transitionDuration);
@@ -147,7 +147,7 @@ test.describe('header cart and reference-led mobile drawer', () => {
     await page.getByRole('button', { name: 'باز کردن منوی اصلی' }).click();
 
     const drawer = page.locator('#storefront-drawer');
-    await expect(drawer).toHaveCSS('transform', 'matrix(1, 0, 0, 1, 0, 0)', { timeout: 7000 });
+    await expect(drawer).toHaveCSS('transform', 'matrix(1, 0, 0, 1, 0, 0)', { timeout: 5000 });
     const bridalGroup = drawer.locator('.luxury-nav__drawer-group').first();
     await bridalGroup.locator(':scope > summary').click();
     const submenu = bridalGroup.locator('.luxury-nav__drawer-submenu');
@@ -204,7 +204,7 @@ test.describe('header cart and reference-led mobile drawer', () => {
     await expect(menuToggle).toBeFocused();
   });
 
-  test('reduced motion keeps a brief non-spatial cue instead of the long slide', async ({ page }) => {
+  test('reduced motion keeps a visible low-displacement entry cue', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/');
@@ -212,7 +212,6 @@ test.describe('header cart and reference-led mobile drawer', () => {
 
     const drawer = page.locator('#storefront-drawer');
     await expect(drawer).toBeVisible();
-    await expect(drawer).toHaveCSS('transform', 'none');
     const reducedMotion = await drawer.evaluate((element) => {
       const styles = getComputedStyle(element);
       return {
@@ -220,9 +219,16 @@ test.describe('header cart and reference-led mobile drawer', () => {
         duration: styles.transitionDuration,
       };
     });
-    expect(reducedMotion.property).toBe('opacity');
-    expect(Number.parseFloat(reducedMotion.duration)).toBeGreaterThan(0);
-    expect(Number.parseFloat(reducedMotion.duration)).toBeLessThanOrEqual(0.2);
+    expect(reducedMotion.property).toContain('opacity');
+    expect(reducedMotion.property).toContain('transform');
+    const reducedSeconds = Number.parseFloat(reducedMotion.duration);
+    expect(reducedSeconds).toBeGreaterThanOrEqual(0.4);
+    expect(reducedSeconds).toBeLessThanOrEqual(0.5);
+
+    await page.waitForTimeout(100);
+    const earlyTransform = await drawer.evaluate((element) => getComputedStyle(element).transform);
+    expect(earlyTransform).not.toBe('matrix(1, 0, 0, 1, 0, 0)');
+    await expect(drawer).toHaveCSS('transform', 'matrix(1, 0, 0, 1, 0, 0)', { timeout: 1500 });
 
     const bridalGroup = drawer.locator('.luxury-nav__drawer-group').first();
     await bridalGroup.locator(':scope > summary').click();
