@@ -30,7 +30,7 @@ test.describe('header cart and reference-led mobile drawer', () => {
 
     const drawer = page.locator('#storefront-drawer');
     await expect(drawer).toBeVisible();
-    await expect(drawer).toHaveCSS('transform', 'matrix(1, 0, 0, 1, 0, 0)', { timeout: 7000 });
+    await expect(drawer).toHaveCSS('transform', 'matrix(1, 0, 0, 1, 0, 0)', { timeout: 9000 });
     const box = await drawer.boundingBox();
     expect(box).not.toBeNull();
     if (box) {
@@ -40,10 +40,16 @@ test.describe('header cart and reference-led mobile drawer', () => {
       expect(390 - (box.x + box.width)).toBeGreaterThanOrEqual(20);
     }
 
-    const wordmark = drawer.locator('.luxury-nav__drawer-wordmark');
-    await expect(wordmark).toHaveText('Gallery Mazhari');
-    await expect(wordmark).toHaveAttribute('lang', 'en');
-    await expect(wordmark).toHaveAttribute('dir', 'ltr');
+    const brand = drawer.locator('.luxury-nav__drawer-brand');
+    const brandLogo = brand.locator('.luxury-nav__drawer-brand-logo');
+    await expect(brand).toHaveAttribute('href', '/');
+    await expect(brandLogo).toHaveAttribute('src', 'assets/images/gallery-mazhari-logo.png');
+    await expect(drawer.locator('.luxury-nav__drawer-wordmark')).toHaveCount(0);
+    const brandBox = await brand.boundingBox();
+    if (box && brandBox) {
+      expect(Math.abs(brandBox.x + brandBox.width / 2 - (box.x + box.width / 2))).toBeLessThanOrEqual(1);
+    }
+
     await expect(drawer.locator('#drawer-search')).toHaveCount(0);
     await expect(drawer.locator('.luxury-nav__drawer-feature')).toHaveCount(0);
 
@@ -54,7 +60,7 @@ test.describe('header cart and reference-led mobile drawer', () => {
     await bridalGroup.locator(':scope > summary').click();
     await expect(
       bridalGroup.getByRole('link', { name: 'مشاهده همه پوشاک عروس', exact: true }),
-    ).toHaveAttribute('href', '/shop/bridal-clothing');
+    ).toHaveCount(0);
 
     const bridalDressGroup = bridalGroup.locator('.luxury-nav__drawer-nested--bridal-dresses');
     await expect(bridalDressGroup.locator(':scope > summary')).toContainText('لباس عروس');
@@ -97,20 +103,46 @@ test.describe('header cart and reference-led mobile drawer', () => {
     await expect(cta).not.toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
   });
 
-  test('drawer and accordion motion are intentionally several times slower than the base tokens', async ({ page }) => {
+  test('drawer and accordion motion use the requested tenfold component scale', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/');
     await page.getByRole('button', { name: 'باز کردن منوی اصلی' }).click();
 
     const drawer = page.locator('#storefront-drawer');
     const drawerDuration = await drawer.evaluate((element) => getComputedStyle(element).transitionDuration);
-    expect(Number.parseFloat(drawerDuration)).toBeGreaterThanOrEqual(1.5);
+    expect(Number.parseFloat(drawerDuration)).toBeGreaterThanOrEqual(3.9);
 
     const bridalGroup = drawer.locator('.luxury-nav__drawer-group').first();
     await bridalGroup.locator(':scope > summary').click();
     const submenu = bridalGroup.locator('.luxury-nav__drawer-submenu');
     const submenuDuration = await submenu.evaluate((element) => getComputedStyle(element).transitionDuration);
-    expect(Number.parseFloat(submenuDuration)).toBeGreaterThanOrEqual(1.5);
+    expect(Number.parseFloat(submenuDuration)).toBeGreaterThanOrEqual(3.9);
+  });
+
+  test('drawer reopens from the collapsed initial hierarchy and top scroll position', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.setViewportSize({ width: 390, height: 700 });
+    await page.goto('/');
+
+    const menuToggle = page.getByRole('button', { name: 'باز کردن منوی اصلی' });
+    await menuToggle.click();
+    const drawer = page.locator('#storefront-drawer');
+    const bridalGroup = drawer.locator('.luxury-nav__drawer-group').first();
+    const bridalDressGroup = bridalGroup.locator('.luxury-nav__drawer-nested--bridal-dresses');
+
+    await bridalGroup.locator(':scope > summary').click();
+    await bridalDressGroup.locator(':scope > summary').click();
+    await expect(bridalGroup).toHaveAttribute('open', '');
+    await expect(bridalDressGroup).toHaveAttribute('open', '');
+
+    const drawerNav = drawer.locator('.luxury-nav__drawer-nav');
+    await drawerNav.evaluate((element) => element.scrollTo({ top: 120, behavior: 'auto' }));
+    await drawer.getByRole('button', { name: 'بستن منو' }).click();
+    await menuToggle.click();
+
+    await expect(bridalGroup).not.toHaveAttribute('open', '');
+    await expect(bridalDressGroup).not.toHaveAttribute('open', '');
+    await expect.poll(() => drawerNav.evaluate((element) => element.scrollTop)).toBe(0);
   });
 
   test('drawer focus, escape restoration and 320px overflow remain safe', async ({ page }) => {
