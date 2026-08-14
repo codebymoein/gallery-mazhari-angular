@@ -150,16 +150,6 @@
     <span class="luxury-nav__focus-guard" tabindex="0" aria-hidden="true" (focus)="focusLastDrawerControl()"></span>
 
     <div class="luxury-nav__drawer-header">
-      <a
-        class="luxury-nav__drawer-wordmark"
-        routerLink="/"
-        lang="en"
-        dir="ltr"
-        aria-label="صفحه اصلی گالری مزهری"
-        (click)="closeMenus()"
-      >
-        Gallery Mazhari
-      </a>
       <button
         class="ds-icon-button luxury-nav__drawer-close"
         type="button"
@@ -168,6 +158,15 @@
       >
         <app-line-icon name="close" />
       </button>
+      <a
+        class="luxury-nav__drawer-wordmark"
+        routerLink="/"
+        lang="en"
+        dir="ltr"
+        (click)="closeMenus()"
+      >
+        Gallery Mazhari
+      </a>
     </div>
 
     <nav class="luxury-nav__drawer-nav" aria-label="منوی موبایل">
@@ -190,7 +189,7 @@
 
       <details class="luxury-nav__drawer-group">
         <summary>
-          <span>فروشگاه اکسسوری</span>
+          <span>اکسسوری عروس</span>
           <app-line-icon name="chevron-down" />
         </summary>
         <div class="luxury-nav__drawer-submenu">
