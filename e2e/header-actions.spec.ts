@@ -30,7 +30,7 @@ test.describe('header cart and reference-led mobile drawer', () => {
 
     const drawer = page.locator('#storefront-drawer');
     await expect(drawer).toBeVisible();
-    await expect(drawer).toHaveCSS('transform', 'matrix(1, 0, 0, 1, 0, 0)', { timeout: 9000 });
+    await expect(drawer).toHaveCSS('transform', 'matrix(1, 0, 0, 1, 0, 0)', { timeout: 7000 });
     const box = await drawer.boundingBox();
     expect(box).not.toBeNull();
     if (box) {
@@ -115,26 +115,46 @@ test.describe('header cart and reference-led mobile drawer', () => {
     await expect(cta).not.toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
   });
 
-  test('drawer and accordion motion use the requested tenfold component scale', async ({ page }) => {
+  test('drawer opening is deliberately paced while drawer dismissal is immediate', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'no-preference' });
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/');
+
+    const menuToggle = page.getByRole('button', { name: 'باز کردن منوی اصلی' });
+    await menuToggle.click();
+    const drawer = page.locator('#storefront-drawer');
+
+    const drawerDuration = await drawer.evaluate((element) => getComputedStyle(element).transitionDuration);
+    const openingSeconds = Number.parseFloat(drawerDuration);
+    expect(openingSeconds).toBeGreaterThanOrEqual(2.3);
+    expect(openingSeconds).toBeLessThanOrEqual(2.5);
+
+    await page.waitForTimeout(350);
+    const earlyTransform = await drawer.evaluate((element) => getComputedStyle(element).transform);
+    expect(earlyTransform).not.toBe('matrix(1, 0, 0, 1, 0, 0)');
+
+    await expect(drawer).toHaveCSS('transform', 'matrix(1, 0, 0, 1, 0, 0)', { timeout: 7000 });
+    await drawer.getByRole('button', { name: 'بستن منو' }).click();
+    await expect(drawer).toHaveAttribute('aria-hidden', 'true');
+    const closedDuration = await drawer.evaluate((element) => getComputedStyle(element).transitionDuration);
+    expect(Number.parseFloat(closedDuration)).toBe(0);
+  });
+
+  test('accordion motion keeps a slower editorial reveal without changing routes', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'no-preference' });
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/');
     await page.getByRole('button', { name: 'باز کردن منوی اصلی' }).click();
 
     const drawer = page.locator('#storefront-drawer');
-    const drawerDuration = await drawer.evaluate((element) => getComputedStyle(element).transitionDuration);
-    expect(Number.parseFloat(drawerDuration)).toBeGreaterThanOrEqual(3.9);
-
-    await page.waitForTimeout(500);
-    const earlyTransform = await drawer.evaluate((element) => getComputedStyle(element).transform);
-    expect(earlyTransform).not.toBe('matrix(1, 0, 0, 1, 0, 0)');
-
-    await expect(drawer).toHaveCSS('transform', 'matrix(1, 0, 0, 1, 0, 0)', { timeout: 9000 });
+    await expect(drawer).toHaveCSS('transform', 'matrix(1, 0, 0, 1, 0, 0)', { timeout: 7000 });
     const bridalGroup = drawer.locator('.luxury-nav__drawer-group').first();
     await bridalGroup.locator(':scope > summary').click();
     const submenu = bridalGroup.locator('.luxury-nav__drawer-submenu');
     const submenuDuration = await submenu.evaluate((element) => getComputedStyle(element).transitionDuration);
-    expect(Number.parseFloat(submenuDuration)).toBeGreaterThanOrEqual(3.9);
+    const accordionSeconds = Number.parseFloat(submenuDuration);
+    expect(accordionSeconds).toBeGreaterThanOrEqual(1.9);
+    expect(accordionSeconds).toBeLessThanOrEqual(2.1);
   });
 
   test('drawer reopens from the collapsed initial hierarchy and top scroll position', async ({ page }) => {
@@ -184,7 +204,7 @@ test.describe('header cart and reference-led mobile drawer', () => {
     await expect(menuToggle).toBeFocused();
   });
 
-  test('reduced motion disables decorative drawer and accordion animation', async ({ page }) => {
+  test('reduced motion keeps a brief non-spatial cue instead of the long slide', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/');
@@ -192,8 +212,17 @@ test.describe('header cart and reference-led mobile drawer', () => {
 
     const drawer = page.locator('#storefront-drawer');
     await expect(drawer).toBeVisible();
-    const drawerDuration = await drawer.evaluate((element) => getComputedStyle(element).transitionDuration);
-    expect(Number.parseFloat(drawerDuration)).toBeLessThanOrEqual(0.001);
+    await expect(drawer).toHaveCSS('transform', 'none');
+    const reducedMotion = await drawer.evaluate((element) => {
+      const styles = getComputedStyle(element);
+      return {
+        property: styles.transitionProperty,
+        duration: styles.transitionDuration,
+      };
+    });
+    expect(reducedMotion.property).toBe('opacity');
+    expect(Number.parseFloat(reducedMotion.duration)).toBeGreaterThan(0);
+    expect(Number.parseFloat(reducedMotion.duration)).toBeLessThanOrEqual(0.2);
 
     const bridalGroup = drawer.locator('.luxury-nav__drawer-group').first();
     await bridalGroup.locator(':scope > summary').click();
@@ -201,5 +230,9 @@ test.describe('header cart and reference-led mobile drawer', () => {
     await expect(submenu).toBeVisible();
     const submenuDuration = await submenu.evaluate((element) => getComputedStyle(element).transitionDuration);
     expect(Number.parseFloat(submenuDuration)).toBeLessThanOrEqual(0.001);
+
+    await drawer.getByRole('button', { name: 'بستن منو' }).click();
+    const closedDuration = await drawer.evaluate((element) => getComputedStyle(element).transitionDuration);
+    expect(Number.parseFloat(closedDuration)).toBe(0);
   });
 });
