@@ -148,11 +148,18 @@
     dir="rtl"
   >
     <span class="luxury-nav__focus-guard" tabindex="0" aria-hidden="true" (focus)="focusLastDrawerControl()"></span>
+
     <div class="luxury-nav__drawer-header">
-      <div>
-        <small>GALLERY MAZHARI</small>
-        <strong>منوی گالری</strong>
-      </div>
+      <a
+        class="luxury-nav__drawer-wordmark"
+        routerLink="/"
+        lang="en"
+        dir="ltr"
+        aria-label="صفحه اصلی گالری مزهری"
+        (click)="closeMenus()"
+      >
+        Gallery Mazhari
+      </a>
       <button
         class="ds-icon-button luxury-nav__drawer-close"
         type="button"
@@ -163,22 +170,6 @@
       </button>
     </div>
 
-    <form class="luxury-nav__drawer-search" role="search" (ngSubmit)="onSearch()">
-      <label for="drawer-search">جست‌وجوی محصولات</label>
-      <div>
-        <app-line-icon name="search" />
-        <input
-          id="drawer-search"
-          type="search"
-          name="s"
-          placeholder="دنبال چه چیزی هستید؟"
-          [(ngModel)]="searchQuery"
-          autocomplete="off"
-        />
-        <button class="ds-button ds-button--primary" type="submit">جست‌وجو</button>
-      </div>
-    </form>
-
     <nav class="luxury-nav__drawer-nav" aria-label="منوی موبایل">
       <details class="luxury-nav__drawer-group">
         <summary>
@@ -186,10 +177,8 @@
           <app-line-icon name="chevron-down" />
         </summary>
         <div class="luxury-nav__drawer-submenu">
-          <a class="luxury-nav__drawer-feature" [routerLink]="['/shop', bridalCategory.slug]" (click)="closeMenus()">
-            <small>BRIDAL COLLECTION</small>
-            <strong>مشاهده همه پوشاک عروس</strong>
-            <app-line-icon name="arrow-left" />
+          <a class="luxury-nav__drawer-all-link" [routerLink]="['/shop', bridalCategory.slug]" (click)="closeMenus()">
+            مشاهده همه پوشاک عروس
           </a>
           @for (item of bridalCategory.subcategories; track item.slug) {
             <a class="luxury-nav__drawer-submenu-link" [routerLink]="bridalItemLink(item.slug)" (click)="closeMenus()">
@@ -201,10 +190,13 @@
 
       <details class="luxury-nav__drawer-group">
         <summary>
-          <span>اکسسوری عروس</span>
+          <span>فروشگاه اکسسوری</span>
           <app-line-icon name="chevron-down" />
         </summary>
         <div class="luxury-nav__drawer-submenu">
+          <a class="luxury-nav__drawer-all-link" routerLink="/accessories" (click)="closeMenus()">
+            مشاهده همه اکسسوری‌ها
+          </a>
           @for (group of accessoryCategories; track group.slug) {
             <details class="luxury-nav__drawer-nested">
               <summary>
@@ -226,19 +218,17 @@
         </div>
       </details>
 
-      <a href="#appointment" (click)="goToConsultation($event)">رزرو مشاوره اختصاصی</a>
       <a routerLink="/contact" (click)="closeMenus()">ارتباط با ما</a>
       <a routerLink="/account" (click)="closeMenus()">حساب کاربری من</a>
       <a routerLink="/orders" (click)="closeMenus()">پیگیری سفارش‌ها</a>
     </nav>
 
     <div class="luxury-nav__drawer-footer">
-      <p>برای انتخابی دقیق، همراه شما هستیم.</p>
-      <a class="ds-button ds-button--primary" href="#appointment" (click)="goToConsultation($event)">
-        رزرو مشاوره
-        <app-line-icon name="arrow-left" />
+      <a class="ds-button luxury-nav__drawer-cta" href="#appointment" (click)="goToConsultation($event)">
+        رزرو مشاوره اختصاصی
       </a>
     </div>
+
     <span class="luxury-nav__focus-guard" tabindex="0" aria-hidden="true" (focus)="focusFirstDrawerControl()"></span>
   </div>
 </ng-template>
