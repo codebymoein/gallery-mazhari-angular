@@ -1,32 +1,36 @@
+/* Header motion has one owner. Structural layout stays in header.component.css. */
 .luxury-nav__drawer-backdrop {
-  -webkit-backdrop-filter: blur(0);
-  backdrop-filter: blur(0);
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
   transition:
-    opacity var(--duration-base) var(--ease-editorial),
-    -webkit-backdrop-filter var(--duration-base) var(--ease-editorial),
-    backdrop-filter var(--duration-base) var(--ease-editorial),
-    visibility 0s linear var(--duration-base);
+    opacity var(--storefront-duration-fast) var(--storefront-ease),
+    visibility 0s linear var(--storefront-duration-fast);
 }
 
 .luxury-nav__drawer-backdrop--open {
-  -webkit-backdrop-filter: blur(2px);
-  backdrop-filter: blur(2px);
+  visibility: visible;
+  opacity: 1;
+  pointer-events: auto;
+  transition-delay: 0s;
 }
 
 .luxury-nav__drawer {
-  opacity: 0.72;
-  transform: translateX(104%) scale(0.988);
-  transform-origin: top right;
+  visibility: hidden;
+  opacity: 1;
+  pointer-events: none;
+  transform: translate3d(102%, 0, 0);
+  backface-visibility: hidden;
   transition:
-    transform var(--duration-slow) var(--ease-editorial),
-    opacity var(--duration-base) var(--ease-editorial),
-    visibility 0s linear var(--duration-slow);
-  will-change: transform, opacity;
+    transform var(--storefront-duration-base) var(--storefront-ease),
+    visibility 0s linear var(--storefront-duration-base);
 }
 
 .luxury-nav__drawer--open {
-  opacity: 1;
-  transform: translateX(0) scale(1);
+  visibility: visible;
+  pointer-events: auto;
+  transform: translate3d(0, 0, 0);
+  transition: transform var(--storefront-duration-base) var(--storefront-ease);
 }
 
 .luxury-nav__drawer-header,
@@ -34,10 +38,10 @@
 .luxury-nav__drawer-nav,
 .luxury-nav__drawer-footer {
   opacity: 0;
-  transform: translateY(0.55rem);
+  transform: translate3d(0, var(--storefront-space-3), 0);
   transition:
-    opacity var(--duration-base) var(--ease-editorial),
-    transform var(--duration-base) var(--ease-editorial);
+    opacity var(--storefront-duration-fast) var(--storefront-ease),
+    transform var(--storefront-duration-fast) var(--storefront-ease);
 }
 
 .luxury-nav__drawer--open .luxury-nav__drawer-header,
@@ -45,82 +49,43 @@
 .luxury-nav__drawer--open .luxury-nav__drawer-nav,
 .luxury-nav__drawer--open .luxury-nav__drawer-footer {
   opacity: 1;
-  transform: translateY(0);
+  transform: translate3d(0, 0, 0);
 }
 
 .luxury-nav__drawer--open .luxury-nav__drawer-header {
-  transition-delay: 45ms;
+  transition-delay: 30ms;
 }
 
 .luxury-nav__drawer--open .luxury-nav__drawer-search {
-  transition-delay: 85ms;
+  transition-delay: 55ms;
 }
 
 .luxury-nav__drawer--open .luxury-nav__drawer-nav {
-  transition-delay: 125ms;
+  transition-delay: 80ms;
 }
 
 .luxury-nav__drawer--open .luxury-nav__drawer-footer {
-  transition-delay: 165ms;
+  transition-delay: 105ms;
+}
+
+.luxury-nav__drawer-nav summary app-line-icon {
+  transition: transform var(--storefront-duration-fast) var(--storefront-ease);
 }
 
 .luxury-nav__drawer-group[open] > .luxury-nav__drawer-submenu,
 .luxury-nav__drawer-nested[open] > .luxury-nav__drawer-submenu-links {
-  animation: luxury-nav-submenu-reveal-editorial var(--duration-slow) var(--ease-editorial) both;
-  transform-origin: top center;
+  animation: luxury-nav-submenu-reveal var(--storefront-duration-base) var(--storefront-ease) both;
 }
 
-.luxury-nav__drawer-group[open] > summary,
-.luxury-nav__drawer-nested[open] > summary {
-  color: var(--accent-primary);
-}
-
-.luxury-nav__drawer-group[open] > .luxury-nav__drawer-submenu > *,
-.luxury-nav__drawer-nested[open] > .luxury-nav__drawer-submenu-links > * {
-  animation: luxury-nav-submenu-item-reveal var(--duration-base) var(--ease-editorial) both;
-}
-
-.luxury-nav__drawer-group[open] > .luxury-nav__drawer-submenu > :nth-child(1),
-.luxury-nav__drawer-nested[open] > .luxury-nav__drawer-submenu-links > :nth-child(1) {
-  animation-delay: 35ms;
-}
-
-.luxury-nav__drawer-group[open] > .luxury-nav__drawer-submenu > :nth-child(2),
-.luxury-nav__drawer-nested[open] > .luxury-nav__drawer-submenu-links > :nth-child(2) {
-  animation-delay: 65ms;
-}
-
-.luxury-nav__drawer-group[open] > .luxury-nav__drawer-submenu > :nth-child(3),
-.luxury-nav__drawer-nested[open] > .luxury-nav__drawer-submenu-links > :nth-child(3) {
-  animation-delay: 95ms;
-}
-
-.luxury-nav__drawer-group[open] > .luxury-nav__drawer-submenu > :nth-child(n + 4),
-.luxury-nav__drawer-nested[open] > .luxury-nav__drawer-submenu-links > :nth-child(n + 4) {
-  animation-delay: 125ms;
-}
-
-@keyframes luxury-nav-submenu-reveal-editorial {
+@keyframes luxury-nav-submenu-reveal {
   from {
     opacity: 0;
-    transform: translateY(-0.55rem) scaleY(0.97);
+    transform: translate3d(0, calc(var(--storefront-space-2) * -1), 0);
   }
 
   to {
     opacity: 1;
-    transform: translateY(0) scaleY(1);
-  }
-}
-
-@keyframes luxury-nav-submenu-item-reveal {
-  from {
-    opacity: 0;
-    transform: translateY(-0.35rem);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
+    transform: translate3d(0, 0, 0);
   }
 }
 
@@ -133,11 +98,16 @@
   .luxury-nav__drawer-footer,
   .luxury-nav__drawer-nav summary app-line-icon,
   .luxury-nav__drawer-group[open] > .luxury-nav__drawer-submenu,
-  .luxury-nav__drawer-nested[open] > .luxury-nav__drawer-submenu-links,
-  .luxury-nav__drawer-group[open] > .luxury-nav__drawer-submenu > *,
-  .luxury-nav__drawer-nested[open] > .luxury-nav__drawer-submenu-links > * {
+  .luxury-nav__drawer-nested[open] > .luxury-nav__drawer-submenu-links {
     animation: none !important;
-    transition-duration: 0.01ms !important;
-    transition-delay: 0ms !important;
+    transition: none !important;
+  }
+
+  .luxury-nav__drawer,
+  .luxury-nav__drawer-header,
+  .luxury-nav__drawer-search,
+  .luxury-nav__drawer-nav,
+  .luxury-nav__drawer-footer {
+    transform: none;
   }
 }
