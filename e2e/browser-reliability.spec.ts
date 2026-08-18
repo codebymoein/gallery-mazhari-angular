@@ -166,7 +166,7 @@ test('WebKit drawer lock preserves the page scroll position', async ({ page, bro
   await expect(drawer).toBeVisible();
   await expect(drawer.getByRole('button', { name: 'بستن منو' })).toBeFocused();
   await page.keyboard.press('Shift+Tab');
-  await expect(drawer.getByRole('link', { name: /رزرو مشاوره/ }).last()).toBeFocused();
+  await expect(drawer.getByRole('link', { name: 'پیگیری سفارش‌ها' })).toBeFocused();
   await page.keyboard.press('Tab');
   await expect(drawer.getByRole('button', { name: 'بستن منو' })).toBeFocused();
   await expect(page.locator('body')).toHaveCSS('position', 'fixed');
