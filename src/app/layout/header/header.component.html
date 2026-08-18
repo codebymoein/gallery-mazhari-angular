@@ -1,4 +1,9 @@
-<header class="luxury-nav" dir="rtl" [class.luxury-nav--search-open]="isSearchOpen">
+<header
+  class="luxury-nav"
+  dir="rtl"
+  [class.luxury-nav--search-open]="isSearchOpen"
+  [class.luxury-nav--hidden]="isHeaderHidden()"
+>
   <div class="luxury-nav__note">
     <p>از ۱۳۳۷، همراه انتخاب‌های ماندگار</p>
     <a href="#appointment" (click)="goToConsultation($event)">رزرو مشاوره اختصاصی</a>
@@ -78,9 +83,8 @@
       <a class="luxury-nav__primary-link" routerLink="/contact" (click)="closeMenus()">درباره مزهری</a>
     </nav>
 
-    <a class="luxury-nav__brand" routerLink="/" aria-label="صفحه اصلی گالری مزهری">
-      <img class="luxury-nav__brand-logo" src="assets/images/gallery-mazhari-logo.png" alt="" width="1297" height="804" />
-      <span class="luxury-nav__brand-mobile-wordmark" lang="en" dir="ltr">Gallery Mazhari</span>
+    <a class="luxury-nav__brand" routerLink="/" aria-label="صفحه اصلی گالری مزهری" (click)="goHomeTop($event)">
+      <img class="luxury-nav__brand-logo" src="assets/images/gallery-mazhari-wordmark.png" alt="" width="1232" height="423" />
       <span class="luxury-nav__brand-caption" lang="en" dir="ltr">GALLERY MAZHARI</span>
     </a>
 
@@ -157,8 +161,8 @@
       >
         <app-line-icon name="close" />
       </button>
-      <a class="luxury-nav__drawer-brand" routerLink="/" aria-label="صفحه اصلی از منوی گالری" (click)="closeMenus()">
-        <img src="assets/images/gallery-mazhari-logo.png" alt="" width="1297" height="804" />
+      <a class="luxury-nav__drawer-brand" routerLink="/" aria-label="صفحه اصلی از منوی گالری" (click)="goHomeTop($event)">
+        <img src="assets/images/gallery-mazhari-wordmark.png" alt="" width="1232" height="423" />
       </a>
     </div>
 
@@ -185,10 +189,8 @@
           <app-line-icon name="chevron-down" />
         </summary>
         <div class="luxury-nav__drawer-submenu">
-          <a class="luxury-nav__drawer-feature" [routerLink]="['/shop', bridalCategory.slug]" (click)="closeMenus()">
-            <small>BRIDAL COLLECTION</small>
-            <strong>مشاهده همه پوشاک عروس</strong>
-            <app-line-icon name="arrow-left" />
+          <a class="luxury-nav__drawer-submenu-link" [routerLink]="['/shop', bridalCategory.slug]" (click)="closeMenus()">
+            مشاهده همه پوشاک عروس
           </a>
           @for (item of bridalCategory.subcategories; track item.slug) {
             <a class="luxury-nav__drawer-submenu-link" [routerLink]="bridalItemLink(item.slug)" (click)="closeMenus()">
@@ -231,13 +233,6 @@
       <a routerLink="/orders" (click)="closeMenus()">پیگیری سفارش‌ها</a>
     </nav>
 
-    <div class="luxury-nav__drawer-footer">
-      <p>برای انتخابی دقیق، همراه شما هستیم.</p>
-      <a class="ds-button ds-button--primary" href="#appointment" (click)="goToConsultation($event)">
-        رزرو مشاوره
-        <app-line-icon name="arrow-left" />
-      </a>
-    </div>
     <span class="luxury-nav__focus-guard" tabindex="0" aria-hidden="true" (focus)="focusFirstDrawerControl()"></span>
   </div>
 </ng-template>

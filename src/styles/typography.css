@@ -1,5 +1,13 @@
 /* Typography Styles - Gallery Mazhari */
 
+@font-face {
+  font-family: 'YekanBakh';
+  src: url('/assets/fonts/yekan.ttf') format('truetype');
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+}
+
 html {
   font-size: 16px;
   -webkit-text-size-adjust: 100%;

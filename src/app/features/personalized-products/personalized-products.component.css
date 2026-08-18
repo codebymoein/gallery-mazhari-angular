@@ -1,0 +1,16 @@
+:host { display: block; background: var(--color-ivory); color: var(--color-espresso); }
+.personalized { min-height: 70svh; padding: clamp(3.5rem, 8vw, 7rem) var(--gutter-page); }
+.personalized__intro { width: min(100%, 46rem); margin-inline: auto; text-align: center; }
+.personalized__intro > p:first-child { color: var(--color-burgundy); font-size: 0.76rem; font-weight: var(--font-weight-semibold); }
+.personalized__intro h1 { margin: 0.65rem 0 1rem; font-family: var(--font-display); font-size: clamp(2.4rem, 7vw, 5.2rem); font-weight: var(--font-weight-regular); line-height: 1.15; }
+.personalized__intro > p:last-child { margin: 0; color: color-mix(in srgb, var(--color-espresso) 72%, transparent); line-height: 1.9; }
+.personalized__grid { width: min(100%, var(--container-max)); margin: clamp(2.5rem, 6vw, 5rem) auto 0; display: grid; gap: 1px; background: var(--color-border); border: 1px solid var(--color-border); }
+.personalized__card { min-height: 15rem; display: flex; flex-direction: column; align-items: flex-start; padding: clamp(1.4rem, 4vw, 2.25rem); background: var(--color-white); }
+.personalized__card h2 { margin: 0; font-family: var(--font-display); font-size: clamp(1.45rem, 4vw, 2rem); font-weight: var(--font-weight-regular); }
+.personalized__card p { margin: 0.85rem 0 1.5rem; color: color-mix(in srgb, var(--color-espresso) 70%, transparent); line-height: 1.8; }
+.personalized__card a, .personalized__status { min-height: var(--touch-target); margin-block-start: auto; display: inline-flex; align-items: center; padding-inline: 1rem; font-size: 0.82rem; font-weight: var(--font-weight-semibold); }
+.personalized__card a { background: var(--color-espresso); color: var(--color-white); text-decoration: none; }
+.personalized__card a:focus-visible { outline: 3px solid var(--color-butter); outline-offset: 3px; }
+.personalized__status { border: 1px solid var(--color-border); color: color-mix(in srgb, var(--color-espresso) 62%, transparent); }
+@media (min-width: 700px) { .personalized__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1100px) { .personalized__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }

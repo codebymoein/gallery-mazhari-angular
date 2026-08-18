@@ -14,6 +14,7 @@ const PUBLIC_SERVER_ROUTES = [
   'contact',
   'consultation',
   'home-trial',
+  'personalized-products',
   'custom-request/:type'
 ] as const;
 

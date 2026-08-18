@@ -48,17 +48,14 @@ test.describe('storefront smoke tests', () => {
     expect(overflow).toBe(false);
   });
 
-  test('mobile header keeps a frameless wordmark and animated navigation contract', async ({ page }) => {
+  test('mobile header keeps the owner wordmark and animated navigation contract', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/');
 
     const header = page.locator('.luxury-nav');
-    const wordmark = header.locator('.luxury-nav__brand-mobile-wordmark');
+    const wordmark = header.locator('.luxury-nav__brand-logo');
     await expect(wordmark).toBeVisible();
-    await expect(wordmark).toHaveText('Gallery Mazhari');
-    await expect(wordmark).toHaveAttribute('lang', 'en');
-    await expect(wordmark).toHaveAttribute('dir', 'ltr');
-    await expect(header.locator('.luxury-nav__brand-logo')).toBeHidden();
+    await expect(wordmark).toHaveAttribute('src', 'assets/images/gallery-mazhari-wordmark.png');
 
     const controls = header.locator(
       '.luxury-nav__menu-toggle, .luxury-nav__search-toggle, .luxury-nav__cart',

@@ -62,6 +62,8 @@
      until their focused redesign slice explicitly adopts these tokens. */
   --storefront-surface-page: #ffffff;
   --storefront-surface-raised: #f5f5f5;
+  --storefront-search-surface: #f7f3ea;
+  --storefront-search-surface-glass: color-mix(in srgb, var(--storefront-search-surface) 88%, transparent);
   --storefront-text-primary: #000000;
   --storefront-text-secondary: #4f4f4f;
   --storefront-border-subtle-color: #e8e8e1;
@@ -165,7 +167,7 @@
   --gradient-editorial-ivory: linear-gradient(180deg, var(--color-ivory) 0%, var(--color-bg-cream) 100%);
 
   /* ── Typography ─────────────────────────────────────────────── */
-  --font-persian: 'IRANSansX', 'YekanBakh', Tahoma, sans-serif;
+  --font-persian: 'YekanBakh', 'Yekan', Tahoma, sans-serif;
   --font-english: 'Inter', Arial, sans-serif;
   --font-display: 'YekanBakh', 'IRANSansX', Tahoma, sans-serif;
   --font-serif-en: 'Playfair Display', Georgia, 'Times New Roman', serif;

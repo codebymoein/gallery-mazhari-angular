@@ -192,6 +192,16 @@ export const routes: Routes = [
     loadComponent: () => import('./features/home-trial/home-trial.component').then(m => m.HomeTrialComponent)
   },
   {
+    path: 'personalized-products',
+    data: {
+      seo: {
+        title: 'محصولات شخصی‌سازی‌شده | گالری مظهری',
+        description: 'انتخاب مسیر ثبت درخواست لباس عروس، لباس نامزدی، تورسر و دیگر محصولات شخصی‌سازی‌شده گالری مظهری.'
+      }
+    },
+    loadComponent: () => import('./features/personalized-products/personalized-products.component').then(m => m.PersonalizedProductsComponent)
+  },
+  {
     path: 'custom-request/:type',
     data: { seo: { title: 'درخواست طراحی سفارشی | گالری مظهری', description: 'ثبت درخواست تور سر یا لباس سفارشی همراه با تصاویر مدل موردنظر.' } },
     loadComponent: () => import('./features/custom-request/custom-request.component').then(m => m.CustomRequestComponent)

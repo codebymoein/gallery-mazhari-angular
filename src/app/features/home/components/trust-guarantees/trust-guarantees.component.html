@@ -1,50 +1,20 @@
-<section class="trust-guarantees" dir="rtl" aria-labelledby="trust-guarantees-title">
+<section class="trust-strip" [class.trust-strip--ready]="motionReady" dir="rtl" aria-labelledby="trust-strip-title">
+  <header class="trust-strip__header">
+    <h2 id="trust-strip-title" class="trust-strip__title">
+      <span>به وبسایت گالری مظهری</span>
+      <span>کامل ترین فروشگاه آنلاین حوزه عروس</span>
+      <span>خوش آمدید</span>
+    </h2>
+  </header>
 
-  <div class="trust-guarantees__inner">
-    <header class="trust-guarantees__header">
-      <p class="trust-guarantees__eyebrow" lang="en" dir="ltr">TRUST &amp; GUARANTEE</p>
-      <h2 class="trust-guarantees__title" id="trust-guarantees-title">
-        تعهد گالری مظهری به آرامش شما
-      </h2>
-    </header>
-
-    <ul class="trust-guarantees__grid" role="list" tabindex="0"
-      aria-label="مزایای خرید؛ برای مشاهده موارد بیشتر پیمایش کنید">
-      @for (card of cards; track card) {
-        <li
-          class="trust-guarantees__card"
-          [attr.data-icon]="card.icon">
-          <span class="trust-guarantees__icon" aria-hidden="true">
-            <!-- Customization -->
-            @if (card.icon === 'custom') {
-              <svg viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 3v3M12 18v3M3 12h3M18 12h3"/>
-                <circle cx="12" cy="12" r="4"/>
-                <path d="M7.5 7.5 5.5 5.5M16.5 7.5l2-2M7.5 16.5l-2 2M16.5 16.5l2 2"/>
-              </svg>
-            }
-            <!-- Zero-stress guarantee -->
-            @if (card.icon === 'guarantee') {
-              <svg viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 3 4.5 6.5v5.2c0 4.6 3.2 8.7 7.5 9.8 4.3-1.1 7.5-5.2 7.5-9.8V6.5L12 3Z"/>
-                <path d="m9 12 2 2 4-4"/>
-              </svg>
-            }
-            <!-- VIP fitting -->
-            @if (card.icon === 'vip') {
-              <svg viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M4 20V9l4 3 4-6 4 6 4-3v11H4Z"/>
-                <path d="M8 20v-4h8v4"/>
-              </svg>
-            }
-          </span>
-          <h3 class="trust-guarantees__card-title">{{ card.title }}</h3>
-          <p class="trust-guarantees__card-subtitle">{{ card.subtitle }}</p>
-        </li>
-      }
-    </ul>
-  </div>
+  <ul class="trust-strip__list" role="list">
+    @for (item of items; track item.id; let index = $index) {
+      <li #trustItem class="trust-strip__item" [class.is-visible]="visibleItems.has(index)">
+        <span class="trust-strip__art" [class]="'trust-strip__art trust-strip__art--' + item.id" aria-hidden="true">
+          <span class="trust-strip__sprite"></span>
+        </span>
+        <span class="trust-strip__label">{{ item.label }}</span>
+      </li>
+    }
+  </ul>
 </section>

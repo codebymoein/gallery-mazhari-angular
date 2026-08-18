@@ -29,7 +29,7 @@ export class PerformanceHintsService {
       preload = this.document.createElement('link');
       preload.id = this.preloadId;
       preload.rel = 'preload';
-      preload.as = 'image';
+      preload.setAttribute('as', 'image');
       preload.type = 'image/webp';
       preload.setAttribute('fetchpriority', 'high');
       this.document.head.appendChild(preload);

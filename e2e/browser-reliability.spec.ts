@@ -74,7 +74,7 @@ test(
     }
 
     if (isConstrained) {
-      await expect(page.locator('.editorial-hero')).toBeVisible();
+      await expect(page.locator('.home-hero')).toBeVisible();
       await expect(page.locator('#home-hero-title')).toBeVisible();
     } else {
       await page.goto('/catalog', { waitUntil: 'domcontentloaded' });

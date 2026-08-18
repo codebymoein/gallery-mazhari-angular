@@ -10,17 +10,13 @@ test.describe('RM-13 storefront performance hints', () => {
     await expect(preload).toHaveAttribute('href', /assets\/images\/home-hero-bride\.webp$/);
     await expect(preload).toHaveAttribute('fetchpriority', 'high');
 
-    const bridal = page.locator('.split-hero__panel--bridal .split-hero__media');
+    const bridal = page.locator('.home-hero__media');
     await expect(bridal).toHaveAttribute('loading', 'eager');
     await expect(bridal).toHaveAttribute('fetchpriority', 'high');
     await expect(bridal).toHaveAttribute('width', '1003');
     await expect(bridal).toHaveAttribute('height', '1568');
 
-    const accessories = page.locator('.split-hero__panel--accessories .split-hero__media');
-    await expect(accessories).toHaveAttribute('loading', 'lazy');
-    await expect(accessories).toHaveAttribute('fetchpriority', 'low');
-    await expect(accessories).toHaveAttribute('width', '1000');
-    await expect(accessories).toHaveAttribute('height', '1250');
+    await expect(page.locator('.home-hero__media')).toHaveCount(1);
 
     await page.goto('/catalog');
     await expect(page.locator('#mazhari-route-lcp-preload')).toHaveCount(0);
