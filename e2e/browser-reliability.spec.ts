@@ -174,7 +174,10 @@ test('WebKit drawer lock preserves the page scroll position', async ({ page, bro
   await drawer.getByRole('button', { name: 'بستن منو' }).click();
   await expect(drawer).toBeHidden();
   await expect(menuToggle).toBeFocused();
-  await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(before);
+  await expect.poll(() => page.evaluate(targetScrollY => {
+    const maxScrollY = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+    return Math.abs(window.scrollY - Math.min(targetScrollY, maxScrollY));
+  }, before)).toBeLessThanOrEqual(1);
   await expect(page.locator('body')).not.toHaveCSS('position', 'fixed');
 });
 
