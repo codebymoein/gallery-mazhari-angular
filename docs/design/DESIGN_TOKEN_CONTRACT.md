@@ -7,7 +7,19 @@ Status: **Normative runtime design contract**
 
 `DESIGN_SYSTEM.md` remains a broader design reference and historical usage guide. When a literal value shown there conflicts with `src/styles/tokens.css`, the runtime token file wins until the documentation is reconciled.
 
-GM-001 establishes the approved post-remediation storefront direction: **warm / editorial / romantic / fashion / heritage**. The reference direction may be inspired by external fashion sites selected by the owner, but Gallery Mazhari MUST use its own assets, content, tokens and implementation rather than copying a third-party design.
+GM-001 established the legacy post-remediation storefront direction: **warm / editorial / romantic / fashion / heritage**. GM-041 begins the owner-approved migration to a **monochrome / modern / commerce-first / bridal-specialist / heritage** storefront. The migration is incremental: existing warm tokens remain available for unmigrated surfaces, while focused redesign slices consume the additive `--storefront-*` roles. Gallery Mazhari MUST use its own assets, content, tokens and implementation rather than copying a third-party design.
+
+## Monochrome storefront migration contract
+
+The `--storefront-*` family is the semantic migration surface for the approved redesign. Adding these roles does not authorize a global recolor or removal of legacy tokens. A component adopts the new language only in its approved focused slice.
+
+- Surfaces: pure white page, restrained raised grey, black primary text and `#4f4f4f` secondary text.
+- Borders: subtle warm-neutral divider and strong charcoal control border.
+- Geometry: controls use a maximum 3px radius and inputs use 2px; pills and large rounded cards are not the default storefront vocabulary.
+- Layout: the 4px rhythm and the existing responsive system remain authoritative; the redesign exposes a 1351px maximum content width and responsive 12px-to-32px gutter roles.
+- Motion: 200ms, 250ms and 300ms roles support restrained fade/translate and image-settle behavior. Core content remains visible without animation state.
+- Focus: the monochrome focus ring remains clearly visible and MUST NOT be removed for visual fidelity.
+- Reduced motion: the existing global reduction foundation applies. New component motion MUST additionally avoid decorative displacement where reduction is requested.
 
 ## Approved core palette
 
@@ -38,10 +50,10 @@ GM-007 makes the existing runtime authority explicit without introducing a paral
 
 These families are additive semantic aliases over the canonical values. Feature CSS MUST consume them when the role applies and MUST NOT create a second token file or page-local theme authority.
 
-### Palette rules
+### Legacy palette rules
 
-- Cool grey MUST NOT be reintroduced as the dominant storefront brand/background language without a separately approved visual decision.
-- Clinical pure white SHOULD be limited to functional/on-dark use; public storefront surfaces SHOULD normally use warm semantic surface tokens.
+- Unmigrated surfaces continue to use the legacy warm roles until their focused slice is approved.
+- The owner-approved GM-041 direction authorizes monochrome roles only through the incremental `--storefront-*` migration contract; it does not authorize global replacement of legacy values.
 - Burgundy is the primary action/brand accent; champagne is a restrained secondary accent rather than a universal decoration color.
 - Feature/component CSS SHOULD use semantic tokens. New raw color literals require a named design-system use case and should normally be promoted to `tokens.css`.
 - Admin surfaces may retain a denser functional composition, but accessibility and token authority remain shared.

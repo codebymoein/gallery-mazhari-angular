@@ -4,6 +4,8 @@
 
 > Runtime authority: `src/styles/tokens.css` and `docs/design/DESIGN_TOKEN_CONTRACT.md`. The semantic GM-007 families cover colors/surfaces, typography, spacing/gutters, radii/borders, shadows/glass, motion/easing, controls and z-index. Feature CSS must consume those roles rather than create page-local token systems.
 
+> GM-041 migration note: the owner-approved storefront redesign now moves focused public surfaces toward a sharp monochrome commerce language through the additive `--storefront-*` token family. The warm system documented below remains the legacy contract for surfaces not yet migrated; it must not be globally replaced in one change.
+
 ---
 
 ## 1. Brand Identity

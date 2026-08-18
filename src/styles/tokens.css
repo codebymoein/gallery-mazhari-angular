@@ -57,6 +57,21 @@
   --accent-primary: var(--color-gold-primary);
   --accent-secondary: var(--color-champagne-gold);
 
+  /* Storefront redesign migration roles (GM-041)
+     Additive and opt-in: legacy surfaces keep the warm semantic roles above
+     until their focused redesign slice explicitly adopts these tokens. */
+  --storefront-surface-page: #ffffff;
+  --storefront-surface-raised: #f5f5f5;
+  --storefront-text-primary: #000000;
+  --storefront-text-secondary: #4f4f4f;
+  --storefront-border-subtle-color: #e8e8e1;
+  --storefront-border-strong-color: #242424;
+  --storefront-border-subtle: 1px solid var(--storefront-border-subtle-color);
+  --storefront-border-strong: 1px solid var(--storefront-border-strong-color);
+  --storefront-focus-ring: 2px solid var(--storefront-text-primary);
+  --storefront-focus-offset: 3px;
+  --storefront-shadow-raised: 0 0 1px rgba(0, 0, 0, 0.2);
+
   /* Social (third-party brand — allowed as tokens) */
   --color-social-telegram: #229ed9;
   --color-social-whatsapp: #25d366;
@@ -176,6 +191,20 @@
   --gutter-page-min: 0.75rem;
   --gutter-page-max: 1.5rem;
   --gutter-page: clamp(var(--gutter-page-min), 3vw, var(--gutter-page-max));
+  --storefront-space-1: 0.25rem;
+  --storefront-space-2: 0.5rem;
+  --storefront-space-3: 0.75rem;
+  --storefront-space-4: 1rem;
+  --storefront-space-5: 1.25rem;
+  --storefront-space-6: 1.5rem;
+  --storefront-space-7: 1.75rem;
+  --storefront-space-8: 2rem;
+  --storefront-space-10: 2.5rem;
+  --storefront-space-13: 3.25rem;
+  --storefront-container-max: 84.4375rem;
+  --storefront-gutter-mobile: 0.75rem;
+  --storefront-gutter-desktop: 2rem;
+  --storefront-gutter: clamp(var(--storefront-gutter-mobile), 4vw, var(--storefront-gutter-desktop));
 
   /* ── Radius ─────────────────────────────────────────────────── */
   --border-radius-sm: 0.25rem;
@@ -186,6 +215,8 @@
   --radius-card: var(--mds-radius-md);
   --radius-panel: var(--mds-radius-lg);
   --radius-pill: var(--mds-radius-round);
+  --storefront-radius-control: 0.1875rem;
+  --storefront-radius-input: 0.125rem;
 
   /* â”€â”€ Borders â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
   --border-width-hairline: 1px;
@@ -226,6 +257,18 @@
   --ease-standard: ease;
   --ease-emphasized: cubic-bezier(0.25, 0.46, 0.45, 0.94);
   --ease-editorial: cubic-bezier(0.16, 1, 0.3, 1);
+  --storefront-duration-fast: 200ms;
+  --storefront-duration-base: 250ms;
+  --storefront-duration-slow: 300ms;
+  --storefront-ease: cubic-bezier(0.2, 0, 0, 1);
+  --storefront-transition-control:
+    color var(--storefront-duration-fast) var(--storefront-ease),
+    background-color var(--storefront-duration-fast) var(--storefront-ease),
+    border-color var(--storefront-duration-fast) var(--storefront-ease),
+    opacity var(--storefront-duration-fast) var(--storefront-ease),
+    transform var(--storefront-duration-fast) var(--storefront-ease);
+  --storefront-motion-reveal-distance: 1rem;
+  --storefront-motion-image-scale: 1.03;
 
   /* ── Z-Index ────────────────────────────────────────────────── */
   --z-dropdown: 100;

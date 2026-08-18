@@ -12,7 +12,7 @@ const expectedTokens = {
 } as const;
 
 test.describe('design-system contract', () => {
-  test('canonical editorial palette and font tokens are available at runtime', async ({
+  test('legacy and monochrome migration tokens are available at runtime', async ({
     page,
   }) => {
     await page.goto('/');
@@ -54,6 +54,26 @@ test.describe('design-system contract', () => {
           headerLayer: read('--z-header'),
           pageGutter: read('--gutter-page'),
         },
+        storefrontMigration: {
+          page: read('--storefront-surface-page'),
+          raised: read('--storefront-surface-raised'),
+          text: read('--storefront-text-primary'),
+          muted: read('--storefront-text-secondary'),
+          divider: read('--storefront-border-subtle'),
+          strongBorder: read('--storefront-border-strong'),
+          controlRadius: read('--storefront-radius-control'),
+          inputRadius: read('--storefront-radius-input'),
+          focusRing: read('--storefront-focus-ring'),
+          focusOffset: read('--storefront-focus-offset'),
+          raisedShadow: read('--storefront-shadow-raised'),
+          fast: read('--storefront-duration-fast'),
+          base: read('--storefront-duration-base'),
+          slow: read('--storefront-duration-slow'),
+          revealDistance: read('--storefront-motion-reveal-distance'),
+          imageScale: read('--storefront-motion-image-scale'),
+          container: read('--storefront-container-max'),
+          gutter: read('--storefront-gutter'),
+        },
       };
     });
 
@@ -77,38 +97,44 @@ test.describe('design-system contract', () => {
       headerLayer: '1000',
       pageGutter: 'clamp(0.75rem, 3vw, 1.5rem)',
     });
+    expect(contract.storefrontMigration).toEqual({
+      page: '#ffffff',
+      raised: '#f5f5f5',
+      text: '#000000',
+      muted: '#4f4f4f',
+      divider: '1px solid #e8e8e1',
+      strongBorder: '1px solid #242424',
+      controlRadius: '0.1875rem',
+      inputRadius: '0.125rem',
+      focusRing: '2px solid #000000',
+      focusOffset: '3px',
+      raisedShadow: '0 0 1px rgba(0, 0, 0, 0.2)',
+      fast: '200ms',
+      base: '250ms',
+      slow: '300ms',
+      revealDistance: '1rem',
+      imageScale: '1.03',
+      container: '84.4375rem',
+      gutter: 'clamp(0.75rem, 4vw, 2rem)',
+    });
   });
 
-  test('home editorial opening preserves semantic actions and LCP priority', async ({
+  test('home editorial opening preserves its accessible heading and LCP priority', async ({
     page,
   }) => {
     await page.goto('/');
 
     const hero = page.locator('.editorial-hero');
     await expect(hero).toBeVisible();
-    await expect(hero.getByRole('heading', { level: 1 })).toContainText('داستان شما');
-    await expect(hero.getByRole('link', { name: /مشاهده کالکشن/ })).toHaveAttribute(
-      'href',
-      '/catalog'
+    await expect(hero.getByRole('heading', { level: 1 })).toHaveText(
+      'گالری مظهری؛ پوشاک و اکسسوری عروس',
     );
-    await expect(hero.getByRole('link', { name: /رزرو مشاوره/ })).toHaveAttribute(
-      'href',
-      '/consultation'
-    );
-
     const priority = await page.locator('.editorial-hero__media').evaluate((image) => ({
       loading: image.getAttribute('loading'),
       fetchpriority: image.getAttribute('fetchpriority'),
     }));
     expect(priority).toEqual({ loading: 'eager', fetchpriority: 'high' });
 
-    const secondary = await page
-      .locator('.editorial-hero__chapter img')
-      .evaluate((image) => ({
-        loading: image.getAttribute('loading'),
-        fetchpriority: image.getAttribute('fetchpriority'),
-      }));
-    expect(secondary).toEqual({ loading: 'lazy', fetchpriority: 'low' });
   });
 
   test('representative public pages produce mobile/desktop visual evidence', async ({

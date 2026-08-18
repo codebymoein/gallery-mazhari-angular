@@ -47,6 +47,7 @@ This file records requested work before implementation. A backlog entry is not i
 | GM-016 | EPIC-01 | Clear the pre-existing frontend ESLint error baseline without changing business behavior | L1 | P1 | DONE | Merged via PR #77 after exact-head Quality Gates, SSR, browser/CWV, static-analysis and RM-17 release-certification evidence passed; frontend lint errors cleared and the existing warning debt remains separately visible |
 | GM-032 | EPIC-01 | Refine the mobile header wordmark, icon controls, drawer transition and submenu reveal motion | L2 | P1 | ACCEPTANCE | Implementation complete in PR #95; exact-head automated evidence and manual narrow-mobile visual/product acceptance are required before merge; navigation semantics/routes and desktop composition preserved |
 | GM-039 | EPIC-01 | Fashion-editorial Home opening with full-width bridal hero and paired bridal/accessory store entries | L2 | P1 | IN_PROGRESS | Owner-approved slice on `feat/gm-039-home-opening-editorial`; appearance-driven hero and existing routes preserved; Header/Menu is explicitly a separate slice |
+| GM-041 | EPIC-01 | Monochrome storefront foundation, shared responsive Header and NgRx-backed cart indicator | L2 | P1 | IN_PROGRESS | Owner-approved six-checkpoint Phase 1 on `feat/storefront-redesign-phase-1-header`; fresh from `main`; GM-040 is reserved by overlapping open PR #109, which remains untouched and is not a branch dependency |
 
 ## Intake format
 

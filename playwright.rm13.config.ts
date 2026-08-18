@@ -2,10 +2,14 @@ import { defineConfig, devices } from '@playwright/test';
 
 const frontendUrl = process.env['E2E_BASE_URL'] ?? 'http://127.0.0.1:4200';
 const backendUrl = process.env['E2E_API_URL'] ?? 'http://127.0.0.1:3000';
+const chromiumExecutablePath = process.env['E2E_CHROMIUM_EXECUTABLE_PATH'];
+const chromiumLaunchOptions = chromiumExecutablePath
+  ? { launchOptions: { executablePath: chromiumExecutablePath } }
+  : {};
 
 export default defineConfig({
   testDir: './e2e',
-  testMatch: /(browser-reliability|cart-and-checkout|account-orders-editorial|editorial-services|editorial-personal-tools|editorial-inspiration|editorial-catalog|product-detail-editorial|home-footer-editorial)\.spec\.ts/,
+  testMatch: /(browser-reliability|cart-and-checkout|account-orders-editorial|editorial-services|editorial-personal-tools|editorial-inspiration|editorial-catalog|product-detail-editorial|home-footer-editorial|header-actions)\.spec\.ts/,
   timeout: 90_000,
   fullyParallel: false,
   forbidOnly: Boolean(process.env['CI']),
@@ -19,10 +23,10 @@ export default defineConfig({
     video: 'off',
   },
   projects: [
-    { name: 'chromium-desktop', use: { ...devices['Desktop Chrome'] } },
+    { name: 'chromium-desktop', use: { ...devices['Desktop Chrome'], ...chromiumLaunchOptions } },
     { name: 'firefox-desktop', use: { ...devices['Desktop Firefox'] } },
     { name: 'webkit-iphone', use: { ...devices['iPhone 13'] } },
-    { name: 'chromium-constrained', use: { ...devices['Pixel 7'] } },
+    { name: 'chromium-constrained', use: { ...devices['Pixel 7'], ...chromiumLaunchOptions } },
   ],
   webServer: [
     {

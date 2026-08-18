@@ -103,7 +103,7 @@
       <a class="ds-icon-button luxury-nav__cart" routerLink="/cart" aria-label="سبد خرید">
         <app-line-icon name="bag" />
         @if ((cartCount$ | async); as count) {
-          <span class="luxury-nav__cart-count" [hidden]="count === 0" aria-live="polite">{{ count }}</span>
+          <span class="luxury-nav__cart-count" aria-live="polite">{{ cartCountLabel(count) }}</span>
         }
       </a>
     </div>
@@ -149,10 +149,6 @@
   >
     <span class="luxury-nav__focus-guard" tabindex="0" aria-hidden="true" (focus)="focusLastDrawerControl()"></span>
     <div class="luxury-nav__drawer-header">
-      <div>
-        <small>GALLERY MAZHARI</small>
-        <strong>منوی گالری</strong>
-      </div>
       <button
         class="ds-icon-button luxury-nav__drawer-close"
         type="button"
@@ -161,6 +157,9 @@
       >
         <app-line-icon name="close" />
       </button>
+      <a class="luxury-nav__drawer-brand" routerLink="/" aria-label="صفحه اصلی از منوی گالری" (click)="closeMenus()">
+        <img src="assets/images/gallery-mazhari-logo.png" alt="" width="1297" height="804" />
+      </a>
     </div>
 
     <form class="luxury-nav__drawer-search" role="search" (ngSubmit)="onSearch()">

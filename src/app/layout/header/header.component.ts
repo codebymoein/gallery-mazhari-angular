@@ -44,6 +44,7 @@ export class HeaderComponent implements OnDestroy {
   searchQuery  = '';
   cartCount$: Observable<number>;
   private readonly routerEventsSubscription: Subscription;
+  private isDesktopViewport: boolean;
 
   @ViewChild('drawerTpl') drawerTpl!: TemplateRef<unknown>;
   @ViewChild('menuToggle', { read: ElementRef }) menuToggle?: ElementRef<HTMLButtonElement>;
@@ -56,6 +57,7 @@ export class HeaderComponent implements OnDestroy {
 
   constructor() {
     this.cartCount$ = inject(CartService).getItemCount();
+    this.isDesktopViewport = this.matchesDesktopViewport();
     this.routerEventsSubscription = this.router.events
       .pipe(filter((event): event is NavigationStart | NavigationEnd => event instanceof NavigationStart || event instanceof NavigationEnd))
       .subscribe(() => this.closeMenus());
@@ -70,7 +72,7 @@ export class HeaderComponent implements OnDestroy {
     this.isSearchOpen = !this.isSearchOpen;
     if (this.drawer.isOpen()) this.closeDrawer(false);
     if (this.isSearchOpen) {
-      window.setTimeout(() => {
+      this.document.defaultView?.setTimeout(() => {
         const input = this.host.nativeElement.querySelector('#nav-search-input') as HTMLInputElement | null;
         input?.focus();
       });
@@ -91,6 +93,7 @@ export class HeaderComponent implements OnDestroy {
     }
 
     this.isSearchOpen = false;
+    this.resetDrawerState();
     this.drawer.open();
     this.focusDrawerCloseWhenReady();
   }
@@ -98,8 +101,9 @@ export class HeaderComponent implements OnDestroy {
   closeDrawer(restoreFocus = true): void {
     const wasOpen = this.drawer.isOpen();
     this.drawer.close();
+    this.resetDrawerState();
     if (wasOpen && restoreFocus) {
-      window.setTimeout(() => this.menuToggle?.nativeElement.focus());
+      this.document.defaultView?.setTimeout(() => this.menuToggle?.nativeElement.focus());
     }
   }
 
@@ -136,6 +140,10 @@ export class HeaderComponent implements OnDestroy {
 
   accessoryItemLink(groupSlug: string, itemSlug: string): string[] {
     return ['/shop', groupSlug, itemSlug];
+  }
+
+  cartCountLabel(count: number): string {
+    return count > 99 ? '99+' : String(count);
   }
 
   goToConsultation(event?: Event): void {
@@ -219,6 +227,20 @@ export class HeaderComponent implements OnDestroy {
     this.closeMenus();
   }
 
+  @HostListener('window:orientationchange')
+  onOrientationChange(): void {
+    this.closeMenus();
+  }
+
+  @HostListener('window:resize')
+  onViewportResize(): void {
+    const isDesktopViewport = this.matchesDesktopViewport();
+    if (isDesktopViewport === this.isDesktopViewport) return;
+
+    this.isDesktopViewport = isDesktopViewport;
+    this.closeMenus();
+  }
+
   private focusDrawerCloseWhenReady(attempt = 0): void {
     if (!this.drawer.isOpen()) return;
 
@@ -247,5 +269,24 @@ export class HeaderComponent implements OnDestroy {
     this.host.nativeElement
       .querySelectorAll('details[open]')
       .forEach((el: Element) => el.removeAttribute('open'));
+  }
+
+  private resetDrawerState(): void {
+    const drawerElement = this.document.getElementById('storefront-drawer');
+    if (!drawerElement) return;
+
+    drawerElement
+      .querySelectorAll('details[open]')
+      .forEach((el: Element) => el.removeAttribute('open'));
+    drawerElement
+      .querySelector<HTMLElement>('.luxury-nav__drawer-nav')
+      ?.scrollTo({ top: 0, behavior: 'auto' });
+  }
+
+  private matchesDesktopViewport(): boolean {
+    const view = this.document.defaultView;
+    return typeof view?.matchMedia === 'function'
+      ? view.matchMedia('(min-width: 64rem)').matches
+      : false;
   }
 }
