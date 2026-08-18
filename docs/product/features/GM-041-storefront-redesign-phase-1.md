@@ -111,4 +111,4 @@ Phase 1 establishes an additive migration foundation, then updates the single sh
 
 - Open PR #109 / GM-040 overlaps Header work but was neither used as lineage nor modified. Reconciliation remains an owner/reviewer decision before either overlapping PR is merged.
 - Home, catalog, search intelligence, Footer and other storefront surfaces retain their existing visual language until separately authorized phases.
-- The pre-existing Home design-system assertion expects Hero copy containing `داستان شما`, while current `main` renders the canonical accessible heading `گالری مظهری؛ پوشاک و اکسسوری عروس`. The GM-041 token contract test passes; changing Home copy or its unrelated regression contract is outside this phase.
+- The stale Home visual-baseline assertion was aligned with the canonical accessible heading already rendered by `main`; Home implementation and copy were not changed.

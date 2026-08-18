@@ -284,6 +284,9 @@ export class HeaderComponent implements OnDestroy {
   }
 
   private matchesDesktopViewport(): boolean {
-    return this.document.defaultView?.matchMedia('(min-width: 64rem)').matches ?? false;
+    const view = this.document.defaultView;
+    return typeof view?.matchMedia === 'function'
+      ? view.matchMedia('(min-width: 64rem)').matches
+      : false;
   }
 }
