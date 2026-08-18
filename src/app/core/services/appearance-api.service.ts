@@ -1,5 +1,6 @@
+import { isPlatformBrowser } from '@angular/common';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Injectable, inject, signal } from '@angular/core';
+import { Injectable, PLATFORM_ID, inject, signal } from '@angular/core';
 import { environment } from '@env/environment';
 import { AdminAuthService } from './admin-auth.service';
 import { applyCatalogOrder } from '@shared/data/catalog-categories';
@@ -31,11 +32,15 @@ export interface SiteMemory {
 export class AppearanceApiService {
   private readonly http = inject(HttpClient);
   private readonly auth = inject(AdminAuthService);
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   private readonly url = `${environment.backendApiBaseUrl}/appearance`;
   readonly appearance = signal<SiteAppearance | null>(null);
   private loadInFlight = false;
 
   load(): void {
+    // Appearance overrides are decorative and every consumer has deterministic
+    // fallback assets. Keep SSR independent from the external appearance API.
+    if (!this.isBrowser) return;
     if (this.loadInFlight) return;
     this.loadInFlight = true;
 
