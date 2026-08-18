@@ -149,9 +149,6 @@
   >
     <span class="luxury-nav__focus-guard" tabindex="0" aria-hidden="true" (focus)="focusLastDrawerControl()"></span>
     <div class="luxury-nav__drawer-header">
-      <a class="luxury-nav__drawer-brand" routerLink="/" aria-label="صفحه اصلی گالری مزهری" (click)="closeMenus()">
-        <img src="assets/images/gallery-mazhari-logo.png" alt="" width="1297" height="804" />
-      </a>
       <button
         class="ds-icon-button luxury-nav__drawer-close"
         type="button"
@@ -160,6 +157,9 @@
       >
         <app-line-icon name="close" />
       </button>
+      <a class="luxury-nav__drawer-brand" routerLink="/" aria-label="صفحه اصلی از منوی گالری" (click)="closeMenus()">
+        <img src="assets/images/gallery-mazhari-logo.png" alt="" width="1297" height="804" />
+      </a>
     </div>
 
     <form class="luxury-nav__drawer-search" role="search" (ngSubmit)="onSearch()">
