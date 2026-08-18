@@ -3,6 +3,9 @@ import { HttpClient } from '@angular/common/http';
 import { Injector, PLATFORM_ID, runInInjectionContext } from '@angular/core';
 import { describe, expect, it, vi } from 'vitest';
 
+vi.mock('./admin-auth.service', () => ({ AdminAuthService: class AdminAuthService {} }));
+vi.mock('@shared/data/catalog-categories', () => ({ applyCatalogOrder: vi.fn() }));
+
 import { AdminAuthService } from './admin-auth.service';
 import { AppearanceApiService } from './appearance-api.service';
 
