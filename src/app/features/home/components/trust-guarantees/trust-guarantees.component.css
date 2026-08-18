@@ -91,22 +91,15 @@
 }
 
 .trust-strip--ready .trust-strip__item {
-  opacity: 0;
-  filter: blur(2px);
-  transition:
-    opacity 750ms var(--storefront-ease),
-    transform 950ms cubic-bezier(0.16, 1, 0.3, 1),
-    filter 950ms cubic-bezier(0.16, 1, 0.3, 1);
-  will-change: opacity, transform;
+  transition: transform 950ms cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
 }
 
 .trust-strip--ready .trust-strip__item:nth-child(odd) { transform: translateX(-48vw); }
 .trust-strip--ready .trust-strip__item:nth-child(even) { transform: translateX(48vw); }
 
 .trust-strip--ready .trust-strip__item.is-visible {
-  opacity: 1;
   transform: translateX(0);
-  filter: blur(0);
 }
 
 @media (min-width: 48rem) {

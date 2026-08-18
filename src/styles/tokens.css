@@ -167,7 +167,7 @@
   --gradient-editorial-ivory: linear-gradient(180deg, var(--color-ivory) 0%, var(--color-bg-cream) 100%);
 
   /* ── Typography ─────────────────────────────────────────────── */
-  --font-persian: 'YekanBakh', 'Yekan', Tahoma, sans-serif;
+  --font-persian: 'YekanBakh', 'IRANSansX', 'Yekan', Tahoma, sans-serif;
   --font-english: 'Inter', Arial, sans-serif;
   --font-display: 'YekanBakh', 'IRANSansX', Tahoma, sans-serif;
   --font-serif-en: 'Playfair Display', Georgia, 'Times New Roman', serif;
