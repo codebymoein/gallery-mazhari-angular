@@ -75,17 +75,28 @@ jobs:
           const jsonLd = JSON.parse(jsonLdText);
           if (jsonLd['@type'] !== 'CollectionPage') throw new Error(`unexpected JSON-LD type: ${jsonLd['@type']}`);
           if (jsonLd.url !== expected) throw new Error(`unexpected JSON-LD url: ${jsonLd.url}`);
+          for (const [label, value] of Object.entries({ canonical, ogUrl, jsonLdUrl: jsonLd.url })) {
+            if (String(value).includes('utm_source=rm12')) throw new Error(`query leaked into ${label}`);
+          }
+          console.log('dynamic category SSR metadata contract passed');
           NODE
 
-          curl --fail --silent --show-error -H 'Host: gallery-mazhari.ir' http://127.0.0.1:4000/looks > content.html
+          curl --fail --silent --show-error -H 'Host: gallery-mazhari.ir' \
+            http://127.0.0.1:4000/looks > content.html
           grep -F 'href="https://gallery-mazhari.ir/looks"' content.html
-          curl --fail --silent --show-error -H 'Host: gallery-mazhari.ir' http://127.0.0.1:4000/sitemap.xml > sitemap.xml
-          curl --fail --silent --show-error -H 'Host: gallery-mazhari.ir' http://127.0.0.1:4000/sitemap-pages.xml > sitemap-pages.xml
-          curl --fail --silent --show-error -H 'Host: gallery-mazhari.ir' http://127.0.0.1:4000/sitemap-catalog.xml > sitemap-catalog.xml
+
+          curl --fail --silent --show-error -H 'Host: gallery-mazhari.ir' \
+            http://127.0.0.1:4000/sitemap.xml > sitemap.xml
+          curl --fail --silent --show-error -H 'Host: gallery-mazhari.ir' \
+            http://127.0.0.1:4000/sitemap-pages.xml > sitemap-pages.xml
+          curl --fail --silent --show-error -H 'Host: gallery-mazhari.ir' \
+            http://127.0.0.1:4000/sitemap-catalog.xml > sitemap-catalog.xml
           grep -F '<sitemapindex' sitemap.xml
           grep -F '<urlset' sitemap-pages.xml
           grep -F '<urlset' sitemap-catalog.xml
+
           status=$(curl --silent --show-error -H 'Host: gallery-mazhari.ir' --output missing.html --write-out '%{http_code}' http://127.0.0.1:4000/this-route-must-not-exist)
+          echo "unknown route status=${status}"
           test "$status" = '404'
           grep -F 'صفحه پیدا نشد | گالری مظهری' missing.html
           grep -F 'name="robots" content="noindex' missing.html
