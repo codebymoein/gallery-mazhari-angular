@@ -4,7 +4,7 @@ const approvedItems = [
   'از سال ۱۳۳۷',
   'مشاوره تخصصی عروس',
   'خرید حضوری و آنلاین',
-  'ارسال سریع و مطمئن سراسر ایران',
+  'ارسال سریع و مطمئن به سراسر ایران',
 ];
 
 test.describe('GM-042 Step 4 Trust Strip', () => {
@@ -56,5 +56,21 @@ test.describe('GM-042 Step 4 Trust Strip', () => {
     const items = page.locator('.trust-strip__item');
     await expect(items).toHaveCount(4);
     await expect(items.first()).toHaveCSS('animation-name', 'none');
+  });
+
+  test('reveals one detailed trust story at a time', async ({ page }) => {
+    await page.goto('/');
+    const heritageToggle = page.getByRole('button', { name: 'توضیحات از سال ۱۳۳۷' });
+    const shippingToggle = page.getByRole('button', { name: 'توضیحات ارسال سریع و مطمئن به سراسر ایران' });
+
+    await expect(heritageToggle).toHaveAttribute('aria-expanded', 'false');
+    await heritageToggle.click();
+    await expect(heritageToggle).toHaveAttribute('aria-expanded', 'true');
+    await expect(page.locator('#trust-details-heritage')).toContainText('نزدیک به هفت دهه تجربه');
+
+    await shippingToggle.click();
+    await expect(heritageToggle).toHaveAttribute('aria-expanded', 'false');
+    await expect(shippingToggle).toHaveAttribute('aria-expanded', 'true');
+    await expect(page.locator('#trust-details-shipping')).toContainText('پست، تیپاکس و باربری');
   });
 });
