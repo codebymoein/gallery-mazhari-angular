@@ -55,7 +55,7 @@ export class HomeComponent implements OnDestroy {
       position: '50% 18%'
     },
     {
-      title: 'اکسسوری عروس',
+      title: 'فروشگاه اکسسوری',
       cta: 'فروشگاه اکسسوری',
       route: '/accessories',
       image: this.appearanceApi.appearance()?.accessoryHeroImage || assetUrl('assets/images/home-complete-selection.webp'),
@@ -150,6 +150,8 @@ export class HomeComponent implements OnDestroy {
 
   onPointerDown(event: PointerEvent): void {
     if (!event.isPrimary) return;
+    const target = event.target instanceof Element ? event.target : null;
+    if (target?.closest('button, a, input, select, textarea')) return;
     this.pointerStartX = event.clientX;
     this.pointerId = event.pointerId;
     this.dragging = true;

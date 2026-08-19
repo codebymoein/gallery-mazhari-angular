@@ -25,7 +25,7 @@ test.describe('GM-042 Home Hero', () => {
     const box = await hero.boundingBox();
     expect(box).not.toBeNull();
     if (box) {
-      for (const expectedTitle of ['اکسسوری عروس', 'کفش، کتونی و کیف عروس', 'محصولات شخصی‌سازی‌شده']) {
+      for (const expectedTitle of ['فروشگاه اکسسوری', 'کفش، کتونی و کیف عروس', 'محصولات شخصی‌سازی‌شده']) {
         await page.mouse.move(box.x + box.width * 0.8, box.y + box.height / 2);
         await page.mouse.down();
         await page.mouse.move(box.x + box.width * 0.2, box.y + box.height / 2);
@@ -36,6 +36,32 @@ test.describe('GM-042 Home Hero', () => {
     await expect(hero.getByRole('link', { name: 'ثبت سفارش' })).toHaveAttribute('href', '/personalized-products');
     await expect(hero.locator('.home-hero__media')).toHaveAttribute('loading', 'lazy');
     await expect(hero.locator('.home-hero__media')).toHaveAttribute('fetchpriority', 'low');
+  });
+
+  test('keeps arrow direction consistent with swipe direction and the approved order', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto('/');
+    const hero = page.locator('.home-hero');
+
+    await expect(hero.getByRole('heading', { level: 2 })).toHaveText('لباس عروس');
+    await expect(hero.getByRole('button', { name: 'اسلاید قبلی' })).toHaveText('›');
+    await hero.getByRole('button', { name: 'اسلاید قبلی' }).click();
+    await expect(hero.getByRole('heading', { level: 2 })).toHaveText('رزرو وقت مشاوره حرفه‌ای');
+
+    await expect(hero.getByRole('button', { name: 'اسلاید بعدی' })).toHaveText('‹');
+    await hero.getByRole('button', { name: 'اسلاید بعدی' }).click();
+    await expect(hero.getByRole('heading', { level: 2 })).toHaveText('لباس عروس');
+
+    const orderedTitles = [
+      'فروشگاه اکسسوری',
+      'کفش، کتونی و کیف عروس',
+      'محصولات شخصی‌سازی‌شده',
+      'رزرو وقت مشاوره حرفه‌ای'
+    ];
+    for (const title of orderedTitles) {
+      await hero.getByRole('button', { name: 'اسلاید بعدی' }).click();
+      await expect(hero.getByRole('heading', { level: 2 })).toHaveText(title);
+    }
   });
 
   test('disables autoplay and decorative motion for reduced motion', async ({ page }) => {

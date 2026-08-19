@@ -13,8 +13,8 @@
   >
     <h1 id="home-hero-title" class="sr-only">گالری مظهری؛ پوشاک و اکسسوری عروس</h1>
 
-    <button class="home-hero__arrow home-hero__arrow--right" type="button" aria-label="اسلاید قبلی" (click)="previousSlide()">&#8249;</button>
-    <button class="home-hero__arrow home-hero__arrow--left" type="button" aria-label="اسلاید بعدی" (click)="nextSlide()">&#8250;</button>
+    <button class="home-hero__arrow home-hero__arrow--right" type="button" aria-label="اسلاید قبلی" (click)="previousSlide()">&#8250;</button>
+    <button class="home-hero__arrow home-hero__arrow--left" type="button" aria-label="اسلاید بعدی" (click)="nextSlide()">&#8249;</button>
 
     @for (slide of slides(); track slide.route; let index = $index) {
       @if (index === activeSlideIndex()) {
