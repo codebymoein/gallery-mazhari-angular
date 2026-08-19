@@ -26,9 +26,9 @@ test.describe('GM-042 Home Hero', () => {
     expect(box).not.toBeNull();
     if (box) {
       for (const expectedTitle of ['فروشگاه اکسسوری', 'کفش، کتونی و کیف عروس', 'محصولات شخصی‌سازی‌شده']) {
-        await page.mouse.move(box.x + box.width * 0.8, box.y + box.height / 2);
-        await page.mouse.down();
         await page.mouse.move(box.x + box.width * 0.2, box.y + box.height / 2);
+        await page.mouse.down();
+        await page.mouse.move(box.x + box.width * 0.8, box.y + box.height / 2);
         await page.mouse.up();
         await expect(hero.getByRole('heading', { level: 2 })).toHaveText(expectedTitle);
       }
@@ -44,11 +44,25 @@ test.describe('GM-042 Home Hero', () => {
     const hero = page.locator('.home-hero');
 
     await expect(hero.getByRole('heading', { level: 2 })).toHaveText('لباس عروس');
-    await expect(hero.getByRole('button', { name: 'اسلاید قبلی' })).toHaveText('›');
+    if ((page.viewportSize()?.width ?? 0) < 640) {
+      await expect(hero.locator('.home-hero__arrow').first()).toBeHidden();
+      await expect(hero.locator('.home-hero__arrow').last()).toBeHidden();
+      const dots = page.locator('.home-hero__pagination .home-hero__dot');
+      await expect(dots).toHaveCount(5);
+      await expect(dots.first()).toHaveAttribute('aria-current', 'true');
+      await dots.nth(4).click();
+      await expect(hero.getByRole('heading', { level: 2 })).toHaveText('رزرو وقت مشاوره حرفه‌ای');
+      await expect(dots.nth(4)).toHaveAttribute('aria-current', 'true');
+      await expect(dots.first()).not.toHaveAttribute('aria-current', 'true');
+      return;
+    }
+
+    await expect(page.locator('.home-hero__pagination')).toBeHidden();
+    await expect(hero.getByRole('button', { name: 'اسلاید قبلی' })).toHaveText('‹');
     await hero.getByRole('button', { name: 'اسلاید قبلی' }).click();
     await expect(hero.getByRole('heading', { level: 2 })).toHaveText('رزرو وقت مشاوره حرفه‌ای');
 
-    await expect(hero.getByRole('button', { name: 'اسلاید بعدی' })).toHaveText('‹');
+    await expect(hero.getByRole('button', { name: 'اسلاید بعدی' })).toHaveText('›');
     await hero.getByRole('button', { name: 'اسلاید بعدی' }).click();
     await expect(hero.getByRole('heading', { level: 2 })).toHaveText('لباس عروس');
 

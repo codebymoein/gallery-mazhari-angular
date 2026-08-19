@@ -164,8 +164,8 @@ export class HomeComponent implements OnDestroy {
     const distance = event.clientX - this.pointerStartX;
     this.finishPointerInteraction();
     if (Math.abs(distance) >= 48) {
-      if (distance < 0) this.nextSlide();
-      else this.previousSlide();
+      if (distance < 0) this.previousSlide();
+      else this.nextSlide();
     }
   }
 

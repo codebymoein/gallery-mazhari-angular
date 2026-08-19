@@ -13,8 +13,8 @@
   >
     <h1 id="home-hero-title" class="sr-only">گالری مظهری؛ پوشاک و اکسسوری عروس</h1>
 
-    <button class="home-hero__arrow home-hero__arrow--right" type="button" aria-label="اسلاید قبلی" (click)="previousSlide()">&#8250;</button>
-    <button class="home-hero__arrow home-hero__arrow--left" type="button" aria-label="اسلاید بعدی" (click)="nextSlide()">&#8249;</button>
+    <button class="home-hero__arrow home-hero__arrow--right" type="button" aria-label="اسلاید قبلی" (click)="previousSlide()">&#8249;</button>
+    <button class="home-hero__arrow home-hero__arrow--left" type="button" aria-label="اسلاید بعدی" (click)="nextSlide()">&#8250;</button>
 
     @for (slide of slides(); track slide.route; let index = $index) {
       @if (index === activeSlideIndex()) {
@@ -46,6 +46,19 @@
     }
 
   </section>
+
+  <div class="home-hero__pagination" role="group" aria-label="انتخاب اسلاید هیرو">
+    @for (slide of slides(); track slide.route; let index = $index) {
+      <button
+        class="home-hero__dot"
+        type="button"
+        [class.home-hero__dot--active]="index === activeSlideIndex()"
+        [attr.aria-label]="'رفتن به اسلاید ' + (index + 1)"
+        [attr.aria-current]="index === activeSlideIndex() ? 'true' : null"
+        (click)="selectSlide(index)"
+      ></button>
+    }
+  </div>
 
   <app-trust-guarantees data-home-section="trust"></app-trust-guarantees>
 
