@@ -13,6 +13,12 @@
   border-block-end: var(--storefront-border-subtle);
   box-shadow: var(--storefront-shadow-raised);
   font-family: var(--font-persian);
+  transform: translate3d(0, 0, 0);
+  transition: transform var(--storefront-duration-base) var(--storefront-ease);
+}
+
+.luxury-nav--hidden {
+  transform: translate3d(0, -100%, 0);
 }
 
 .luxury-nav__note {
@@ -67,20 +73,11 @@
 }
 
 .luxury-nav__brand-logo {
+  display: block;
   width: auto;
-  height: 2.15rem;
-  max-width: 7.25rem;
+  height: 2.35rem;
+  max-width: 8.25rem;
   object-fit: contain;
-}
-
-.luxury-nav__brand-mobile-wordmark {
-  color: var(--storefront-text-primary);
-  font-family: var(--font-serif-en);
-  font-size: clamp(1.05rem, 5vw, 1.35rem);
-  font-weight: var(--font-weight-medium);
-  letter-spacing: 0.025em;
-  line-height: 1;
-  white-space: nowrap;
 }
 
 .luxury-nav__brand-caption {
@@ -160,8 +157,8 @@
   align-items: center;
   gap: 0.5rem;
   color: var(--storefront-text-secondary);
-  background: var(--storefront-surface-page);
-  border: var(--storefront-border-strong);
+  background: var(--storefront-search-surface);
+  border: var(--storefront-border-subtle);
   border-radius: var(--storefront-radius-input);
   box-shadow: none;
 }
@@ -180,8 +177,9 @@
 
 .luxury-nav__search-field:focus-within,
 .luxury-nav__drawer-search > div:focus-within {
-  outline: var(--storefront-focus-ring);
-  outline-offset: var(--storefront-focus-offset);
+  outline: 0;
+  border-color: color-mix(in srgb, var(--color-burgundy) 20%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-rose-soft) 70%, transparent), 0 0.75rem 2rem rgba(68, 45, 41, 0.08);
 }
 
 .luxury-nav__search-field .ds-button,
@@ -189,7 +187,19 @@
   min-height: 2.4rem;
   margin-inline-end: 0.35rem;
   padding-inline: 1rem;
+  color: var(--storefront-text-primary);
+  background: color-mix(in srgb, var(--color-white) 48%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-white) 72%, var(--color-border));
+  border-radius: var(--radius-pill);
+  box-shadow: 0 0.4rem 1.2rem rgba(68, 45, 41, 0.06);
+  -webkit-backdrop-filter: blur(12px) saturate(125%);
+  backdrop-filter: blur(12px) saturate(125%);
   font-size: 0.78rem;
+}
+
+.luxury-nav__search-field .ds-button:active,
+.luxury-nav__drawer-search .ds-button:active {
+  background: var(--storefront-surface-raised);
 }
 
 .luxury-nav__drawer-backdrop {
@@ -211,7 +221,7 @@
   height: 100dvh;
   padding-block: env(safe-area-inset-top, 0px) env(safe-area-inset-bottom, 0px);
   display: grid;
-  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  grid-template-rows: auto auto minmax(0, 1fr);
   visibility: hidden;
   color: var(--storefront-text-primary);
   background: var(--storefront-surface-page);
@@ -312,32 +322,6 @@
   gap: 0.25rem;
 }
 
-.luxury-nav__drawer-feature {
-  min-height: 5.25rem;
-  margin-block: 0.25rem 0.5rem;
-  padding: 1rem;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 0.2rem 0.75rem;
-  align-items: center;
-  color: var(--storefront-surface-page);
-  background: var(--storefront-text-primary);
-  border-radius: var(--storefront-radius-control);
-  text-decoration: none;
-}
-
-.luxury-nav__drawer-feature small {
-  grid-column: 1 / -1;
-  color: var(--color-text-on-dark-soft);
-  font-family: var(--font-english);
-  font-size: 0.52rem;
-  letter-spacing: var(--type-tracking-editorial);
-}
-
-.luxury-nav__drawer-feature strong {
-  font-size: 0.85rem;
-}
-
 .luxury-nav__drawer-submenu-link {
   min-height: var(--touch-target);
   padding-inline: 0.75rem;
@@ -374,26 +358,18 @@
   display: grid;
 }
 
-.luxury-nav__drawer-footer {
-  padding: 1rem var(--gutter-page);
-  display: grid;
-  gap: 0.75rem;
-  background: var(--storefront-surface-raised);
-  border-block-start: var(--storefront-border-subtle);
-}
-
-.luxury-nav__drawer-footer p {
-  margin: 0;
-  color: var(--text-secondary);
-  font-size: 0.75rem;
-  text-align: center;
-}
-
 @supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
   .luxury-nav {
     background: var(--glass-surface);
     -webkit-backdrop-filter: blur(var(--glass-blur));
     backdrop-filter: blur(var(--glass-blur));
+  }
+
+  .luxury-nav__search-field,
+  .luxury-nav__drawer-search > div {
+    background: var(--storefront-search-surface-glass);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
   }
 }
 
@@ -443,15 +419,6 @@
     font-size: 1rem;
   }
 
-  .luxury-nav__search-field .ds-button,
-  .luxury-nav__drawer-search .ds-button,
-  .luxury-nav__drawer-footer .ds-button {
-    color: var(--storefront-surface-page);
-    background: var(--storefront-text-primary);
-    border-color: var(--storefront-text-primary);
-    border-radius: var(--storefront-radius-control);
-    box-shadow: none;
-  }
 }
 
 @media (min-width: 48rem) {
@@ -467,10 +434,6 @@
     height: 2.55rem;
     max-width: 8.5rem;
     display: block;
-  }
-
-  .luxury-nav__brand-mobile-wordmark {
-    display: none;
   }
 
   .luxury-nav__brand-caption {
@@ -583,8 +546,8 @@
     pointer-events: none;
     transform: translateY(-0.5rem);
     transition:
-      opacity var(--storefront-duration-base) var(--storefront-ease),
-      transform var(--storefront-duration-base) var(--storefront-ease);
+      opacity 420ms var(--storefront-ease),
+      transform 420ms var(--storefront-ease);
   }
 
   .luxury-nav__menu-group[open] .luxury-nav__mega-menu {
@@ -727,12 +690,16 @@
     gap: 0;
   }
 
-  .luxury-nav__brand-mobile-wordmark {
-    font-size: 1rem;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .luxury-nav {
+    transition: none;
+  }
+
+  .luxury-nav--hidden {
+    transform: none;
+  }
   .luxury-nav__drawer-nav app-line-icon,
   .luxury-nav__menu-group app-line-icon,
   .luxury-nav__mega-menu,
@@ -741,4 +708,25 @@
     transition-duration: 0.01ms;
   }
 
+}
+
+/* GM-042 owner polish: soft crystal controls without heavy black focus frames. */
+.luxury-nav__search-toggle {
+  color: var(--storefront-text-primary);
+  background: color-mix(in srgb, var(--color-white) 54%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-white) 70%, var(--color-border));
+  border-radius: var(--radius-pill);
+  box-shadow: 0 0.45rem 1.35rem rgba(68, 45, 41, 0.08);
+  -webkit-backdrop-filter: blur(12px) saturate(125%);
+  backdrop-filter: blur(12px) saturate(125%);
+}
+
+.luxury-nav__search-toggle:hover {
+  background: color-mix(in srgb, var(--color-rose-soft) 58%, transparent);
+  border-color: color-mix(in srgb, var(--color-burgundy) 22%, transparent);
+}
+
+.luxury-nav__search-toggle:focus-visible {
+  outline: 0;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-rose-soft) 72%, transparent), 0 0.55rem 1.5rem rgba(68, 45, 41, 0.12);
 }

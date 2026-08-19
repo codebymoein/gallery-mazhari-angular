@@ -1,15 +1,12 @@
-/* GM-006 motion foundation adapted by GM-039 for the approved Home opening. */
+/* GM-006 motion foundation carried into the GM-042 storefront composition. */
 
-.editorial-hero__media {
+.home-hero__media {
   animation: gm-hero-image-settle var(--transition-editorial) both;
 }
 
-.editorial-entry-action {
+.home-hero__copy {
   animation: gm-editorial-rise var(--transition-editorial) both;
 }
-
-.editorial-entry-action:nth-child(1) { animation-delay: 60ms; }
-.editorial-entry-action:nth-child(2) { animation-delay: 120ms; }
 
 .heritage-note__year,
 .heritage-note__body,
@@ -41,15 +38,14 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .editorial-hero__media,
-  .editorial-entry-action,
+  .home-hero__media,
+  .home-hero__copy,
   .heritage-note__year,
   .heritage-note__body,
   .heritage-note__link {
     animation: none;
   }
 
-  .editorial-entry-action:active,
   .heritage-note:hover .heritage-note__year {
     transform: none;
   }

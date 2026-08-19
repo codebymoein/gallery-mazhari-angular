@@ -124,12 +124,12 @@ test.describe('design-system contract', () => {
   }) => {
     await page.goto('/');
 
-    const hero = page.locator('.editorial-hero');
+    const hero = page.locator('.home-hero');
     await expect(hero).toBeVisible();
     await expect(hero.getByRole('heading', { level: 1 })).toHaveText(
       'گالری مظهری؛ پوشاک و اکسسوری عروس',
     );
-    const priority = await page.locator('.editorial-hero__media').evaluate((image) => ({
+    const priority = await page.locator('.home-hero__media').evaluate((image) => ({
       loading: image.getAttribute('loading'),
       fetchpriority: image.getAttribute('fetchpriority'),
     }));

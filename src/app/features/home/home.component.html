@@ -1,27 +1,81 @@
 <main class="home-editorial" dir="rtl">
-  <section class="editorial-hero" aria-labelledby="home-hero-title">
+  <section
+    class="home-hero"
+    aria-labelledby="home-hero-title"
+    aria-roledescription="carousel"
+    (mouseenter)="setHovered(true)"
+    (mouseleave)="setHovered(false)"
+    (focusin)="onFocusIn()"
+    (focusout)="onFocusOut($event)"
+    (pointerdown)="onPointerDown($event)"
+    (pointerup)="onPointerUp($event)"
+    (pointercancel)="onPointerCancel()"
+  >
     <h1 id="home-hero-title" class="sr-only">گالری مظهری؛ پوشاک و اکسسوری عروس</h1>
 
-    <div class="editorial-hero__media-shell" aria-hidden="true">
-      <img
-        class="editorial-hero__media"
-        [src]="bridalImage()"
-        alt=""
-        width="1003"
-        height="1568"
-        loading="eager"
-        fetchpriority="high"
-        decoding="async"
-      />
-    </div>
+    <button class="home-hero__arrow home-hero__arrow--right" type="button" aria-label="اسلاید قبلی" (click)="previousSlide()">&#8249;</button>
+    <button class="home-hero__arrow home-hero__arrow--left" type="button" aria-label="اسلاید بعدی" (click)="nextSlide()">&#8250;</button>
+
+    @for (slide of slides(); track slide.route; let index = $index) {
+      @if (index === activeSlideIndex()) {
+        <article
+          class="home-hero__slide"
+          role="group"
+          aria-roledescription="slide"
+          [attr.aria-label]="'اسلاید ' + (index + 1) + ' از ' + slides().length"
+        >
+          <img
+            class="home-hero__media"
+            [src]="slide.image"
+            [alt]="slide.imageAlt"
+            width="1003"
+            height="1568"
+            [attr.loading]="index === 0 ? 'eager' : 'lazy'"
+            [attr.fetchpriority]="index === 0 ? 'high' : 'low'"
+            decoding="async"
+            [style.object-position]="slide.position"
+          />
+          <div class="home-hero__shade" aria-hidden="true"></div>
+          <div class="home-hero__copy">
+            <p class="home-hero__eyebrow">گالری مظهری</p>
+            <h2>{{ slide.title }}</h2>
+            <a class="home-hero__cta" [routerLink]="slide.route">{{ slide.cta }}</a>
+          </div>
+        </article>
+      }
+    }
+
   </section>
 
-  <nav class="editorial-entry-actions" aria-label="مسیرهای اصلی فروشگاه">
-    <a class="editorial-entry-action" routerLink="/catalog">پوشاک عروس</a>
-    <a class="editorial-entry-action" routerLink="/accessories">فروشگاه اکسسوری</a>
-  </nav>
+  <div class="home-hero__pagination" role="group" aria-label="انتخاب اسلاید هیرو">
+    @for (slide of slides(); track slide.route; let index = $index) {
+      <button
+        class="home-hero__dot"
+        type="button"
+        [class.home-hero__dot--active]="index === activeSlideIndex()"
+        [attr.aria-label]="'رفتن به اسلاید ' + (index + 1)"
+        [attr.aria-current]="index === activeSlideIndex() ? 'true' : null"
+        (click)="selectSlide(index)"
+      ></button>
+    }
+  </div>
 
-  <section class="heritage-note" aria-labelledby="heritage-note-title">
+  <app-trust-guarantees data-home-section="trust"></app-trust-guarantees>
+
+  <app-category-showcase class="home-section" data-home-section="categories"></app-category-showcase>
+
+  <!-- Optional discounts render nothing when the API has no active promotion. -->
+  <app-discount-showcase class="home-section" data-home-section="offers"></app-discount-showcase>
+
+  <app-subcategory-carousel class="home-section" data-home-section="discovery"></app-subcategory-carousel>
+
+  <app-home-appointment class="home-section" data-home-section="appointment"></app-home-appointment>
+
+  <app-lookbook-matchmaker class="home-section" data-home-section="lookbook"></app-lookbook-matchmaker>
+
+  <app-real-brides class="home-section" data-home-section="real-brides"></app-real-brides>
+
+  <section class="heritage-note home-section" data-home-section="heritage" aria-labelledby="heritage-note-title">
     <p class="heritage-note__year" lang="en" dir="ltr">EST. 1958</p>
     <div class="heritage-note__body">
       <p class="editorial-kicker">از سال ۱۳۳۷ با شما هستیم</p>
@@ -37,20 +91,6 @@
     </a>
   </section>
 
-  <app-category-showcase></app-category-showcase>
+  <app-interactive-guide-faq class="home-section" data-home-section="guide-faq"></app-interactive-guide-faq>
 
-  <!-- Optional discounts render nothing when the API has no active promotion. -->
-  <app-discount-showcase></app-discount-showcase>
-
-  <app-subcategory-carousel></app-subcategory-carousel>
-
-  <app-home-appointment></app-home-appointment>
-
-  <app-lookbook-matchmaker></app-lookbook-matchmaker>
-
-  <app-real-brides></app-real-brides>
-
-  <app-interactive-guide-faq></app-interactive-guide-faq>
-
-  <app-trust-guarantees></app-trust-guarantees>
 </main>

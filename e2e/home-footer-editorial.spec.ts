@@ -31,18 +31,14 @@ test.describe('GM-011 editorial Home and Footer', () => {
     await page.goto('/', { waitUntil: 'domcontentloaded' });
     await appearanceLoaded;
 
-    const hero = page.locator('.editorial-hero');
-    const heroImage = page.locator('.editorial-hero__media');
-    const storeEntries = page.getByRole('navigation', { name: 'مسیرهای اصلی فروشگاه' });
-    const bridalEntry = storeEntries.getByRole('link', { name: 'پوشاک عروس', exact: true });
-    const accessoryEntry = storeEntries.getByRole('link', { name: 'فروشگاه اکسسوری', exact: true });
+    const hero = page.locator('.home-hero');
+    const heroImage = page.locator('.home-hero__media');
 
     await expect(hero).toBeVisible();
     await expect(heroImage).toBeVisible();
     await expect(page.locator('h1.sr-only')).toContainText('گالری مظهری');
-    await expect(page.locator('.editorial-hero__copy')).toHaveCount(0);
-    await expect(bridalEntry).toHaveAttribute('href', '/catalog');
-    await expect(accessoryEntry).toHaveAttribute('href', '/accessories');
+    await expect(page.locator('.home-hero__copy')).toBeVisible();
+    await expect(hero.getByRole('link', { name: 'مشاهده لباس‌ها' })).toHaveAttribute('href', '/shop/bridal-clothing');
 
     await page.evaluate(() => document.querySelector('.cat-showcase')?.scrollIntoView());
     const categoryImage = page.locator('.cat-story__img:visible, .cat-card__img:visible').first();
@@ -74,7 +70,7 @@ test.describe('GM-011 editorial Home and Footer', () => {
     await page.goto('/', { waitUntil: 'domcontentloaded' });
 
     await expect(page.locator('h1.sr-only')).toContainText('گالری مظهری');
-    await expect(page.locator('.editorial-entry-action').first()).toHaveCSS('animation-name', 'none');
+    await expect(page.locator('.home-hero__copy')).toHaveCSS('animation-name', 'none');
     await page.locator('.luxury-footer').scrollIntoViewIfNeeded();
     await expect(page.locator('.luxury-footer__brand-name h2')).toBeVisible();
     const transitionSeconds = await page.locator('.luxury-footer__top').evaluate(element =>

@@ -4,8 +4,8 @@
   opacity: 0;
   pointer-events: none;
   transition:
-    opacity var(--storefront-duration-fast) var(--storefront-ease),
-    visibility 0s linear var(--storefront-duration-fast);
+    opacity var(--storefront-duration-base) var(--storefront-ease),
+    visibility 0s linear var(--storefront-duration-base);
 }
 
 .luxury-nav__drawer-backdrop--open {
@@ -22,32 +22,30 @@
   transform: translate3d(102%, 0, 0);
   backface-visibility: hidden;
   transition:
-    transform var(--storefront-duration-base) var(--storefront-ease),
-    visibility 0s linear var(--storefront-duration-base);
+    transform 650ms var(--storefront-ease),
+    visibility 0s linear 650ms;
 }
 
 .luxury-nav__drawer--open {
   visibility: visible;
   pointer-events: auto;
   transform: translate3d(0, 0, 0);
-  transition: transform var(--storefront-duration-base) var(--storefront-ease);
+  transition: transform 650ms var(--storefront-ease);
 }
 
 .luxury-nav__drawer-header,
 .luxury-nav__drawer-search,
-.luxury-nav__drawer-nav,
-.luxury-nav__drawer-footer {
+.luxury-nav__drawer-nav {
   opacity: 0;
   transform: translate3d(0, var(--storefront-space-3), 0);
   transition:
-    opacity var(--storefront-duration-fast) var(--storefront-ease),
-    transform var(--storefront-duration-fast) var(--storefront-ease);
+    opacity 440ms var(--storefront-ease),
+    transform 440ms var(--storefront-ease);
 }
 
 .luxury-nav__drawer--open .luxury-nav__drawer-header,
 .luxury-nav__drawer--open .luxury-nav__drawer-search,
-.luxury-nav__drawer--open .luxury-nav__drawer-nav,
-.luxury-nav__drawer--open .luxury-nav__drawer-footer {
+.luxury-nav__drawer--open .luxury-nav__drawer-nav {
   opacity: 1;
   transform: translate3d(0, 0, 0);
 }
@@ -64,17 +62,13 @@
   transition-delay: 80ms;
 }
 
-.luxury-nav__drawer--open .luxury-nav__drawer-footer {
-  transition-delay: 105ms;
-}
-
 .luxury-nav__drawer-nav summary app-line-icon {
   transition: transform var(--storefront-duration-fast) var(--storefront-ease);
 }
 
 .luxury-nav__drawer-group[open] > .luxury-nav__drawer-submenu,
 .luxury-nav__drawer-nested[open] > .luxury-nav__drawer-submenu-links {
-  animation: luxury-nav-submenu-reveal var(--storefront-duration-base) var(--storefront-ease) both;
+  animation: luxury-nav-submenu-reveal 480ms var(--storefront-ease) both;
 }
 
 @keyframes luxury-nav-submenu-reveal {
@@ -95,7 +89,6 @@
   .luxury-nav__drawer-header,
   .luxury-nav__drawer-search,
   .luxury-nav__drawer-nav,
-  .luxury-nav__drawer-footer,
   .luxury-nav__drawer-nav summary app-line-icon,
   .luxury-nav__drawer-group[open] > .luxury-nav__drawer-submenu,
   .luxury-nav__drawer-nested[open] > .luxury-nav__drawer-submenu-links {
@@ -106,8 +99,7 @@
   .luxury-nav__drawer,
   .luxury-nav__drawer-header,
   .luxury-nav__drawer-search,
-  .luxury-nav__drawer-nav,
-  .luxury-nav__drawer-footer {
+  .luxury-nav__drawer-nav {
     transform: none;
   }
 }

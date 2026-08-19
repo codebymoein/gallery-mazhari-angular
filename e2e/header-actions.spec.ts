@@ -26,6 +26,22 @@ test.describe('header cart and reduced motion', () => {
     await searchToggle.click();
     await expect(searchToggle).toHaveAttribute('aria-expanded', 'true');
     await expect(page.locator('#nav-search-input')).toBeFocused();
+    const searchPresentation = await page.locator('.luxury-nav__search-field').evaluate((field) => {
+      const fieldStyle = getComputedStyle(field);
+      const buttonStyle = getComputedStyle(field.querySelector('button')!);
+      return {
+        borderWidth: fieldStyle.borderTopWidth,
+        borderColor: fieldStyle.borderTopColor,
+        fieldBackground: fieldStyle.backgroundColor,
+        buttonBackground: buttonStyle.backgroundColor,
+        inputFontSize: getComputedStyle(field.querySelector('input')!).fontSize,
+      };
+    });
+    expect(searchPresentation.borderWidth).toBe('1px');
+    expect(searchPresentation.borderColor).not.toBe('rgb(0, 0, 0)');
+    expect(searchPresentation.fieldBackground).not.toBe('rgb(0, 0, 0)');
+    expect(searchPresentation.buttonBackground).not.toBe('rgb(0, 0, 0)');
+    expect(Number.parseFloat(searchPresentation.inputFontSize)).toBeGreaterThanOrEqual(16);
     await page.keyboard.press('Escape');
     await expect(searchToggle).toHaveAttribute('aria-expanded', 'false');
     expect(pageErrors).toEqual([]);
@@ -137,7 +153,7 @@ test.describe('header cart and reduced motion', () => {
     await expect(drawer).toBeVisible();
     await expect(drawer.locator('.luxury-nav__drawer-brand img')).toHaveAttribute(
       'src',
-      'assets/images/gallery-mazhari-logo.png',
+      'assets/images/gallery-mazhari-wordmark.png',
     );
     await expect.poll(() => drawer.evaluate((element) => {
       const drawerBox = element.getBoundingClientRect();
@@ -150,6 +166,12 @@ test.describe('header cart and reduced motion', () => {
     })).toBeLessThanOrEqual(1);
     await drawer.locator('.luxury-nav__drawer-group > summary').first().click();
     await expect(drawer.locator('.luxury-nav__drawer-group').first()).toHaveAttribute('open', '');
+    const bridalAll = drawer.getByRole('link', { name: 'مشاهده همه پوشاک عروس' });
+    await expect(bridalAll).toHaveClass(/luxury-nav__drawer-submenu-link/);
+    await expect(bridalAll).not.toHaveClass(/luxury-nav__drawer-feature/);
+
+    const drawerSearchButton = drawer.locator('.luxury-nav__drawer-search button');
+    await expect(drawerSearchButton).not.toHaveCSS('background-color', 'rgb(0, 0, 0)');
 
     await drawer.getByRole('button', { name: 'بستن منو' }).click();
     await expect(drawer).toBeHidden();
@@ -252,5 +274,52 @@ test.describe('header cart and reduced motion', () => {
     await expect(drawer).toBeVisible();
     const duration = await drawer.evaluate((element) => getComputedStyle(element).transitionDuration);
     expect(Number.parseFloat(duration)).toBe(0);
+  });
+
+  test('scroll direction hides and reveals the header without overriding active UI', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/');
+
+    const header = page.locator('.luxury-nav');
+    await page.evaluate(() => window.scrollTo(0, 900));
+    await expect(header).toHaveClass(/luxury-nav--hidden/);
+
+    await page.evaluate(() => window.scrollBy(0, -120));
+    await expect(header).not.toHaveClass(/luxury-nav--hidden/);
+
+    await page.locator('.luxury-nav__menu-toggle').click();
+    await expect(page.locator('#storefront-drawer')).toBeVisible();
+    await page.evaluate(() => window.dispatchEvent(new Event('scroll')));
+    await expect(header).not.toHaveClass(/luxury-nav--hidden/);
+    await page.keyboard.press('Escape');
+
+    await page.locator('.luxury-nav__search-toggle').click();
+    await expect(page.locator('#nav-search-input')).toBeFocused();
+    await page.evaluate(() => window.dispatchEvent(new Event('scroll')));
+    await expect(header).not.toHaveClass(/luxury-nav--hidden/);
+  });
+
+  test('brand returns to the true top of Home from Home and another route', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/');
+    await page.evaluate(() => window.scrollTo(0, 900));
+    await page.evaluate(() => window.scrollBy(0, -120));
+    await page.getByLabel('صفحه اصلی گالری مزهری').click();
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThanOrEqual(1);
+    await expect(page).toHaveURL(/\/$/);
+
+    await page.goto('/catalog#stale-fragment');
+    await page.getByLabel('صفحه اصلی گالری مزهری').click();
+    await expect(page).toHaveURL(/\/$/);
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThanOrEqual(1);
+    expect(await page.evaluate(() => window.location.hash)).toBe('');
+  });
+
+  test('reduced motion keeps the scroll-aware header visible', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/');
+    await page.evaluate(() => window.scrollTo(0, 900));
+    await expect(page.locator('.luxury-nav')).toHaveCSS('transform', 'none');
   });
 });

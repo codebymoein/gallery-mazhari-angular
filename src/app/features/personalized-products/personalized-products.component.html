@@ -1,0 +1,21 @@
+<main class="personalized" dir="rtl">
+  <header class="personalized__intro">
+    <p>سفارش‌های ویژه گالری مظهری</p>
+    <h1>محصولات شخصی‌سازی‌شده</h1>
+    <p>نوع محصول موردنظر خود را انتخاب کنید. فقط مسیرهایی که فرم درخواست معتبر دارند قابل ثبت هستند.</p>
+  </header>
+
+  <section class="personalized__grid" aria-label="انواع محصولات شخصی‌سازی‌شده">
+    @for (product of products; track product.title) {
+      <article class="personalized__card">
+        <h2>{{ product.title }}</h2>
+        <p>{{ product.description }}</p>
+        @if (product.route) {
+          <a [routerLink]="product.route">ثبت درخواست</a>
+        } @else {
+          <span class="personalized__status">به‌زودی</span>
+        }
+      </article>
+    }
+  </section>
+</main>

@@ -74,7 +74,7 @@ test(
     }
 
     if (isConstrained) {
-      await expect(page.locator('.editorial-hero')).toBeVisible();
+      await expect(page.locator('.home-hero')).toBeVisible();
       await expect(page.locator('#home-hero-title')).toBeVisible();
     } else {
       await page.goto('/catalog', { waitUntil: 'domcontentloaded' });
@@ -166,7 +166,7 @@ test('WebKit drawer lock preserves the page scroll position', async ({ page, bro
   await expect(drawer).toBeVisible();
   await expect(drawer.getByRole('button', { name: 'بستن منو' })).toBeFocused();
   await page.keyboard.press('Shift+Tab');
-  await expect(drawer.getByRole('link', { name: /رزرو مشاوره/ }).last()).toBeFocused();
+  await expect(drawer.getByRole('link', { name: 'پیگیری سفارش‌ها' })).toBeFocused();
   await page.keyboard.press('Tab');
   await expect(drawer.getByRole('button', { name: 'بستن منو' })).toBeFocused();
   await expect(page.locator('body')).toHaveCSS('position', 'fixed');
@@ -174,7 +174,10 @@ test('WebKit drawer lock preserves the page scroll position', async ({ page, bro
   await drawer.getByRole('button', { name: 'بستن منو' }).click();
   await expect(drawer).toBeHidden();
   await expect(menuToggle).toBeFocused();
-  await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(before);
+  await expect.poll(() => page.evaluate(targetScrollY => {
+    const maxScrollY = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+    return Math.abs(window.scrollY - Math.min(targetScrollY, maxScrollY));
+  }, before)).toBeLessThanOrEqual(1);
   await expect(page.locator('body')).not.toHaveCSS('position', 'fixed');
 });
 

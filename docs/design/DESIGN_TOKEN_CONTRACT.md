@@ -14,6 +14,7 @@ GM-001 established the legacy post-remediation storefront direction: **warm / ed
 The `--storefront-*` family is the semantic migration surface for the approved redesign. Adding these roles does not authorize a global recolor or removal of legacy tokens. A component adopts the new language only in its approved focused slice.
 
 - Surfaces: pure white page, restrained raised grey, black primary text and `#4f4f4f` secondary text.
+- Search controls may use the local warm-neutral `--storefront-search-surface` and translucent progressive-enhancement role without expanding cream into a global storefront theme.
 - Borders: subtle warm-neutral divider and strong charcoal control border.
 - Geometry: controls use a maximum 3px radius and inputs use 2px; pills and large rounded cards are not the default storefront vocabulary.
 - Layout: the 4px rhythm and the existing responsive system remain authoritative; the redesign exposes a 1351px maximum content width and responsive 12px-to-32px gutter roles.

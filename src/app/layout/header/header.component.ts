@@ -3,7 +3,8 @@ import {
   ChangeDetectionStrategy, inject,
   ViewChild, TemplateRef, ElementRef
 } from '@angular/core';
-import { CommonModule, DOCUMENT } from '@angular/common';
+import { CommonModule, DOCUMENT, isPlatformBrowser } from '@angular/common';
+import { NgZone, PLATFORM_ID, signal } from '@angular/core';
 import { RouterLink, Router } from '@angular/router';
 import { NavigationEnd, NavigationStart } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -30,6 +31,8 @@ export class HeaderComponent implements OnDestroy {
   private router = inject(Router);
   private host = inject(ElementRef<HTMLElement>);
   private document = inject(DOCUMENT);
+  private readonly zone = inject(NgZone);
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   private readonly collectionSlugs = new Set([
     'bridal-clothing',
     'arabic-bridal-dresses',
@@ -45,6 +48,13 @@ export class HeaderComponent implements OnDestroy {
   cartCount$: Observable<number>;
   private readonly routerEventsSubscription: Subscription;
   private isDesktopViewport: boolean;
+  private scrollFrame: number | null = null;
+  private lastScrollY = 0;
+  private scrollDirection = 0;
+  private scrollDistance = 0;
+  private removeScrollListener: (() => void) | null = null;
+
+  readonly isHeaderHidden = signal(false);
 
   @ViewChild('drawerTpl') drawerTpl!: TemplateRef<unknown>;
   @ViewChild('menuToggle', { read: ElementRef }) menuToggle?: ElementRef<HTMLButtonElement>;
@@ -61,15 +71,21 @@ export class HeaderComponent implements OnDestroy {
     this.routerEventsSubscription = this.router.events
       .pipe(filter((event): event is NavigationStart | NavigationEnd => event instanceof NavigationStart || event instanceof NavigationEnd))
       .subscribe(() => this.closeMenus());
+    this.initScrollAwareness();
   }
 
   ngOnDestroy(): void {
     this.routerEventsSubscription.unsubscribe();
+    this.removeScrollListener?.();
+    if (this.scrollFrame !== null) {
+      this.document.defaultView?.cancelAnimationFrame(this.scrollFrame);
+    }
     this.drawer.close();
   }
 
   toggleSearch(): void {
     this.isSearchOpen = !this.isSearchOpen;
+    this.revealHeader();
     if (this.drawer.isOpen()) this.closeDrawer(false);
     if (this.isSearchOpen) {
       this.document.defaultView?.setTimeout(() => {
@@ -95,6 +111,7 @@ export class HeaderComponent implements OnDestroy {
     this.isSearchOpen = false;
     this.resetDrawerState();
     this.drawer.open();
+    this.revealHeader();
     this.focusDrawerCloseWhenReady();
   }
 
@@ -113,7 +130,7 @@ export class HeaderComponent implements OnDestroy {
 
   focusLastDrawerControl(): void {
     this.document
-      .querySelector<HTMLAnchorElement>('.luxury-nav__drawer-footer .ds-button')
+      .querySelector<HTMLAnchorElement>('.luxury-nav__drawer-nav > a:last-of-type')
       ?.focus();
   }
 
@@ -121,6 +138,30 @@ export class HeaderComponent implements OnDestroy {
     this.isSearchOpen = false;
     this.closeDrawer(false);
     this.closeOpenDetails();
+  }
+
+  goHomeTop(event: Event): void {
+    event.preventDefault();
+    this.closeMenus();
+    this.revealHeader();
+
+    const scrollToTop = (): void => {
+      const view = this.document.defaultView;
+      if (!view) return;
+      const reduceMotion = view.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+      view.scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' });
+      this.resetScrollTracking(0);
+    };
+
+    const currentPath = this.router.url.split(/[?#]/, 1)[0] || '/';
+    if (currentPath === '/') {
+      scrollToTop();
+      return;
+    }
+
+    void this.router.navigateByUrl('/').then(navigated => {
+      if (navigated) scrollToTop();
+    });
   }
 
   bridalItemLink(slug: string): string[] {
@@ -150,14 +191,14 @@ export class HeaderComponent implements OnDestroy {
     event?.preventDefault();
     this.closeMenus();
     const scrollToAppointment = (): void => {
-      document.getElementById('appointment')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      this.document.getElementById('appointment')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     };
     if (this.router.url === '/' || this.router.url.startsWith('/?') || this.router.url.startsWith('/#')) {
       scrollToAppointment();
       return;
     }
     this.router.navigate(['/'], { fragment: 'appointment' }).then(() => {
-      setTimeout(scrollToAppointment, 120);
+      this.document.defaultView?.setTimeout(scrollToAppointment, 120);
     });
   }
 
@@ -230,10 +271,12 @@ export class HeaderComponent implements OnDestroy {
   @HostListener('window:orientationchange')
   onOrientationChange(): void {
     this.closeMenus();
+    this.resetScrollTracking();
   }
 
   @HostListener('window:resize')
   onViewportResize(): void {
+    this.resetScrollTracking();
     const isDesktopViewport = this.matchesDesktopViewport();
     if (isDesktopViewport === this.isDesktopViewport) return;
 
@@ -288,5 +331,71 @@ export class HeaderComponent implements OnDestroy {
     return typeof view?.matchMedia === 'function'
       ? view.matchMedia('(min-width: 64rem)').matches
       : false;
+  }
+
+  private initScrollAwareness(): void {
+    const view = this.document.defaultView;
+    if (!this.isBrowser || !view) return;
+
+    this.lastScrollY = Math.max(0, view.scrollY);
+    const onScroll = (): void => {
+      if (this.scrollFrame !== null) return;
+      this.scrollFrame = view.requestAnimationFrame(() => {
+        this.scrollFrame = null;
+        this.updateHeaderForScroll(Math.max(0, view.scrollY));
+      });
+    };
+
+    this.zone.runOutsideAngular(() => {
+      view.addEventListener('scroll', onScroll, { passive: true });
+    });
+    this.removeScrollListener = () => view.removeEventListener('scroll', onScroll);
+  }
+
+  private updateHeaderForScroll(scrollY: number): void {
+    if (scrollY <= 8 || this.drawer.isOpen() || this.isSearchOpen || this.searchContainsFocus()) {
+      this.revealHeader();
+      this.resetScrollTracking(scrollY);
+      return;
+    }
+
+    const delta = scrollY - this.lastScrollY;
+    this.lastScrollY = scrollY;
+    if (Math.abs(delta) < 1) return;
+
+    const direction = Math.sign(delta);
+    if (direction !== this.scrollDirection) {
+      this.scrollDirection = direction;
+      this.scrollDistance = 0;
+    }
+    this.scrollDistance += delta;
+
+    if (direction > 0 && this.scrollDistance >= 16) {
+      this.setHeaderHidden(true);
+      this.scrollDistance = 0;
+    } else if (direction < 0 && this.scrollDistance <= -10) {
+      this.setHeaderHidden(false);
+      this.scrollDistance = 0;
+    }
+  }
+
+  private searchContainsFocus(): boolean {
+    const activeElement = this.document.activeElement;
+    return activeElement?.closest('.luxury-nav__search-toggle, #storefront-search') != null;
+  }
+
+  private revealHeader(): void {
+    this.setHeaderHidden(false);
+  }
+
+  private setHeaderHidden(hidden: boolean): void {
+    if (this.isHeaderHidden() === hidden) return;
+    this.zone.run(() => this.isHeaderHidden.set(hidden));
+  }
+
+  private resetScrollTracking(scrollY = Math.max(0, this.document.defaultView?.scrollY ?? 0)): void {
+    this.lastScrollY = scrollY;
+    this.scrollDirection = 0;
+    this.scrollDistance = 0;
   }
 }
