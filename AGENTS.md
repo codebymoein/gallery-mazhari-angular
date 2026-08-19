@@ -64,6 +64,18 @@ Also name the governance/Handbook documents actually read. Do not restate their 
 
 A new chat/session/agent must independently re-verify repository state rather than trusting copied SHAs or status text. If the human owner explicitly says to continue an already-approved task in the same verified session/state, do not ask a redundant confirmation, but still re-check any state that may have changed before writing.
 
+## Optional external agent skills and ECC policy
+External agent systems such as ECC, provider plugins, MCP servers, skills, hooks, review loops, or design helpers are **capabilities, not project authority**. They may improve execution but MUST remain subordinate to the precedence and scope rules above.
+
+- Do not vendor, copy, or mirror a full external agent framework or its skill library into this repository merely to make it available to an agent. Prefer harness-level installation/configuration so repository context stays small.
+- If ECC is available in the active harness, select only the smallest task-relevant skills. For storefront UI/UX work, the preferred set is `frontend-design-direction`, `design-system`, `angular-developer`, `make-interfaces-feel-better`, `accessibility`, and `browser-qa`.
+- `plan-canvas` may be used for owner-facing design planning/review when useful, but it does not replace repository tests, browser evidence, or explicit owner acceptance.
+- Generic external verification loops MUST defer to this repository's Tier A/B/C model. An external skill may recommend additional checks, but it may not expand an isolated frontend task into unrelated backend/database/release suites without a real risk boundary or an explicit task contract.
+- External design or motion guidance may inform implementation, but it MUST NOT introduce React/Next/Framer-specific dependencies or patterns into this Angular application unless separately justified and owner-approved.
+- External tools MUST reuse the repository's existing design tokens, Angular/SSR architecture, canonical taxonomy, API/data ownership, and protected workflows rather than creating parallel authorities.
+- Hooks, MCP servers, shell commands, and plugin permissions MUST be reviewed/trusted in the agent harness before use. Installation of a plugin is not blanket authorization for repository writes, direct `main` changes, destructive commands, secret access, or quality-gate bypasses.
+- ECC or any other optional agent framework MUST NOT become a prerequisite for maintaining this repository. If unavailable, agents continue using `AGENTS.md`, the Constitution, the selected Handbook chapters, and the task contract.
+
 ## Risk-based verification rule
 Verification MUST be proportionate to the actual final diff and risk boundaries. Before running checks, classify the task using [`docs/handbook/10-testing-quality.md`](docs/handbook/10-testing-quality.md) Tier A, B, or C and record that tier in the task/PR evidence.
 
