@@ -70,7 +70,7 @@ jobs:
               frontend=true
             fi
 
-            if grep -Eq '^(backend/)' changed-files.txt; then
+            if grep -Eq '^backend/' changed-files.txt; then
               backend=true
               tier=C
             fi
@@ -87,7 +87,7 @@ jobs:
 
             if grep -Eq '^(src/.*\.(ts|html)$|e2e/|playwright.*|backend/src/)' changed-files.txt; then
               e2e=true
-              [[ "$tier" == A ]] && tier=B
+              if [[ "$tier" == A ]]; then tier=B; fi
             fi
 
             if grep -Eq '^(src/.*\.(html|css|scss)$|src/styles/|e2e/accessibility\.spec\.ts$|docs/handbook/17-seo-performance-accessibility\.md$)' changed-files.txt; then
@@ -137,6 +137,7 @@ jobs:
 
           body = os.environ.get('PR_BODY', '')
           failures = []
+
           required_fields = [
               'Remediation / task ID',
               'Base SHA',
@@ -145,6 +146,7 @@ jobs:
               'Governance documents actually read',
               'Rollback / roll-forward plan',
           ]
+
           for label in required_fields:
               match = re.search(rf'^- {re.escape(label)}:\s*(.+)$', body, re.MULTILINE)
               if not match or not match.group(1).strip():
@@ -158,15 +160,31 @@ jobs:
               'Quality gates were not weakened/bypassed merely to obtain a passing run.',
               'Merge authorization comes from the human owner; the agent is not self-authorizing approval.',
           ]
+
           for text in required_acknowledgements:
-              if f'- [x] {text}' not in body and f'- [X] {text}' not in body:
+              checked = f'- [x] {text}' in body or f'- [X] {text}' in body
+              if not checked:
                   failures.append(f'unchecked governance acknowledgement: {text}')
+
+          remediation = re.search(r'^- Remediation / task ID:\s*(.+)$', body, re.MULTILINE)
+          task_id = remediation.group(1).strip() if remediation else ''
+          is_remediation = bool(re.search(r'\bRM-\d+\b|\bPR-\d+\b|finding', task_id, re.IGNORECASE))
+          if is_remediation:
+              roadmap_ack = '- [x] For remediation work, `docs/remediation/MASTER_REMEDIATION_ROADMAP.md` was read and the exact Wave/RM/PR/finding scope was identified.' in body or '- [X] For remediation work, `docs/remediation/MASTER_REMEDIATION_ROADMAP.md` was read and the exact Wave/RM/PR/finding scope was identified.' in body
+              if not roadmap_ack:
+                  failures.append('remediation PR must explicitly acknowledge the Master Remediation Roadmap')
+
+              for label in ('Roadmap Wave / PR slice (or `N/A` for non-remediation)', 'Linked finding IDs (or `N/A`)'):
+                  match = re.search(rf'^- {re.escape(label)}:\s*(.+)$', body, re.MULTILINE)
+                  if not match or not match.group(1).strip() or match.group(1).strip().upper() == 'N/A':
+                      failures.append(f'remediation PR requires field: {label}')
 
           if failures:
               print('Governance contract failed:')
               for failure in failures:
                   print(f' - {failure}')
               sys.exit(1)
+
           print('Governance contract passed.')
           PY
 
@@ -192,17 +210,31 @@ jobs:
           set -e
           summary=$(grep -E '✖ [0-9]+ problems \([0-9]+ errors, [0-9]+ warnings\)' frontend-lint.txt | tail -1 || true)
           if [ -z "$summary" ]; then
-            test "$lint_exit" -eq 0
-            exit 0
+            if [ "$lint_exit" -eq 0 ]; then
+              echo "Frontend lint passed with zero reported errors."
+              exit 0
+            fi
+            echo "Unable to parse frontend lint result."
+            exit 1
           fi
           errors=$(printf '%s' "$summary" | sed -E 's/.*\(([0-9]+) errors, ([0-9]+) warnings\).*/\1/')
           warnings=$(printf '%s' "$summary" | sed -E 's/.*\(([0-9]+) errors, ([0-9]+) warnings\).*/\2/')
+          echo "Frontend lint baseline: errors=${errors}, warnings=${warnings}; allowed <=8 errors and <=90 warnings."
           test "$errors" -le 8
           test "$warnings" -le 90
       - run: npm test
       - name: Frontend coverage evidence
         run: npm run test:coverage -- --coverage.reporter=text --coverage.reporter=json-summary
       - run: npm run build:prod
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: frontend-quality-evidence
+          path: |
+            frontend-lint.txt
+            coverage
+          if-no-files-found: warn
+          retention-days: 14
 
   backend:
     name: Backend lint, test, build
@@ -226,15 +258,30 @@ jobs:
           set -e
           summary=$(grep -E '✖ [0-9]+ problems \([0-9]+ errors, [0-9]+ warnings\)' backend-lint.txt | tail -1 || true)
           if [ -z "$summary" ]; then
-            test "$lint_exit" -eq 0
-            exit 0
+            if [ "$lint_exit" -eq 0 ]; then
+              echo "Backend lint passed with zero reported errors."
+              exit 0
+            fi
+            echo "Unable to parse backend lint result."
+            exit 1
           fi
           errors=$(printf '%s' "$summary" | sed -E 's/.*\(([0-9]+) errors, ([0-9]+) warnings\).*/\1/')
           warnings=$(printf '%s' "$summary" | sed -E 's/.*\(([0-9]+) errors, ([0-9]+) warnings\).*/\2/')
+          echo "Backend lint baseline: errors=${errors}, warnings=${warnings}; allowed <=283 errors and <=6 warnings."
           test "$errors" -le 283
           test "$warnings" -le 6
       - run: npm --prefix backend test -- --runInBand
-      - run: npm --prefix backend run test:cov -- --runInBand --coverageReporters=text --coverageReporters=json-summary
+      - name: Backend coverage threshold gate
+        run: npm --prefix backend run test:cov -- --runInBand --coverageReporters=text --coverageReporters=json-summary
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: backend-quality-evidence
+          path: |
+            backend-lint.txt
+            backend/coverage
+          if-no-files-found: warn
+          retention-days: 14
       - run: npm --prefix backend run build
 
   postgres-migrations:
@@ -274,8 +321,30 @@ jobs:
           cache: npm
           cache-dependency-path: backend/package-lock.json
       - run: npm --prefix backend ci
-      - run: npm --prefix backend run migration:run
-      - run: npm --prefix backend run migration:show
+      - name: Apply migrations to empty PostgreSQL database
+        run: npm --prefix backend run migration:run
+      - name: Verify migration status
+        run: npm --prefix backend run migration:show | tee migration-status.txt
+      - name: Report existing entity/migrated-schema drift
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          npm --prefix backend run schema:log 2>&1 | tee schema-drift.txt
+          if grep -qiE 'schema is up to date|no changes in database schema' schema-drift.txt; then
+            echo "Entity and migrated schema are in parity."
+          else
+            echo "::warning::Existing entity/migration schema drift detected. This is recorded as remediation debt and does not weaken the blocking fresh-migration gate."
+            exit 1
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: postgres-migration-evidence
+          path: |
+            migration-status.txt
+            schema-drift.txt
+          if-no-files-found: warn
+          retention-days: 14
 
   e2e:
     name: Playwright critical journeys
@@ -306,14 +375,22 @@ jobs:
       - run: npm ci
       - run: npm --prefix backend ci
       - run: npx playwright install --with-deps chromium
-      - run: npx playwright test e2e/backend.spec.ts e2e/cart-and-checkout.spec.ts e2e/routing-and-seo.spec.ts e2e/storefront.spec.ts
+      - name: Run business-critical E2E suite
+        run: npx playwright test e2e/backend.spec.ts e2e/cart-and-checkout.spec.ts e2e/routing-and-seo.spec.ts e2e/storefront.spec.ts
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-critical-report
+          path: playwright-report
+          if-no-files-found: warn
+          retention-days: 14
 
   accessibility-report:
     name: Accessibility debt report
     needs: classify
     if: needs.classify.outputs.accessibility == 'true'
-    continue-on-error: true
     runs-on: ubuntu-latest
+    continue-on-error: true
     env:
       CI: true
       DB_TYPE: sqlite
@@ -338,7 +415,15 @@ jobs:
       - run: npm ci
       - run: npm --prefix backend ci
       - run: npx playwright install --with-deps chromium
-      - run: npx playwright test e2e/accessibility.spec.ts
+      - name: Run accessibility suite without masking existing RM-14 debt
+        run: npx playwright test e2e/accessibility.spec.ts
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: accessibility-report
+          path: playwright-report
+          if-no-files-found: warn
+          retention-days: 14
 
   dependency-security:
     name: Dependency security audit
@@ -368,8 +453,8 @@ jobs:
     name: Static debt reports
     needs: classify
     if: needs.classify.outputs.static_analysis == 'true'
-    continue-on-error: true
     runs-on: ubuntu-latest
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -381,8 +466,74 @@ jobs:
             backend/package-lock.json
       - run: npm ci
       - run: npm --prefix backend ci
+      - run: mkdir -p reports
+      - name: CSS governance report
+        continue-on-error: true
+        run: npx --yes stylelint@16.23.1 "src/**/*.css" --config .stylelintrc.json > reports/stylelint.txt 2>&1
       - name: Architecture dependency report
-        run: npx --yes dependency-cruiser@17.3.1 --validate .dependency-cruiser.cjs "src/**/*.ts" "backend/src/**/*.ts"
+        shell: bash
+        run: |
+          set -euo pipefail
+          set +e
+          npx --yes dependency-cruiser@17.3.1 \
+            --validate .dependency-cruiser.cjs \
+            --output-type json \
+            "src/**/*.ts" "backend/src/**/*.ts" \
+            > reports/dependency-cruiser.json \
+            2> reports/dependency-cruiser.stderr.txt
+          cruise_exit=$?
+          set -e
+          CRUISE_EXIT="$cruise_exit" python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          path = Path('reports/dependency-cruiser.json')
+          if not path.exists() or not path.read_text().strip():
+              raise SystemExit('dependency-cruiser produced no JSON evidence')
+          report = json.loads(path.read_text())
+          modules = report.get('modules', [])
+          if not modules:
+              raise SystemExit('dependency-cruiser evidence is invalid: zero modules analyzed')
+          summary = report.get('summary', {})
+          print(
+              'dependency-cruiser evidence: '
+              f'modules={len(modules)}, '
+              f'dependencies={summary.get("totalDependenciesCruised", "unknown")}, '
+              f'ruleErrors={summary.get("error", "unknown")}, '
+              f'cliExit={os.environ.get("CRUISE_EXIT", "unknown")}'
+          )
+          PY
+      - name: Dead-code report
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx --yes knip@6.29.0 \
+            --reporter json \
+            --no-progress \
+            --no-exit-code \
+            > reports/knip.json \
+            2> reports/knip.stderr.txt
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          path = Path('reports/knip.json')
+          if not path.exists() or not path.read_text().strip():
+              raise SystemExit('knip produced no JSON evidence')
+          report = json.loads(path.read_text())
+          issues = report.get('issues')
+          if not isinstance(issues, list):
+              raise SystemExit('knip evidence is invalid: missing issues array')
+          print(f'knip produced structured evidence for {len(issues)} files with findings')
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: static-analysis-reports
+          path: reports
+          if-no-files-found: error
+          retention-days: 14
 
   required-quality-gates:
     name: Required quality gates
@@ -410,6 +561,8 @@ jobs:
           SECRET_SCAN: ${{ needs.secret-scan.result }}
         run: |
           set -euo pipefail
+          printf 'classify=%s\ngovernance=%s\nfrontend=%s\nbackend=%s\npostgres=%s\ne2e=%s\ndependency-security=%s\nsecret-scan=%s\n' \
+            "$CLASSIFY" "$GOVERNANCE" "$FRONTEND" "$BACKEND" "$POSTGRES" "$E2E" "$DEPENDENCY_SECURITY" "$SECRET_SCAN"
           test "$CLASSIFY" = success
           test "$GOVERNANCE" = success
           test "$SECRET_SCAN" = success
