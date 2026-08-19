@@ -5,7 +5,7 @@ This is version-controlled Living Documentation for the real Angular + NestJS + 
 > **Agent entry rule:** New AI/automation sessions MUST start at [`../../AGENTS.md`](../../AGENTS.md), complete its Fast Preflight Protocol, read the Constitution, Roadmap scope when applicable, this index and task-risk-selected chapters, then provide the compact pre-write report before material edits. Opening this Handbook directly does not waive the `AGENTS.md` preflight.
 
 ## Canonical remediation authority
-- [`../remediation/MASTER_REMEDIATION_ROADMAP.md`](../remediation/MASTER_REMEDIATION_ROADMAP.md) — authoritative 381-finding remediation program, Wave/RM/PR sequence, dependencies, exit criteria, Definition of Done and coverage manifest.
+- [`../remediation/MASTER_REMEDIATION_ROADMAP.md`](../remediation/MASTER_REMEDIATION_ROADMAP.md) — authoritative entry point for active remediation/release work; completed finding and PR detail remains in Git/PR history.
 - [`../governance/AGENT_TASK_MANIFEST.md`](../governance/AGENT_TASK_MANIFEST.md) — mandatory task-scoping and acknowledgement contract for material agent work.
 - [`../governance/NEW_AGENT_BOOTSTRAP.md`](../governance/NEW_AGENT_BOOTSTRAP.md) — reusable minimal instructions for starting a new chat/agent without trusting stale copied state.
 
