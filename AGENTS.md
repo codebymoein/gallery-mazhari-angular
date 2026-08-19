@@ -64,6 +64,15 @@ Also name the governance/Handbook documents actually read. Do not restate their 
 
 A new chat/session/agent must independently re-verify repository state rather than trusting copied SHAs or status text. If the human owner explicitly says to continue an already-approved task in the same verified session/state, do not ask a redundant confirmation, but still re-check any state that may have changed before writing.
 
+## Risk-based verification rule
+Verification MUST be proportionate to the actual final diff and risk boundaries. Before running checks, classify the task using [`docs/handbook/10-testing-quality.md`](docs/handbook/10-testing-quality.md) Tier A, B, or C and record that tier in the task/PR evidence.
+
+- Do not run `npm run verify:local`, full backend/database/security/release suites, the entire Playwright matrix, or unrelated certification gates by default for an isolated frontend presentation change.
+- Run focused frontend checks for frontend-only work and escalate only when behavior, routing/state, SSR/accessibility/SEO/performance, backend/API, data/schema, security, workflow, dependency, deployment, or release boundaries are actually touched.
+- A task/release/certification contract may explicitly require broader evidence; such an explicit requirement overrides the normal tier minimum.
+- CI may run broader permanent regression controls. Do not disable or weaken CI to obtain a pass, and do not reproduce every unrelated CI job locally unless it is applicable to the change or explicitly required.
+- A failing relevant gate is never grounds to downgrade the tier or mark the gate not applicable.
+
 ## Hard rules
 - Never create a replacement repository. Never push directly to `main`. Never modify historical merged PRs.
 - Work on one focused branch/PR slice at a time. Do not mix governance hardening, adjacent remediation programs, cleanup, or opportunistic fixes into the active PR unless the Roadmap explicitly groups them.
