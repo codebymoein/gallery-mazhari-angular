@@ -1,5 +1,6 @@
 <section class="trust-strip" [class.trust-strip--ready]="motionReady" dir="rtl" aria-labelledby="trust-strip-title">
   <header class="trust-strip__header">
+    <p class="trust-strip__kicker" lang="en" dir="ltr">GALLERY MAZHARI · EST. 1337</p>
     <h2 id="trust-strip-title" class="trust-strip__title">
       <span>به وبسایت گالری مظهری</span>
       <span>کامل ترین فروشگاه آنلاین حوزه عروس</span>
@@ -14,6 +15,24 @@
           <span class="trust-strip__sprite"></span>
         </span>
         <span class="trust-strip__label">{{ item.label }}</span>
+        <button
+          class="trust-strip__toggle"
+          type="button"
+          [attr.aria-label]="'توضیحات ' + item.label"
+          [attr.aria-expanded]="expandedItemId() === item.id"
+          [attr.aria-controls]="'trust-details-' + item.id"
+          (click)="toggleDetails(item.id)"
+        >
+          <span aria-hidden="true"></span>
+        </button>
+        <div
+          class="trust-strip__details"
+          [class.trust-strip__details--open]="expandedItemId() === item.id"
+          [attr.id]="'trust-details-' + item.id"
+          [attr.aria-hidden]="expandedItemId() !== item.id"
+        >
+          <div><p>{{ item.description }}</p></div>
+        </div>
       </li>
     }
   </ul>
