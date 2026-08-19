@@ -5,6 +5,10 @@ The root defines Vitest, Angular lint/build and Playwright; backend defines Jest
 
 `verify:local` is a **broad-change / certification gate**, not the default command for every edit. Agents MUST select verification proportionate to the boundaries actually touched. A smaller verification set is not a bypass when it fully covers the declared change scope; unrelated gates MUST NOT be run merely to inflate the check count or duplicate unchanged-boundary evidence.
 
+GitHub PR verification follows the same principle. `.github/workflows/quality-gates.yml` first classifies the actual PR diff and runs only the blocking jobs applicable to the touched surfaces. The stable `Required quality gates` result accepts intentionally skipped non-applicable jobs, while governance classification and secret scanning remain blocking. Full execution remains available through `workflow_dispatch` and for change surfaces that automatically escalate to Tier C.
+
+Historic evidence workflows are also scope-gated. RM-09 runs only for source/static-analysis surfaces; RM-12 runs only for SSR/HTML/TypeScript/build surfaces; RM-13 runs only for browser-behavior/CWV surfaces; RM-17 runs automatically only for release-critical backend/deploy/dependency/build-config surfaces and remains manually dispatchable for explicit certification.
+
 ## Risk-based verification tiers
 Choose the lowest tier that fully covers the change. Escalate immediately when the diff crosses a listed boundary or when a task/release contract explicitly requires a broader gate.
 
@@ -42,7 +46,7 @@ Run the complete applicable repository gate set, including `npm run verify:local
 - A one-line auth, routing, schema, payment, stock, or workflow change can require Tier C.
 - A large CSS-only cleanup can remain Tier A if it truly does not change behavior or governed semantics.
 - If a focused check reveals an unexplained regression outside the declared surface, expand verification before completion.
-- CI may intentionally run broader permanent regression controls. Local agents do not need to reproduce every unrelated CI job unless the task or merge contract explicitly requires it.
+- CI may intentionally run broader permanent regression controls, but those controls SHOULD use path/diff scope where the risk boundary is objectively detectable.
 - Never relabel a change into a lower tier to avoid a failing relevant gate.
 
 ## Required by change type
