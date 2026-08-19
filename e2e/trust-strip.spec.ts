@@ -8,14 +8,16 @@ const approvedItems = [
 ];
 
 test.describe('GM-042 Step 4 Trust Strip', () => {
-  test('follows Hero with a welcome heading and only the four approved claims', async ({ page }) => {
+  test('follows Hero with the approved welcome hierarchy and only the four approved claims', async ({ page }) => {
     await page.goto('/');
 
     const hero = page.locator('.home-hero');
     const strip = page.locator('.trust-strip');
     await expect(strip).toBeVisible();
     await expect(hero).toBeAttached();
-    await expect(strip.locator('.trust-strip__title')).toContainText('گالری مظهری');
+    await expect(strip.locator('.trust-strip__title-main')).toHaveText('به دنیای گالری مظهری خوش آمدید');
+    await expect(strip.locator('.trust-strip__title-sub')).toHaveText('کامل‌ترین انتخاب برای عروس، از لباس تا آخرین جزئیات');
+    await expect(strip.locator('.trust-strip__intro')).toHaveText('از سال ۱۳۳۷، همراه انتخاب‌های ماندگار شما');
     const connectorHeight = await strip.locator('.trust-strip__header').evaluate((element) =>
       parseFloat(getComputedStyle(element, '::before').height),
     );
