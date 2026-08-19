@@ -68,8 +68,11 @@ A new chat/session/agent must independently re-verify repository state rather th
 External agent systems such as ECC, provider plugins, MCP servers, skills, hooks, review loops, or design helpers are **capabilities, not project authority**. They may improve execution but MUST remain subordinate to the precedence and scope rules above.
 
 - Do not vendor, copy, or mirror a full external agent framework or its skill library into this repository merely to make it available to an agent. Prefer harness-level installation/configuration so repository context stays small.
-- If ECC is available in the active harness, select only the smallest task-relevant skills. For storefront UI/UX work, the preferred set is `frontend-design-direction`, `design-system`, `angular-developer`, `make-interfaces-feel-better`, `accessibility`, and `browser-qa`.
-- `plan-canvas` may be used for owner-facing design planning/review when useful, but it does not replace repository tests, browser evidence, or explicit owner acceptance.
+- When external skills are available in the active harness, use this minimal project set by default:
+  - `frontend-design-direction` for storefront and product-specific UI/UX direction;
+  - `angular-developer` for version-aware Angular, SSR, accessibility, routing, and test-aware implementation;
+  - `nestjs-patterns` for modular NestJS APIs, validation, authorization, configuration, and production backend structure.
+- Additional ECC, design, accessibility, browser-review, or planning skills are optional task-scoped capabilities, not default project requirements. Add one only when the active task has a concrete gap that the three preferred skills do not cover.
 - Generic external verification loops MUST defer to this repository's Tier A/B/C model. An external skill may recommend additional checks, but it may not expand an isolated frontend task into unrelated backend/database/release suites without a real risk boundary or an explicit task contract.
 - External design or motion guidance may inform implementation, but it MUST NOT introduce React/Next/Framer-specific dependencies or patterns into this Angular application unless separately justified and owner-approved.
 - External tools MUST reuse the repository's existing design tokens, Angular/SSR architecture, canonical taxonomy, API/data ownership, and protected workflows rather than creating parallel authorities.
