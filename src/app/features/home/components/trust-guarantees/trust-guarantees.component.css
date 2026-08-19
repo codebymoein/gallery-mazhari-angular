@@ -64,9 +64,7 @@
 }
 
 .trust-strip__intro {
-  position: relative;
   margin: var(--storefront-space-4) 0 0;
-  padding-block-start: var(--storefront-space-4);
   color: var(--storefront-text-secondary);
   font-size: clamp(0.76rem, 3.15vw, 0.9rem);
   font-weight: var(--font-weight-regular);
@@ -76,13 +74,11 @@
 
 .trust-strip__intro::before {
   content: '';
-  position: absolute;
-  inset-block-start: 0;
-  inset-inline-start: 50%;
   width: 2.5rem;
   height: 1px;
+  margin: 0 auto var(--storefront-space-4);
+  display: block;
   background: var(--storefront-border-subtle-color);
-  transform: translateX(50%);
 }
 
 .trust-strip__list {
