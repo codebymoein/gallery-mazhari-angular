@@ -44,7 +44,7 @@ If documents conflict, reconcile the conflict in a focused PR; do not silently c
 - server deployment handoff material — retained only while useful to current deployment/release operations.
 - older workflow/architecture references — retained only where a current canonical document still points to them for detail.
 
-Obsolete early-phase reports and duplicate feature trackers should not remain in the active working tree merely for history; Git history and merged Pull Requests provide that record.
+The active tree keeps only current contracts, operational references, active acceptance material and specifications needed by an ongoing dependent feature. Completed or superseded task records belong in Git history and merged Pull Requests.
 
 See `docs/operations/STALE_DOCUMENT_REGISTER.md` for retained documents with known legacy/context risk.
 
@@ -53,6 +53,7 @@ See `docs/operations/STALE_DOCUMENT_REGISTER.md` for retained documents with kno
 - One canonical entry point per operational topic.
 - Specialized documents may add detail but must not contradict the canonical owner.
 - Completed roadmap detail belongs in Git/PR history unless it is still required for an active operational/release decision.
+- Completed or superseded feature/task specifications are removed after confirming there is no active acceptance, dependency or operational consumer.
 - Never describe a planned control as already implemented.
 - Renames/moves require inbound link updates.
 - Deletion/archive requires proof that the document is obsolete and has no active operational consumer.
