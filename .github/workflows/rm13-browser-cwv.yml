@@ -3,6 +3,16 @@ name: RM-13 Browser and CWV Evidence
 on:
   pull_request:
     branches: [main]
+    paths:
+      - 'src/**/*.ts'
+      - 'src/**/*.html'
+      - 'e2e/**'
+      - 'playwright*.ts'
+      - 'lighthouserc.cjs'
+      - 'angular.json'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/rm13-browser-cwv.yml'
   workflow_dispatch:
 
 permissions:

@@ -3,7 +3,21 @@ name: RM-09 Static Analysis Evidence
 on:
   pull_request:
     branches: [main]
+    paths:
+      - 'src/**/*.ts'
+      - 'backend/src/**/*.ts'
+      - '.dependency-cruiser.cjs'
+      - 'knip.json'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'backend/package.json'
+      - 'backend/package-lock.json'
+      - '.github/workflows/rm09-static-analysis.yml'
   workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
@@ -77,7 +91,7 @@ jobs:
 
           path = Path('reports/rm09/knip.json')
           if not path.exists() or not path.read_text().strip():
-              raise SystemExit('knip produced no JSON evidence')
+              raise SystemExit('knip evidence is invalid: empty report')
           report = json.loads(path.read_text())
           issues = report.get('issues')
           if not isinstance(issues, list):

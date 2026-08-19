@@ -3,18 +3,124 @@ name: Quality Gates
 on:
   pull_request:
     branches: [main]
-  push:
-    branches: [main]
   workflow_dispatch:
 
 concurrency:
-  group: quality-gates-${{ github.workflow }}-${{ github.ref }}
+  group: quality-gates-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 permissions:
   contents: read
 
 jobs:
+  classify:
+    name: Classify changed risk surfaces
+    runs-on: ubuntu-latest
+    outputs:
+      frontend: ${{ steps.risk.outputs.frontend }}
+      backend: ${{ steps.risk.outputs.backend }}
+      postgres: ${{ steps.risk.outputs.postgres }}
+      e2e: ${{ steps.risk.outputs.e2e }}
+      accessibility: ${{ steps.risk.outputs.accessibility }}
+      dependency_security: ${{ steps.risk.outputs.dependency_security }}
+      static_analysis: ${{ steps.risk.outputs.static_analysis }}
+      tier: ${{ steps.risk.outputs.tier }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: risk
+        name: Derive applicable gates from final diff
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha || '' }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ "$EVENT_NAME" == "workflow_dispatch" || -z "$BASE_SHA" ]]; then
+            printf '%s\n' '__FULL__' > changed-files.txt
+          else
+            git diff --name-only "$BASE_SHA" "$HEAD_SHA" > changed-files.txt
+          fi
+
+          cat changed-files.txt
+
+          frontend=false
+          backend=false
+          postgres=false
+          e2e=false
+          accessibility=false
+          dependency_security=false
+          static_analysis=false
+          tier=A
+
+          if grep -qx '__FULL__' changed-files.txt; then
+            frontend=true
+            backend=true
+            postgres=true
+            e2e=true
+            accessibility=true
+            dependency_security=true
+            static_analysis=true
+            tier=C
+          else
+            if grep -Eq '^(src/|angular\.json$|tsconfig.*\.json$|package\.json$|package-lock\.json$|\.stylelintrc\.json$)' changed-files.txt; then
+              frontend=true
+            fi
+
+            if grep -Eq '^backend/' changed-files.txt; then
+              backend=true
+              tier=C
+            fi
+
+            if grep -Eq '^(backend/src/.*(migration|migrations|database|entities|entity)|backend/package\.json$|backend/package-lock\.json$)' changed-files.txt; then
+              postgres=true
+              tier=C
+            fi
+
+            if grep -Eq '^(package\.json$|package-lock\.json$|backend/package\.json$|backend/package-lock\.json$)' changed-files.txt; then
+              dependency_security=true
+              tier=C
+            fi
+
+            if grep -Eq '^(src/.*\.(ts|html)$|e2e/|playwright.*|backend/src/)' changed-files.txt; then
+              e2e=true
+              if [[ "$tier" == A ]]; then tier=B; fi
+            fi
+
+            if grep -Eq '^(src/.*\.(html|css|scss)$|src/styles/|e2e/accessibility\.spec\.ts$|docs/handbook/17-seo-performance-accessibility\.md$)' changed-files.txt; then
+              accessibility=true
+            fi
+
+            if grep -Eq '^(src/.*\.ts$|backend/src/.*\.ts$|\.dependency-cruiser\.cjs$|knip.*|\.github/workflows/quality-gates\.yml$)' changed-files.txt; then
+              static_analysis=true
+            fi
+
+            if grep -Eq '^(\.github/workflows/|deploy/|backend/src/auth/|backend/src/payments/|backend/src/orders/|backend/src/products/|backend/src/platform/)' changed-files.txt; then
+              backend=true
+              postgres=true
+              e2e=true
+              dependency_security=true
+              static_analysis=true
+              tier=C
+            fi
+          fi
+
+          {
+            echo "frontend=$frontend"
+            echo "backend=$backend"
+            echo "postgres=$postgres"
+            echo "e2e=$e2e"
+            echo "accessibility=$accessibility"
+            echo "dependency_security=$dependency_security"
+            echo "static_analysis=$static_analysis"
+            echo "tier=$tier"
+          } >> "$GITHUB_OUTPUT"
+
+          echo "Selected verification tier: $tier"
+
   governance-contract:
     name: Governance contract
     runs-on: ubuntu-latest
@@ -81,12 +187,11 @@ jobs:
 
           print('Governance contract passed.')
           PY
-      - name: Non-PR governance check
-        if: github.event_name != 'pull_request'
-        run: echo "Governance PR-body validation is not applicable to this event."
 
   frontend:
     name: Frontend lint, test, build
+    needs: classify
+    if: needs.classify.outputs.frontend == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -133,6 +238,8 @@ jobs:
 
   backend:
     name: Backend lint, test, build
+    needs: classify
+    if: needs.classify.outputs.backend == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -179,6 +286,8 @@ jobs:
 
   postgres-migrations:
     name: PostgreSQL migration chain and schema drift
+    needs: classify
+    if: needs.classify.outputs.postgres == 'true'
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -239,6 +348,8 @@ jobs:
 
   e2e:
     name: Playwright critical journeys
+    needs: classify
+    if: needs.classify.outputs.e2e == 'true'
     runs-on: ubuntu-latest
     env:
       CI: true
@@ -276,6 +387,8 @@ jobs:
 
   accessibility-report:
     name: Accessibility debt report
+    needs: classify
+    if: needs.classify.outputs.accessibility == 'true'
     runs-on: ubuntu-latest
     continue-on-error: true
     env:
@@ -314,6 +427,8 @@ jobs:
 
   dependency-security:
     name: Dependency security audit
+    needs: classify
+    if: needs.classify.outputs.dependency_security == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -336,6 +451,8 @@ jobs:
 
   static-analysis-report:
     name: Static debt reports
+    needs: classify
+    if: needs.classify.outputs.static_analysis == 'true'
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
@@ -422,6 +539,7 @@ jobs:
     name: Required quality gates
     if: always()
     needs:
+      - classify
       - governance-contract
       - frontend
       - backend
@@ -431,8 +549,9 @@ jobs:
       - secret-scan
     runs-on: ubuntu-latest
     steps:
-      - name: Enforce blocking gate results
+      - name: Enforce applicable blocking gate results
         env:
+          CLASSIFY: ${{ needs.classify.result }}
           GOVERNANCE: ${{ needs.governance-contract.result }}
           FRONTEND: ${{ needs.frontend.result }}
           BACKEND: ${{ needs.backend.result }}
@@ -442,12 +561,11 @@ jobs:
           SECRET_SCAN: ${{ needs.secret-scan.result }}
         run: |
           set -euo pipefail
-          printf 'governance=%s\nfrontend=%s\nbackend=%s\npostgres=%s\ne2e=%s\ndependency-security=%s\nsecret-scan=%s\n' \
-            "$GOVERNANCE" "$FRONTEND" "$BACKEND" "$POSTGRES" "$E2E" "$DEPENDENCY_SECURITY" "$SECRET_SCAN"
+          printf 'classify=%s\ngovernance=%s\nfrontend=%s\nbackend=%s\npostgres=%s\ne2e=%s\ndependency-security=%s\nsecret-scan=%s\n' \
+            "$CLASSIFY" "$GOVERNANCE" "$FRONTEND" "$BACKEND" "$POSTGRES" "$E2E" "$DEPENDENCY_SECURITY" "$SECRET_SCAN"
+          test "$CLASSIFY" = success
           test "$GOVERNANCE" = success
-          test "$FRONTEND" = success
-          test "$BACKEND" = success
-          test "$POSTGRES" = success
-          test "$E2E" = success
-          test "$DEPENDENCY_SECURITY" = success
           test "$SECRET_SCAN" = success
+          for result in "$FRONTEND" "$BACKEND" "$POSTGRES" "$E2E" "$DEPENDENCY_SECURITY"; do
+            [[ "$result" == success || "$result" == skipped ]]
+          done

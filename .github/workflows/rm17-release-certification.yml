@@ -3,6 +3,15 @@ name: RM-17 Release Certification Evidence
 on:
   pull_request:
     branches: [main]
+    paths:
+      - 'backend/**'
+      - 'deploy/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'backend/package.json'
+      - 'backend/package-lock.json'
+      - 'angular.json'
+      - '.github/workflows/rm17-release-certification.yml'
   workflow_dispatch:
 
 permissions:
@@ -31,7 +40,6 @@ jobs:
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -39,22 +47,18 @@ jobs:
           cache-dependency-path: |
             package-lock.json
             backend/package-lock.json
-
       - name: Install dependencies
         run: |
           npm ci
           npm --prefix backend ci
-
       - name: Build exact release candidate
         run: |
           npm run build:prod
           npm --prefix backend run build
-
       - name: Validate certification tooling
         run: |
           bash -n deploy/certify-release-candidate.sh deploy/certification-smoke.sh
           shellcheck deploy/certify-release-candidate.sh deploy/certification-smoke.sh
-
       - name: Assemble candidate provenance surface
         env:
           RELEASE_SHA: ${{ github.sha }}
@@ -71,21 +75,17 @@ jobs:
           bash deploy/certify-release-candidate.sh "${release_dir}" "${RELEASE_SHA}"
           mkdir -p reports/release
           cp "${release_dir}/REVISION" "${release_dir}/BUILD.json" "${release_dir}/CERTIFIED_REVISION" "${release_dir}/CERTIFICATION_FILE_HASHES.sha256" reports/release/
-
       - name: Start candidate backend
         run: |
           set -euo pipefail
           node backend/dist/main.js > /tmp/rm17-backend.log 2>&1 &
           echo $! > /tmp/rm17-backend.pid
           for attempt in {1..45}; do
-            if curl --fail --silent http://127.0.0.1:3000/api/ops/health/ready >/dev/null; then
-              exit 0
-            fi
+            if curl --fail --silent http://127.0.0.1:3000/api/ops/health/ready >/dev/null; then exit 0; fi
             sleep 1
           done
           cat /tmp/rm17-backend.log
           exit 1
-
       - name: Start candidate SSR storefront
         env:
           PORT: '4000'
@@ -94,14 +94,11 @@ jobs:
           node dist/gallery-mazhari-angular/server/server.mjs > /tmp/rm17-ssr.log 2>&1 &
           echo $! > /tmp/rm17-ssr.pid
           for attempt in {1..45}; do
-            if curl --fail --silent -H 'Host: gallery-mazhari.ir' http://127.0.0.1:4000/ >/dev/null; then
-              exit 0
-            fi
+            if curl --fail --silent -H 'Host: gallery-mazhari.ir' http://127.0.0.1:4000/ >/dev/null; then exit 0; fi
             sleep 1
           done
           cat /tmp/rm17-ssr.log
           exit 1
-
       - name: Run production-like crawler and health smoke
         env:
           STOREFRONT_URL: http://127.0.0.1:4000
@@ -109,7 +106,6 @@ jobs:
           BACKEND_URL: http://127.0.0.1:3000
           EXPECTED_REVISION: ${{ github.sha }}
         run: bash deploy/certification-smoke.sh
-
       - name: Upload certification evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -121,7 +117,6 @@ jobs:
             /tmp/rm17-ssr.log
           if-no-files-found: warn
           retention-days: 30
-
       - name: Stop candidate processes
         if: always()
         run: |
