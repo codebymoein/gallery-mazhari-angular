@@ -50,7 +50,10 @@ The following are intentional product systems and must not be deleted, flattened
 - Agent verification is risk-based and proportional to the actual final diff, using Tier A/B/C in `docs/handbook/10-testing-quality.md`.
 - Isolated frontend presentation changes use focused frontend evidence; they do not require unrelated backend, PostgreSQL, security, release-certification, sitemap, Lighthouse, or full Playwright execution solely because a file changed.
 - Frontend behavior/public-experience changes add relevant unit, production build and focused browser evidence; cross-boundary, security, data, workflow, dependency, deployment and certification work escalates to the broad applicable gate set.
-- Permanent CI regression controls may remain broader than the local agent tier. Agents may not weaken CI or relabel failing relevant gates as not applicable.
+- GitHub PR CI uses the same risk model: `quality-gates.yml` classifies changed surfaces and skips non-applicable blocking jobs while keeping governance, secret scanning and the stable aggregate required-check result.
+- RM-09/RM-12/RM-13/RM-17 evidence workflows are path-scoped to their actual risk boundaries; explicit `workflow_dispatch` remains available for broader certification when required.
+- The broad `push` duplicate was removed from `quality-gates.yml`; reviewed `main` merges continue to use the separate exact-SHA release/deployment workflows instead of repeating the entire PR matrix.
+- Agents may not weaken CI or relabel failing relevant gates as not applicable.
 - Explicit task, PR, release or certification contracts can require broader evidence than the tier minimum.
 
 ## Agent operating rules
