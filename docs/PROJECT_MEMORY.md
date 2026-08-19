@@ -46,6 +46,13 @@ The following are intentional product systems and must not be deleted, flattened
 - `docs/engineering/DEFINITION_OF_DONE.md` is the completion contract for post-remediation product changes.
 - Product feature growth must reuse existing architecture/source-of-truth boundaries rather than recreating local/browser authority, duplicate backend paths or ad-hoc persistent state.
 
+## Verification operating model
+- Agent verification is risk-based and proportional to the actual final diff, using Tier A/B/C in `docs/handbook/10-testing-quality.md`.
+- Isolated frontend presentation changes use focused frontend evidence; they do not require unrelated backend, PostgreSQL, security, release-certification, sitemap, Lighthouse, or full Playwright execution solely because a file changed.
+- Frontend behavior/public-experience changes add relevant unit, production build and focused browser evidence; cross-boundary, security, data, workflow, dependency, deployment and certification work escalates to the broad applicable gate set.
+- Permanent CI regression controls may remain broader than the local agent tier. Agents may not weaken CI or relabel failing relevant gates as not applicable.
+- Explicit task, PR, release or certification contracts can require broader evidence than the tier minimum.
+
 ## Agent operating rules
 - Start with `AGENTS.md`.
 - Read `CONSTITUTION.md`, handbook index and task-relevant chapters before edits.
